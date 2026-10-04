@@ -358,7 +358,7 @@ let hist=[],fut=[];
 const D={wall:{t:0.15,h:'',j:'c'},rmem:{k:'rafter',sec:'C150',zmode:'auto',za:3,zb:4},column:{w:0.25,d:0.25,shape:'rect',h:'',rot:0},beam:{w:0.2,d:0.4,at:'top'},slab:{t:0.12,mode:'rect',sk:'cast',sdir:'x'},
   door:{st:'d_single',w:0.9,h:2.1,flip:'0',side:'0',fm:'wood',fc:'#7a5230',gl:'clear'},window:{st:'w_slide',w:1.2,h:1.2,sill:0.9,side:'0',fm:'alu',fc:'#5a4632',gl:'green'},dim:{off:0.8},grid:{label:''},line:{},
   footing:{name:'F1',w:1.2,d:1.2,t:0.5,depth:1.5,sw:0.3,piles:'4',pd:0.22,pl:12,pshape:'sq',rot:0},
-  stair:{w:1.0,h:''},roof:{kind:'hip',pitch:30,over:0.8,ridge:'u',base:'',mat:'metal',color:'#7a2e26',frame:'steel',rs:1.0,ps:'',fas:'smart',fasc:'#efebe2',gab:'siding',gabc:'#d9cbb2',cap:'auto'},room:{name:'ห้อง',mode:'rect',fin:'tile60',fc:'#d9d4cb',ct:'gyp',ch:'',cc:'#f4f3ef'},elec:{kind:'dl',ckt:''},plumb:{kind:'fd'},wire:{ckt:''},pipe:{sys:'cw',dia:'',z:''},text:{s:'ข้อความ',size:0.3,rot:0},
+  stair:{w:1.0,h:'',stk:'straight',smat:'rc',rail:'steel',tr:0.25,ld:'',turn:'l',split:'',gap:0.1,ang:''},roof:{kind:'hip',pitch:30,over:0.8,ridge:'u',base:'',mat:'metal',color:'#7a2e26',frame:'steel',rs:1.0,ps:'',fas:'smart',fasc:'#efebe2',gab:'siding',gabc:'#d9cbb2',cap:'auto'},room:{name:'ห้อง',mode:'rect',fin:'tile60',fc:'#d9d4cb',ct:'gyp',ch:'',cc:'#f4f3ef'},elec:{kind:'dl',ckt:''},plumb:{kind:'fd'},wire:{ckt:''},pipe:{sys:'cw',dia:'',z:''},text:{s:'ข้อความ',size:0.3,rot:0},
   pline:{},rect:{},circle:{},arc:{},furn:{kind:'bed2',rot:0,snapw:'1'},section:{depth:30,flip:'0',name:'',tag:''},offset:{d:1},mirror:{keep:'1'},array:{mode:'rect',nx:3,ny:1,dx:4,dy:4,n:6,ang:360,cx:0,cy:0}};
 const SN={obj:true,grid:true,ortho:false,step:0.05};
 const lvl=id=>S.levels.find(l=>l.id===id)||S.levels[0];
@@ -562,11 +562,38 @@ function splitSeg(e,t0,t1){const A=cp(e.a),B=cp(e.b),L=dist(A,B);const P0=lerp(A
   hosted(e.id).forEach(o=>{const l=t0*L;o.pos=r3(Math.max(o.w/2,Math.min(l-o.w/2,o.pos)))});
   S.els.splice(S.els.indexOf(e)+1,0,e2);return e2}
 // ----- stair / roof / footing geometry
-function stairInfo(e){const H=elH(e),L=dist(e.a,e.b);const n=Math.max(2,Math.ceil(H/0.18-1e-6));return{H,L,n,rh:H/n,tr:L/n}}
-function stairProfile(e){const I=stairInfo(e),wv=0.15*Math.hypot(I.L,I.H)/Math.max(I.L,1e-6),pts=[{x:0,y:0}];
-  for(let i=0;i<I.n;i++){pts.push({x:i*I.tr,y:(i+1)*I.rh});pts.push({x:(i+1)*I.tr,y:(i+1)*I.rh})}
-  pts.push({x:I.L,y:Math.max(0,I.H-wv)});pts.push({x:Math.min(I.L,wv*I.L/Math.max(I.H,1e-6)),y:0});return pts}
-function stairRect(e){const u=nrm(sub(e.b,e.a)),q=perp(u),h=e.w/2;return[add(e.a,mul(q,h)),add(e.b,mul(q,h)),add(e.b,mul(q,-h)),add(e.a,mul(q,-h))]}
+const STK=[['straight','ทางเดียว (ตรง)'],['landing','ทางเดียว มีชานพัก'],['L','รูปตัว L มีชานพัก'],['Lw','รูปตัว L ขั้นเวียนที่มุม'],['U','รูปตัว U (พับผ้า) มีชานพัก'],['U3','รูปตัว U สามช่วง สองชานพัก'],['spiral','บันไดวน (เวียน)']];
+function stairParts(e){const H=elH(e),n=Math.max(2,Math.ceil(H/0.18-1e-6)),rh=H/n,w=+e.w||1,k=e.stk||'straight',L0=Math.max(0.3,dist(e.a,e.b)),u=nrm(sub(e.b,e.a)),q=perp(u),sd=e.turn==='r'?-1:1,T=+e.tr>0.1?+e.tr:0.25,
+    LD=+e.ld>0.3?+e.ld:w,g=isFinite(parseFloat(e.gap))?Math.max(0,parseFloat(e.gap)):0.1,F=[],Ls=[],W=[],path=[cp(e.a)];let z=0;
+  const fl=(p0,d,c,tr)=>{c=Math.max(1,c);F.push({p0:cp(p0),u:d,n:c,tr,z0:z,rh,w});z+=c*rh;const pe=add(p0,mul(d,c*tr));path.push(pe);return pe};
+  const sq=(p,d)=>{const qq=perp(d);return[add(p,mul(qq,w/2)),add(add(p,mul(d,w)),mul(qq,w/2)),add(add(p,mul(d,w)),mul(qq,-w/2)),add(p,mul(qq,-w/2))]};
+  const sp1=c=>{const v=parseInt(e.split);return v>0&&v<c?v:null};
+  switch(k){
+    case 'landing':{const n1=sp1(n)||Math.ceil(n/2),p1=fl(e.a,u,n1,T);Ls.push({poly:[add(p1,mul(q,w/2)),add(add(p1,mul(u,LD)),mul(q,w/2)),add(add(p1,mul(u,LD)),mul(q,-w/2)),add(p1,mul(q,-w/2))],z});fl(add(p1,mul(u,LD)),u,n-n1,T);break}
+    case 'L':case 'Lw':{const wn=k==='Lw'?3:0,n1=sp1(n-wn)||Math.ceil((n-wn)/2),p1=fl(e.a,u,n1,T),d2=mul(q,sd),c=add(p1,mul(u,w/2));
+      if(k==='L'){Ls.push({poly:sq(p1,u),z});path.push(c)}
+      else{const ic=add(p1,mul(q,sd*w/2)),A0=add(p1,mul(q,-sd*w/2)),A2=add(add(p1,mul(u,w)),mul(q,sd*w/2)),A3=add(add(p1,mul(u,w)),mul(q,-sd*w/2)),X1=lineLine(ic,add(ic,rotP(sub(A0,ic),{x:0,y:0},-sd*rad(30))),A0,A3),X2=lineLine(ic,add(ic,rotP(sub(A0,ic),{x:0,y:0},-sd*rad(60))),A3,A2);
+        [[ic,A0,X1],[ic,X1,A3,X2],[ic,X2,A2]].forEach(pl=>{z+=rh;W.push({poly:pl,z})});path.push(c)}
+      fl(add(c,mul(d2,w/2)),d2,n-n1-wn,T);break}
+    case 'U':{const n1=sp1(n)||Math.ceil(n/2),p1=fl(e.a,u,n1,T),a1=add(p1,mul(q,-sd*w/2)),a2=add(p1,mul(q,sd*(w/2+g+w)));Ls.push({poly:[a1,a2,add(a2,mul(u,LD)),add(a1,mul(u,LD))],z});
+      path.push(add(p1,mul(u,LD/2)),add(add(p1,mul(u,LD/2)),mul(q,sd*(w+g))));fl(add(p1,mul(q,sd*(w+g))),mul(u,-1),n-n1,T);break}
+    case 'U3':{const n1=sp1(n)||Math.round(n/3),n2=Math.max(1,Math.round((n-n1)/3)),d2=mul(q,sd),p1=fl(e.a,u,n1,T);Ls.push({poly:sq(p1,u),z});const c1=add(p1,mul(u,w/2));path.push(c1);
+      const p2=fl(add(c1,mul(d2,w/2)),d2,n2,T);Ls.push({poly:sq(p2,d2),z});const c2=add(p2,mul(d2,w/2));path.push(c2);fl(add(c2,mul(u,-w/2)),mul(u,-1),n-n1-n2,T);break}
+    case 'spiral':{const Rr=Math.max(0.6,L0),r0=0.1,a0=Math.atan2(u.y,u.x),dirA=e.turn==='r'?-1:1,sa=parseFloat(e.ang)>0?rad(parseFloat(e.ang))/n:Math.min(rad(30),T/((r0+Rr)/2));
+      for(let i=0;i<n;i++){const t0=a0+dirA*i*sa,t1=a0+dirA*(i+1)*sa,pl=[add(e.a,{x:r0*Math.cos(t0),y:r0*Math.sin(t0)})];for(let s2=0;s2<=4;s2++){const t=t0+(t1-t0)*s2/4;pl.push(add(e.a,{x:Rr*Math.cos(t),y:Rr*Math.sin(t)}))}pl.push(add(e.a,{x:r0*Math.cos(t1),y:r0*Math.sin(t1)}));W.push({poly:pl,z:(i+1)*rh})}
+      path.length=0;const rw=(r0+Rr)/2;for(let i=0;i<=n;i++){const t=a0+dirA*i*sa;path.push(add(e.a,{x:rw*Math.cos(t),y:rw*Math.sin(t)}))}return{F,Ls,W,path,n,rh,H,w,T,spiral:{c:e.a,R:Rr,r0,a0,sa,dirA}}}
+    default:fl(e.a,u,n,L0/n)}
+  return{F,Ls,W,path,n,rh,H,w,T}}
+function flightRect(f){const q=perp(f.u),e2=add(f.p0,mul(f.u,f.n*f.tr));return[add(f.p0,mul(q,f.w/2)),add(e2,mul(q,f.w/2)),add(e2,mul(q,-f.w/2)),add(f.p0,mul(q,-f.w/2))]}
+function flightProfile(f){const run=f.n*f.tr,zt=f.z0+f.n*f.rh,sl=f.rh/f.tr,wv=0.15*Math.hypot(1,sl),pts=[{x:0,y:f.z0}];
+  for(let i=0;i<f.n;i++){pts.push({x:i*f.tr,y:f.z0+(i+1)*f.rh});pts.push({x:(i+1)*f.tr,y:f.z0+(i+1)*f.rh})}pts.push({x:run,y:Math.max(0,zt-wv)});
+  if(f.z0-wv<0)pts.push({x:Math.min(run,(wv-f.z0)/sl),y:0});else pts.push({x:0,y:f.z0-wv});return pts}
+function stairFoot(e){const S_=stairParts(e);return[...S_.F.map(flightRect),...S_.Ls.map(l=>l.poly),...S_.W.map(w=>w.poly)]}
+function stairInfo(e){const S_=stairParts(e),f=S_.F[0];return{H:S_.H,L:S_.F.reduce((a,x)=>a+x.n*x.tr,0)||1,n:S_.n,rh:S_.rh,tr:f?f.tr:S_.T}}
+function stairInfo1(e){const f=stairParts(e).F[0];return{H:f.n*f.rh,L:f.n*f.tr,n:f.n,rh:f.rh,tr:f.tr}}
+function stairProfile(e){return flightProfile({...stairParts(e).F[0],z0:0})}
+function stairRect(e){return flightRect(stairParts(e).F[0])}
+function stairConcrete(e){const S_=stairParts(e);if((e.smat||'rc')!=='rc')return 0;return S_.F.reduce((a,f)=>a+polyArea(flightProfile(f))*f.w,0)+S_.Ls.reduce((a,l)=>a+polyArea(l.poly)*0.15,0)+S_.W.reduce((a,w)=>a+polyArea(w.poly)*0.15,0)}
 function roofFrame(e){const[p0,p1,,p3]=e.pts;let U=sub(p1,p0),V=sub(p3,p0);let o=+e.over||0;let nU=nrm(U),nV=nrm(V),Lu=len(U)+2*o,Lv=len(V)+2*o;
   let O=sub(sub(p0,mul(nU,o)),mul(nV,o));
   let swap=e.ridge==='v';const sym=['hip','dutch','mansard','pyramid'].includes(e.kind);if(sym&&!swap&&Lu<Lv)swap=true;else if(sym&&swap&&Lv<Lu)swap=false;
@@ -677,9 +704,11 @@ function drawEl(e,mode){const ov=mode==='s',ul=mode==='u';const col=k=>ov?C['sel
     case 'footing':{g.strokeStyle=col('cv-foot');g.lineWidth=ov?2.5:1.1;g.setLineDash(ov?[]:[6,3]);polyPath(rectPts(e.p,e.w,e.d,e.rot));g.stroke();
       if(!ul){g.setLineDash([3,3]);pileOffsets(e).forEach(q=>{const s=ws(q),r=e.pd/2*view.s;g.beginPath();if(e.pshape==='ci')g.arc(s.x,s.y,r,0,7);else g.rect(s.x-r,s.y-r,2*r,2*r);g.stroke()});g.setLineDash([]);
         const s=ws(add(e.p,rotP({x:e.w/2,y:e.d/2},{x:0,y:0},rad(e.rot||0))));txt(e.name||'',{x:s.x+4,y:s.y-8},{al:'left',size:11,w:'600',c:col('cv-foot')})}g.setLineDash([]);break}
-    case 'stair':{const R=stairRect(e),I=stairInfo(e),u=nrm(sub(e.b,e.a)),q=perp(u);g.strokeStyle=col('cv-line');g.lineWidth=ov?2.5:1;polyPath(R);if(!ov&&!ul){g.fillStyle=C['cv-bg'];g.fill()}g.stroke();
-      if(!ul){g.lineWidth=0.7;for(let i=1;i<I.n;i++){const c=add(e.a,mul(u,i*I.tr));seg(add(c,mul(q,e.w/2)),add(c,mul(q,-e.w/2)))}g.lineWidth=1.2;arrow(add(e.a,mul(u,Math.min(0.3,I.L*0.1))),add(e.b,mul(u,-Math.min(0.15,I.L*0.05))),col('cv-line'));
-        const s=ws(add(e.a,mul(u,-0.25)));txt('ขึ้น',s,{size:11,w:'600',c:col('cv-line')})}break}
+    case 'stair':{const S_=stairParts(e);g.strokeStyle=col('cv-line');g.lineWidth=ov?2.5:1;const fillP=pl=>{polyPath(pl);if(!ov&&!ul){g.fillStyle=C['cv-bg'];g.fill()}g.stroke()};
+      S_.Ls.forEach(l=>fillP(l.poly));S_.W.forEach(w=>fillP(w.poly));S_.F.forEach(f=>{fillP(flightRect(f));if(!ul){const q=perp(f.u);g.lineWidth=0.7;for(let i=1;i<f.n;i++){const c=add(f.p0,mul(f.u,i*f.tr));seg(add(c,mul(q,f.w/2)),add(c,mul(q,-f.w/2)))}g.lineWidth=ov?2.5:1}});
+      if(S_.spiral){const c=ws(S_.spiral.c);g.beginPath();g.arc(c.x,c.y,Math.max(2,0.08*view.s),0,7);g.stroke()}
+      if(!ul&&S_.path.length>1){g.lineWidth=1.1;g.beginPath();S_.path.forEach((p2,i)=>{const q=ws(p2);i?g.lineTo(q.x,q.y):g.moveTo(q.x,q.y)});g.stroke();const pe=S_.path[S_.path.length-1],pb=S_.path[S_.path.length-2];arrow(lerp(pb,pe,0.5),pe,col('cv-line'));
+        const s0=ws(S_.path[0]);g.beginPath();g.arc(s0.x,s0.y,3,0,7);g.fillStyle=col('cv-line');g.fill();txt('ขึ้น',{x:s0.x,y:s0.y+14},{size:11,w:'600',c:col('cv-line')})}break}
     case 'roof':{const F=roofFrame(e),{P,Lu,Lv}=F,RM=ROOFMAT[e.mat]||ROOFMAT.metal,fr=PRINT==='roofs'||(!PRINT&&DISC==='struct');
       g.strokeStyle=col('cv-roof');g.lineWidth=ov?2.5:1.2;g.setLineDash(ov?[]:[9,4]);polyPath([P(0,0),P(Lu,0),P(Lu,Lv),P(0,Lv)]);g.stroke();g.setLineDash([]);
       if(!ul){if(fr&&!ov)drawRoofFrame(e);else{g.lineWidth=ov?2:0.9;roofEdges(e).forEach(([a,b])=>seg(a,b))}
@@ -769,8 +798,9 @@ function curX(){const t=T.name,P=T.pts,m=mouse;if(!m||!P.length)return null;
   if(t==='mirror'){const a=P[0];if(dist(a,m)<1e-6)return null;return{kind:'mir',th:deg(Math.atan2(m.y-a.y,m.x-a.x)),fn:p=>mirP(p,a,m)}}return null}
 function drawPreview(){if(!mouse)return;const t=T.name,P=T.pts,m=mouse;
   const lab=(a)=>{const L=dist(a,m),ang=deg(Math.atan2(m.y-a.y,m.x-a.x));const s=ws(m);txt(f2(L)+' ม.  ∠'+(Math.round(ang*10)/10)+'°',{x:s.x+14,y:s.y+18},{al:'left',size:12,c:C['sel'],w:'600'})};
+  if(t==='stair'&&P.length&&dist(P[0],m)>0.05){g.globalAlpha=.6;drawEl({type:'stair',level:cur,a:P[0],b:m,...D.stair},'s');g.globalAlpha=1}
   if(t==='rmem'&&P.length&&dist(P[P.length-1],m)>1e-6){g.strokeStyle=C['sel'];g.lineWidth=2;seg(P[P.length-1],m);lab(P[P.length-1])}
-  if(['wall','beam','line','grid','dim','stair'].includes(t)&&P.length){const a=P[P.length-1];
+  if(['wall','beam','line','grid','dim'].includes(t)&&P.length){const a=P[P.length-1];
     if(t==='wall'){const u=nrm(sub(m,a)),n=perp(u),h=D.wall.t/2;g.globalAlpha=.55;polyPath([add(a,mul(n,h)),add(m,mul(n,h)),add(m,mul(n,-h)),add(a,mul(n,-h))]);g.fillStyle=C['cv-wall'];g.fill();g.globalAlpha=1}
     else if(dist(a,m)>1e-6)drawEl({...D[t],type:t,a,b:m,label:'',off:D.dim.off,level:cur},'n');lab(a)}
   if((t==='slab'||t==='room'||t==='rect'||t==='roof')&&P.length&&(t==='rect'||t==='roof'||D[t].mode==='rect')){const a=P[0];const pts=[a,{x:m.x,y:a.y},m,{x:a.x,y:m.y}];polyPath(pts);g.fillStyle=C['cv-slab'];g.fill();g.strokeStyle=C['sel'];g.lineWidth=1;g.stroke();
@@ -811,7 +841,7 @@ function hitTest(p,tolPx=7,filter){const tol=tolPx/view.s;let best=null,bd=1e9,p
       case 'line':d=segDist(p,e.a,e.b).d;pr=2;break;
       case 'grid':d=segDist(p,e.a,e.b).d;pr=4;break;
       case 'dim':{const q=dimGeom(e);d=segDist(p,q.p1,q.p2).d;pr=2;break}
-      case 'stair':d=inPoly(p,stairRect(e))?0:1e9;pr=3;break;
+      case 'stair':d=stairFoot(e).some(pl=>inPoly(p,pl))?0:1e9;pr=3;break;
       case 'pline':{const n=e.pts.length,m=e.closed?n:n-1;for(let i=0;i<m;i++)d=Math.min(d,segDist(p,e.pts[i],e.pts[(i+1)%n]).d);pr=2;break}
       case 'circle':d=Math.abs(dist(p,e.c)-e.r);pr=2;break;
       case 'arc':{const a=deg(Math.atan2(p.y-e.c.y,p.x-e.c.x));d=angIn(a,e.a0,e.a1)?Math.abs(dist(p,e.c)-e.r):1e9;pr=2;break}
@@ -896,7 +926,7 @@ function updatePrompt(){const t=T.name,n=T.pts.length;let s='';
     case 'wall':s=n?L:'ผนัง: คลิกจุดเริ่ม (พิมพ์ x,y ได้)';break;case 'beam':s=n?L:'คาน: คลิกจุดเริ่ม';break;case 'line':s=n?L:'เส้น: คลิกจุดเริ่ม';break;
     case 'grid':s=n?'คลิกปลายเส้นกริด':'กริด: คลิกจุดเริ่ม';break;case 'dim':s=n?'คลิกจุดที่สอง':'บอกระยะ: คลิกจุดแรก';break;
     case 'column':s='เสา: คลิกตำแหน่ง หรือพิมพ์ x,y';break;case 'footing':s='ฐานราก: คลิกที่ศูนย์กลางเสา หรือพิมพ์ x,y';break;
-    case 'stair':s=n?'คลิกปลายทางขึ้น หรือพิมพ์ความยาว':'บันได: คลิกจุดเริ่ม (ตีนบันได)';break;
+    case 'stair':s=D.stair.stk==='spiral'?(n?'คลิกกำหนดรัศมีและจุดเริ่มขั้นแรก':'บันไดวน: คลิกจุดศูนย์กลาง'):(n?(D.stair.stk==='straight'||!D.stair.stk?'คลิกปลายทางขึ้น หรือพิมพ์ความยาว':'คลิกทิศทางขึ้นของช่วงแรก (ความยาวคำนวณจากลูกนอน)'):'บันได'+((STK.find(x=>x[0]===D.stair.stk)||STK[0])[1])+': คลิกตีนบันได (กึ่งกลางความกว้าง)');break;
     case 'slab':case 'room':s=D[t].mode==='rect'?(n?'คลิกมุมตรงข้าม หรือพิมพ์ กว้าง,ยาว':TNAME[t]+': คลิกมุมแรก'):(n?'คลิกจุดถัดไป • คลิกจุดแรกหรือ ตกลง เพื่อปิดรูป':TNAME[t]+'หลายเหลี่ยม: คลิกจุดแรก');break;
     case 'roof':case 'rect':s=n?'คลิกมุมตรงข้าม หรือพิมพ์ กว้าง,ยาว':TNAME[t]+': คลิกมุมแรก';break;
     case 'pline':s=n?'คลิกจุดถัดไป • คลิกจุดแรกเพื่อปิดรูป • ตกลง เพื่อจบ':'เส้นต่อเนื่อง: คลิกจุดแรก';break;
@@ -1132,7 +1162,7 @@ const FIELDS={
   slab:[['ความหนา (ม.)','t'],['ชนิดพื้น','sk','sel',SLABK],['แนวพาดแผ่นพื้นสำเร็จ','sdir','sel',[['x','แนว X'],['y','แนว Y']]],['รูปแบบการวาด','mode','sel',[['rect','สี่เหลี่ยม 2 คลิก'],['poly','หลายเหลี่ยม']]]],
   footing:[['ชื่อ','name','text'],['กว้าง (ม.)','w'],['ยาว (ม.)','d'],['หนา (ม.)','t'],['ลึกถึงหลังฐาน (ม.)','depth'],['ขนาดตอม่อ (ม.)','sw'],['จำนวนเข็ม','piles','sel',[['0','ไม่มี'],['1','1'],['2','2'],['3','3'],['4','4'],['5','5'],['6','6']]],
     ['ขนาดเข็ม (ม.)','pd'],['ความยาวเข็ม (ม.)','pl'],['หน้าตัดเข็ม','pshape','sel',[['sq','สี่เหลี่ยม'],['ci','กลม']]],['มุมหมุน (°)','rot']],
-  stair:[['กว้าง (ม.)','w'],['ความสูงรวม (ม.)','h','text','เท่าความสูงชั้น'],['ความยาวช่วงบันได','_len']],
+  stair:[['รูปแบบบันได','stk','sel',STK],['โครงสร้าง','smat','sel',[['rc','คอนกรีตเสริมเหล็ก'],['steel','โครงเหล็ก ลูกนอนไม้'],['wood','ไม้ทั้งหมด']]],['ราวกันตก','rail','sel',[['steel','ราวเหล็ก'],['glass','ราวกระจก'],['wood','ราวไม้'],['none','ไม่มี']]],['ลูกนอน (ม.)','tr'],['ความลึกชานพัก (ม.)','ld','text','เท่าความกว้าง'],['ทิศเลี้ยว / ทิศวน','turn','sel',[['l','ซ้าย (ทวนเข็ม)'],['r','ขวา (ตามเข็ม)']]],['จำนวนขั้นช่วงแรก','split','text','อัตโนมัติ'],['ช่องว่างระหว่างช่วง U (ม.)','gap'],['มุมกวาดบันไดวน (°)','ang','text','อัตโนมัติ'],['กว้าง (ม.)','w'],['ความสูงรวม (ม.)','h','text','เท่าความสูงชั้น'],['ความยาวช่วงบันได','_len']],
   roof:[['ทรงหลังคา','kind','sel',Object.entries(ROOFK)],['ความชัน (°)','pitch'],['ชายคายื่น (ม.)','over'],['แนวสันหลังคา','ridge','sel',[['u','ตามด้านแรก'],['v','ตามด้านที่สอง']]],['ระดับฐานหลังคา (ม.)','base','text','บนสุดของชั้น'],['วัสดุมุง','mat','sel',Object.entries(ROOFMAT).map(([k,v])=>[k,v.n])],['สีหลังคา','color','col'],['ฝ้าชายคา','sof','sel',CEILOPT],['เชิงชาย / ปั้นลม','fas','sel',Object.entries(FASM).map(([k,v])=>[k,v.n])],['สีเชิงชาย','fasc','col'],['ปิดหน้าจั่ว','gab','sel',Object.entries(GABM).map(([k,v])=>[k,v.n])],['สีไม้ฝา','gabc','col'],['ครอบสัน / ครอบข้าง','cap','sel',[['auto','แสดง'],['none','ไม่แสดง']]],['โครงหลังคา','frame','sel',[['steel','โครงเหล็ก (อัตโนมัติ)'],['wood','โครงไม้ (อัตโนมัติ)'],['manual','ชิ้นที่แก้ไขเอง'],['none','ไม่แสดง']]],['ระยะจันทัน (ม.)','rs'],['ระยะแป/ระแนง (ม.)','ps','text','ตามวัสดุมุง']],
   room:[['ชื่อห้อง','name','text'],['วัสดุปูพื้น','fin','sel',FINOPT],['สีวัสดุปูพื้น','fc','col'],['ฝ้าเพดาน','ct','sel',CEILOPT],['ระดับฝ้าจากพื้น (ม.)','ch','text','อัตโนมัติ'],['สีฝ้า','cc','col'],['รูปแบบการวาด','mode','sel',[['rect','สี่เหลี่ยม 2 คลิก'],['poly','หลายเหลี่ยม']]]],
   door:[['แบบประตู','st','sel',OPOPT('door')],['กว้าง (ม.)','w'],['สูง (ม.)','h'],['ระยะจากต้นผนัง','pos'],['ด้านบานพับ','flip','sel',[['0','ซ้าย'],['1','ขวา']]],['ทิศเปิด','side','sel',[['0','ด้าน A'],['1','ด้าน B']]],['วัสดุวงกบ','fm','sel',FMAT],['สีวงกบ / บาน','fc','col'],['กระจก','gl','sel',GLASS]],
@@ -1148,7 +1178,7 @@ const FIELDS={
   wire:[['วงจร','ckt','text','เช่น C1']],pipe:[['ระบบท่อ','sys','sel',PSYSOPT],['ขนาดท่อ','dia','text','ตามระบบ'],['ระดับท่อจากพื้น (ม.)','z','text','ตามระบบ']],
   rmem:[['ชนิดชิ้นส่วน','k','sel',RMK],['หน้าตัด','sec','sel',SECOPT],['ระดับปลายเริ่ม (ม.)','za'],['ระดับปลายสุด (ม.)','zb'],['ความยาวในแปลน (ม.)','_len']],
   offset:[['ระยะขนาน (ม.)','d']],mirror:[['เก็บต้นฉบับไว้','keep','sel',YN]]};
-const TEXTK=['fas','fasc','gab','gabc','cap','k','sec','zmode','ct','ch','cc','sof','ckt','sys','dia','j','sk','sdir','st','fm','fc','gl','fin','mat','color','frame','ps','bub','snapw','tag','label','shape','mode','flip','side','name','kind','ridge','piles','pshape','at','s','keep','base','h'];
+const TEXTK=['stk','smat','rail','ld','turn','split','ang','fas','fasc','gab','gabc','cap','k','sec','zmode','ct','ch','cc','sof','ckt','sys','dia','j','sk','sdir','st','fm','fc','gl','fin','mat','color','frame','ps','bub','snapw','tag','label','shape','mode','flip','side','name','kind','ridge','piles','pshape','at','s','keep','base','h'];
 function getF(e,k){if(k==='_len')return r3(dist(e.a,e.b));if(k==='_px')return r3(e.p.x);if(k==='_py')return r3(e.p.y);if(k==='closed')return String(!!e.closed);return e[k]??''}
 function setF(e,k,v){if(k==='_len'){const L=parseFloat(v);if(!(L>0))return;const nb=add(e.a,mul(nrm(sub(e.b,e.a)),L));e.type==='wall'?setSegEnds(e,e.a,nb):(e.b=nb);return}
   if(k==='_px'){e.p.x=+v;return}if(k==='_py'){e.p.y=+v;return}if(k==='closed'){e.closed=v==='true';return}
@@ -1172,7 +1202,7 @@ function infoFor(e){const rows=[];const H=e.level&&['wall','column','stair'].inc
   if(e.type==='slab'){const A=polyArea(e.pts);rows.push(['พื้นที่',f2(A)+' ตร.ม.'],['ปริมาตรคอนกรีต',(A*e.t).toFixed(3)+' ลบ.ม.'])}
   if(e.type==='room')rows.push(['พื้นที่',f2(polyArea(e.pts))+' ตร.ม.']);
   if(e.type==='footing'){rows.push(['คอนกรีตฐาน',(e.w*e.d*e.t).toFixed(3)+' ลบ.ม.'],['คอนกรีตตอม่อ',(e.sw*e.sw*e.depth).toFixed(3)+' ลบ.ม.'],['ระดับก้นฐาน',f2(elevOf(e.level)-e.depth-e.t)+' ม.'],['เข็มรวม',(+e.piles)+' ต้น × '+f2(e.pl)+' ม.'])}
-  if(e.type==='stair'){const I=stairInfo(e);rows.push(['คอนกรีต (ท้องหนา 15 ซม.)',(e.w*polyArea(stairProfile(e))).toFixed(3)+' ลบ.ม.'],['จำนวนลูกตั้ง',I.n+' ขั้น'],['ลูกตั้ง',(I.rh*100).toFixed(1)+' ซม.'],['ลูกนอน',(I.tr*100).toFixed(1)+' ซม.'],['2R + T',((2*I.rh+I.tr)*100).toFixed(1)+' ซม.']);
+  if(e.type==='stair'){const I=stairInfo(e);rows.push(['รูปแบบ',(STK.find(x=>x[0]===(e.stk||'straight'))||STK[0])[1]],['ชานพัก / ขั้นเวียน',stairParts(e).Ls.length+' / '+(e.stk==='spiral'?0:stairParts(e).W.length)],['คอนกรีต',stairConcrete(e).toFixed(3)+' ลบ.ม.'],['จำนวนลูกตั้ง',I.n+' ขั้น'],['ลูกตั้ง',(I.rh*100).toFixed(1)+' ซม.'],['ลูกนอน',(I.tr*100).toFixed(1)+' ซม.'],['2R + T',((2*I.rh+I.tr)*100).toFixed(1)+' ซม.']);
     if(I.tr<0.22)warn='ลูกนอนน้อยกว่า 22 ซม. — เพิ่มความยาวช่วงบันได หรือตรวจกับข้อกำหนดที่ใช้'}
   if(e.type==='rmem'){const m=rmemM(e),L=Math.hypot(m.a[0]-m.b[0],m.a[1]-m.b[1],m.a[2]-m.b[2]);rows.push(['ความยาวจริง',f2(L)+' ม.'],['หน้าตัด',m.s.n]);if(m.s.kg)rows.push(['น้ำหนัก',(L*m.s.kg).toFixed(1)+' กก.'])}
   if(e.type==='roof')rows.push(['พื้นที่หลังคา (ตามความชัน)',f2(roofArea(e))+' ตร.ม.'],['ระดับฐานหลังคา','+'+f2(roofBase(e))+' ม.']);
@@ -1206,6 +1236,7 @@ function renderSide(){const P=$('#pane');if(isSheet()&&tab==='props'){renderShee
     if(S.levels.length>1)h+=`<div class="acts"><select id="cpLv" class="lv">${levelOpts(cur)}</select><button class="btn" data-a="cplv">คัดลอกไปชั้นนี้</button></div>`}
   else if(T.name==='furn'){h=libHTML()}
   else if(T.name==='elec'||T.name==='plumb'){h=symLibHTML(T.name)}
+  else if(T.name==='stair'){h=stairLibHTML()}
   else if(T.name==='rmem'){h=`<h3>โครงหลังคา — วาดเอง</h3><p class="hint">เลือกชนิดชิ้นส่วนและหน้าตัด แล้วคลิก 2 จุด (ดั้งคลิกจุดเดียว) ระดับปลายจับตามผิวหลังคาที่อยู่ใต้จุดคลิกให้เอง หรือเลือกระดับเองแล้วพิมพ์ค่า</p>`+
     fieldHTML(['ชนิดชิ้นส่วน','k','sel',RMK],D.rmem.k,'def')+fieldHTML(['หน้าตัด','sec','sel',SECOPT],D.rmem.sec,'def')+fieldHTML(['ระดับ','zmode','sel',[['auto','ตามผิวหลังคาอัตโนมัติ'],['manual','กำหนดเอง']]],D.rmem.zmode,'def')+(D.rmem.zmode==='manual'?fieldHTML(['ระดับปลายเริ่ม (ม.)','za'],D.rmem.za,'def')+fieldHTML(['ระดับปลายสุด (ม.)','zb'],D.rmem.zb,'def'):'')+'<p class="hint">ระดับวัดจากพื้นของชั้นที่วาด</p>'}
   else if(T.name==='wire'||T.name==='pipe'){h=`<h3>${TNAME[T.name]} — ค่าตั้งต้น</h3><p class="hint">คลิกต่อเนื่องเป็นแนว กด ตกลง หรือดับเบิลคลิกเพื่อจบ</p>`+FIELDS[T.name].map(f=>fieldHTML(f,D[T.name][f[1]]??'','def')).join('')+(T.name==='pipe'?pipeLegendHTML():'')}
@@ -1224,6 +1255,7 @@ function renderSide(){const P=$('#pane');if(isSheet()&&tab==='props'){renderShee
   P.querySelectorAll('[data-ak]').forEach(inp=>inp.addEventListener('change',()=>{const k=inp.dataset.ak;D.array[k]=k==='mode'?inp.value:(+inp.value||0);if(k==='mode'){renderSide();updatePrompt()}draw2()}));
   P.querySelectorAll('[data-rk]').forEach(inp=>inp.onchange=()=>{const e=byId(ids[0]);if(!e)return;const k=rkey(e),f=inp.dataset.rk,v=inp.tagName==='SELECT'?inp.value:parseFloat(inp.value);if(inp.tagName!=='SELECT'&&!(v>0))return;mutate(()=>{S.rebar=S.rebar||{};S.rebar[k]={...(S.rebar[k]||{}),[f]:v}})});
   P.querySelectorAll('[data-op]').forEach(b=>b.onclick=()=>{const k=b.dataset.op,L=OPLIB[k],d=D[T.name];Object.assign(d,{st:k,w:L.w,h:L.h,fm:L.fm,fc:L.fc,gl:L.gl||'clear'});if(L.sill!=null)d.sill=L.sill;renderSide();draw2()});
+  P.querySelectorAll('[data-stk]').forEach(b=>b.onclick=()=>{D.stair.stk=b.dataset.stk;renderSide();updatePrompt();draw2()});
   P.querySelectorAll('[data-rsec]').forEach(sl=>sl.onchange=()=>{const e=byId(ids[0]);if(!e)return;mutate(()=>{e.secs={...(e.secs||{}),[sl.dataset.rsec]:sl.value}})});
   P.querySelectorAll('[data-sym]').forEach(b=>b.onclick=()=>{D[T.name].kind=b.dataset.sym;renderSide();updatePrompt();draw2()});
   P.querySelectorAll('[data-mep]').forEach(b=>b.onclick=()=>{const a=b.dataset.mep;if(a==='auto')autoElec(cur);if(a==='ckt')autoCircuits(true)});
@@ -1272,7 +1304,7 @@ function qtyData(){return S.levels.map(l=>{const E=S.els.filter(e=>e.level===l.i
     if(e.type==='wall')q.wall+=dist(e.a,e.b)*elH(e)-hosted(e.id).reduce((s,o)=>s+o.w*o.h,0);
     if(e.type==='door')q.door++;if(e.type==='window')q.win++;
     if(e.type==='footing'){q.footN++;q.foot+=e.w*e.d*e.t+e.sw*e.sw*e.depth;q.pileN+=+e.piles;q.pileL+=(+e.piles)*e.pl}
-    if(e.type==='stair'){const I=stairInfo(e);q.stair+=e.w*polyArea(stairProfile(e))}
+    if(e.type==='stair'){const I=stairInfo(e);q.stair+=stairConcrete(e)}
     if(e.type==='roof')q.roofA+=roofArea(e);if(e.type==='room')q.rooms.push([e.name,polyArea(e.pts)]);if(e.type==='furn'){const n=(LIB[e.kind]||{}).n||e.kind;q.furn[n]=(q.furn[n]||0)+1}if(e.type==='elec'){const n=(ELIB[e.kind]||{}).n||e.kind;q.el[n]=(q.el[n]||0)+1}if(e.type==='plumb'){const n=(PLIB[e.kind]||{}).n||e.kind;q.pl[n]=(q.pl[n]||0)+1}if(e.type==='pipe'){const Y=PSYS[e.sys]||PSYS.cw,n=Y.n+' Ø'+(e.dia||Y.dia);let L=0;for(let i=0;i<e.pts.length-1;i++)L+=dist(e.pts[i],e.pts[i+1]);q.pp[n]=(q.pp[n]||0)+L}if(e.type==='room'&&e.ct!=='none'){const n=(CEIL[e.ct||'gyp']||CEIL.gyp).n;q.ce[n]=(q.ce[n]||0)+polyArea(e.pts)}if(e.type==='room'&&e.fin&&e.fin!=='none'){const n=(FIN[e.fin]||FIN.none).n;q.fin[n]=(q.fin[n]||0)+polyArea(e.pts)}if(e.type==='roof'){q.trim=q.trim||{};roofTrimQty(e).forEach(o=>{q.trim[o.n]=(q.trim[o.n]||0)+o.v})}if(e.type==='roof'||e.type==='rmem')(e.type==='roof'?roofMembers(e).map(m=>({...m,k:m.kk||m.k})):[rmemM(e)]).forEach(m=>{const nm=(RMKN[m.k]||'')+' '+m.s.n,o=q.rf[nm]||(q.rf[nm]={len:0,kg:0});const L=Math.hypot(m.a[0]-m.b[0],m.a[1]-m.b[1],m.a[2]-m.b[2]);o.len+=L;o.kg+=L*(m.s.kg||0)})});return q})}
 function renderQty(P){const Q=qtyData();const tot={col:0,beam:0,slab:0,wall:0,slabA:0,foot:0,stair:0,pileN:0,pileL:0,roofA:0};
   let rows='';Q.forEach(q=>{Object.keys(tot).forEach(k=>tot[k]+=q[k]);
@@ -1343,9 +1375,7 @@ function build3(){WOFF.clear();while(root.children.length){const c=root.children
       case 'footing':{if(!show3.under)break;const r=rad(e.rot||0),top=el-e.depth;addMesh(new THREE.BoxGeometry(e.w,e.t,e.d),MAT.foot,e.id,V3(e.p.x,e.p.y,top-e.t/2),r);
         if(e.depth>0.01)addMesh(new THREE.BoxGeometry(e.sw,e.depth-0.003,e.sw),MAT.col,e.id,V3(e.p.x,e.p.y,top+e.depth/2),r);
         pileOffsets(e).forEach(q=>{const geo=e.pshape==='ci'?new THREE.CylinderGeometry(e.pd/2,e.pd/2,e.pl,16):new THREE.BoxGeometry(e.pd,e.pl,e.pd);addMesh(geo,MAT.pile,e.id,V3(q.x,q.y,top-e.t-e.pl/2),r)});break}
-      case 'stair':{const I=stairInfo(e);if(I.L<1e-6)break;const u=nrm(sub(e.b,e.a)),ang=Math.atan2(u.y,u.x);
-        const geo=new THREE.ExtrudeGeometry(new THREE.Shape(stairProfile(e).map(q=>new THREE.Vector2(q.x,q.y))),{depth:e.w,bevelEnabled:false});geo.translate(0,0,-e.w/2);
-        addMesh(geo,MAT.stair,e.id,V3(e.a.x,e.a.y,el),ang);break}
+      case 'stair':build3Stair(e,el);break;
       case 'elec':case 'plumb':{const L=(e.type==='elec'?ELIB:PLIB)[e.kind];if(!L)break;const rr_=rad(e.rot||0),cs_=Math.cos(rr_),sn_=Math.sin(rr_),X=(x,y)=>({x:e.p.x+x*cs_-y*sn_,y:e.p.y+x*sn_+y*cs_}),zb=e.type==='elec'&&L.mount==='ceil'?el+ceilAt(e):el,dh=e.type==='elec'&&L.mount==='wall'&&isFinite(parseFloat(e.h))?parseFloat(e.h)-L.h:0;
         L.b.forEach(bx=>{let poly,z0,z1,m;if(bx[0]==='b'){poly=[X(bx[1],bx[2]),X(bx[3],bx[2]),X(bx[3],bx[4]),X(bx[1],bx[4])];z0=bx[5];z1=bx[6];m=bx[7]}else{poly=ellPts(X,bx[1],bx[2],bx[3],bx[4],16);z0=bx[5];z1=bx[6];m=bx[7]}if(e.kind==='rain'){z1=+lvl(e.level).height}
           const geo=new THREE.ExtrudeGeometry(new THREE.Shape(poly.map(q=>new THREE.Vector2(q.x,q.y))),{depth:Math.max(0.005,z1-z0),bevelEnabled:false});const mm=addMesh(geo,sel.has(e.id)?MAT.sel:(MAT['m_'+m]||MAT.f_white),e.id,new THREE.Vector3(0,zb+z0+dh,0),0,true);mm.rotation.x=-Math.PI/2});break}
@@ -1483,7 +1513,8 @@ function dxfFor(lid){const o=[];const P=(...a)=>o.push(...a);const n=v=>(+v).toF
     case 'beam':{const u=nrm(sub(e.b,e.a)),q=perp(u),h=e.w/2;PG([add(e.a,mul(q,h)),add(e.b,mul(q,h)),add(e.b,mul(q,-h)),add(e.a,mul(q,-h))],'S-BEAM');break}
     case 'slab':PG(e.pts,'S-SLAB');break;
     case 'room':PG(e.pts,'A-ROOM');{const c=centroid(e.pts);TX(add(c,{x:0,y:0.2}),0.3,e.name||'','A-ROOM');TX(add(c,{x:0,y:-0.25}),0.2,f2(polyArea(e.pts))+' m2','A-ROOM')}break;
-    case 'stair':{const I=stairInfo(e),u=nrm(sub(e.b,e.a)),q=perp(u);PG(stairRect(e),'A-STAIR');for(let i=1;i<I.n;i++){const c=add(e.a,mul(u,i*I.tr));LN(add(c,mul(q,e.w/2)),add(c,mul(q,-e.w/2)),'A-STAIR')}LN(e.a,e.b,'A-STAIR');
+    case 'stair':{const S_=stairParts(e);S_.Ls.forEach(l=>PG(l.poly,'A-STAIR'));S_.W.forEach(w=>PG(w.poly,'A-STAIR'));S_.F.forEach(f=>{PG(flightRect(f),'A-STAIR');const q=perp(f.u);for(let i=1;i<f.n;i++){const c=add(f.p0,mul(f.u,i*f.tr));LN(add(c,mul(q,f.w/2)),add(c,mul(q,-f.w/2)),'A-STAIR')}});for(let i=0;i<S_.path.length-1;i++)LN(S_.path[i],S_.path[i+1],'A-STAIR');TX(S_.path[0],0.2,'UP','A-STAIR');break}
+    case 'stair_old':{const I=stairInfo(e),u=nrm(sub(e.b,e.a)),q=perp(u);PG(stairRect(e),'A-STAIR');for(let i=1;i<I.n;i++){const c=add(e.a,mul(u,i*I.tr));LN(add(c,mul(q,e.w/2)),add(c,mul(q,-e.w/2)),'A-STAIR')}LN(e.a,e.b,'A-STAIR');
       LN(e.b,add(e.b,add(mul(u,-0.25),mul(q,0.12))),'A-STAIR');LN(e.b,add(e.b,add(mul(u,-0.25),mul(q,-0.12))),'A-STAIR');TX(add(e.a,mul(u,-0.3)),0.2,'UP','A-STAIR');break}
     case 'roof':{roofMembers(e).forEach(m=>LN({x:m.a[0],y:m.a[1]},{x:m.b[0],y:m.b[1]},'S-ROOF'));const F=roofFrame(e),{P:Q,Lu,Lv}=F;PG([Q(0,0),Q(Lu,0),Q(Lu,Lv),Q(0,Lv)],'A-ROOF');if(e.kind==='gable')LN(Q(0,Lv/2),Q(Lu,Lv/2),'A-ROOF');
       if(e.kind==='hip'){const r=Lv/2;LN(Q(r,r),Q(Lu-r,r),'A-ROOF');LN(Q(0,0),Q(r,r),'A-ROOF');LN(Q(0,Lv),Q(r,r),'A-ROOF');LN(Q(Lu,0),Q(Lu-r,r),'A-ROOF');LN(Q(Lu,Lv),Q(Lu-r,r),'A-ROOF')}break}
@@ -1573,9 +1604,10 @@ function solidsOf(e){const out=[];if(!e.level)return out;const el=elevOf(e.level
       openingParts(e).forEach(pt=>{if(pt.z0>=Hm)return;const Q=(x,d)=>add(F.c,add(mul(F.u,x),mul(F.n,d)));P([Q(pt.x0,pt.d0),Q(pt.x1,pt.d0),Q(pt.x1,pt.d1),Q(pt.x0,pt.d1)],el+bot+pt.z0,el+bot+Math.min(pt.z1,Hm),pt.m==='glass'?'glass':'door')});break}
     case 'footing':{const top=el-e.depth;P(rectPts(e.p,e.w,e.d,e.rot),top-e.t,top,'conc');if(e.depth>0.01)P(rectPts(e.p,e.sw,e.sw,e.rot),top,el,'conc');
       pileOffsets(e).forEach(q=>P(e.pshape==='ci'?circPts(q,e.pd/2,e.pd/2,12):rectPts(q,e.pd,e.pd,e.rot),top-e.t-e.pl,top-e.t,'conc'));break}
-    case 'stair':{const pr=stairProfile(e),u=nrm(sub(e.b,e.a)),q=perp(u),h=e.w/2;const Wp=(x,z,sg)=>({...add(add(e.a,mul(u,x)),mul(q,sg*h)),z:el+z});
-      const faces=[pr.map(p=>Wp(p.x,p.y,1)),pr.map(p=>Wp(p.x,p.y,-1)).reverse()];for(let i=0;i<pr.length;i++){const a=pr[i],b=pr[(i+1)%pr.length];faces.push([Wp(a.x,a.y,1),Wp(b.x,b.y,1),Wp(b.x,b.y,-1),Wp(a.x,a.y,-1)])}
-      out.push({t:'faces',faces,m:'conc',closed:true,id:e.id});break}
+    case 'stair':{const S_=stairParts(e),rc=(e.smat||'rc')==='rc';S_.F.forEach(f=>{if(rc){const pr=flightProfile(f),q=perp(f.u),h=f.w/2,Wp=(x,z,sg)=>({...add(add(f.p0,mul(f.u,x)),mul(q,sg*h)),z:el+z});
+        const faces=[pr.map(p2=>Wp(p2.x,p2.y,1)),pr.map(p2=>Wp(p2.x,p2.y,-1)).reverse()];for(let i=0;i<pr.length;i++){const a=pr[i],b=pr[(i+1)%pr.length];faces.push([Wp(a.x,a.y,1),Wp(b.x,b.y,1),Wp(b.x,b.y,-1),Wp(a.x,a.y,-1)])}out.push({t:'faces',faces,m:'conc',closed:true,id:e.id})}
+        else for(let i=0;i<f.n;i++){const c=add(f.p0,mul(f.u,i*f.tr)),q=perp(f.u);P([add(c,mul(q,f.w/2)),add(add(c,mul(f.u,f.tr+0.03)),mul(q,f.w/2)),add(add(c,mul(f.u,f.tr+0.03)),mul(q,-f.w/2)),add(c,mul(q,-f.w/2))],el+f.z0+(i+1)*f.rh-0.04,el+f.z0+(i+1)*f.rh,'furn')}});
+      [...S_.Ls,...S_.W].forEach(l=>P(l.poly,el+l.z-(rc?0.15:0.04),el+l.z,rc?'conc':'furn'));break}
     case 'roof':{const b=roofBase(e),P3=f=>f.map(p=>({x:p[0],y:p[1],z:p[2]+b}));out.push({t:'faces',faces:roofFaces(e).filter(f=>!(faceInfo(f).vert&&onOuter(e,f))).map(P3),m:'roof',closed:e.kind==='flat',id:e.id});if(gabMat(e))gableInfill(e).forEach(f=>out.push({t:'faces',faces:[P3(f)],m:'wall',closed:false,id:e.id}));if((e.fas||'smart')!=='none'){const TR=roofTrim(e);[...TR.eave,...TR.top,...TR.rake].forEach(([a,c])=>out.push({t:'faces',faces:memberBox({a:[a[0],a[1],a[2]-0.1],b:[c[0],c[1],c[2]-0.1],s:{b:.025,h:.2}},b),m:'frame',closed:true,id:e.id}))}roofMembers(e).forEach(mb=>out.push({t:'faces',faces:memberBox(mb,b),m:'frame',closed:true,id:e.id}));break}
     case 'furn':furnBoxes(e).forEach(bx=>P(bx.poly,el+bx.z0,el+bx.z1,bx.m==='glass'?'glass':'furn'));break}
   return out}
@@ -2004,7 +2036,7 @@ function detailCells(ref){const k=1000/DSC[ref],cells=[];
       x.beginPath();x.moveTo(L+bw/2,y+c+2);x.lineTo(L+bw/2,y+c);x.lineTo(L+bw+0.25*Ls,y+c);x.moveTo(L+Ls-bw/2,y+c+2);x.lineTo(L+Ls-bw/2,y+c);x.lineTo(L+Ls-bw-0.25*Ls,y+c);x.stroke();
       x.fillStyle='#111';const rd=Math.max(0.45,barDia(R.dd)*k/2);for(let p=L+bw+4;p<L+Ls-bw-2;p+=R.ds*k)dot2(x,p,y+T-c-rb-rd,rd);
       lbl(x,[rmark(e)+'  พื้นหนา '+f2(e.t)+' ม.','เหล็กหลัก '+R.md+' @ '+f2(R.ms)+' • กันร้าว '+R.dd+' @ '+f2(R.ds)+' ม.','เหล็กบนเหนือคาน ยาว L/4 จากขอบคาน'],cx,y+bh+6)}})});
-  if(ref==='stair')uniqOf('stair').forEach(e=>{const R=rebarOf(e),I=stairInfo(e),pr=stairProfile(e);cells.push({w:I.L*k+58,h:I.H*k+16,draw(x,x0c,ty){const L=x0c-(I.L*k+58)/2+4,B=ty+4+I.H*k;const P=p=>({x:L+p.x*k,y:B-p.y*k});
+  if(ref==='stair')uniqOf('stair').filter(e=>(e.smat||'rc')==='rc').forEach(e=>{const R=rebarOf(e),I=stairInfo1(e),pr=stairProfile(e);cells.push({w:I.L*k+58,h:I.H*k+16,draw(x,x0c,ty){const L=x0c-(I.L*k+58)/2+4,B=ty+4+I.H*k;const P=p=>({x:L+p.x*k,y:B-p.y*k});
       x.fillStyle='#f0f0ee';x.strokeStyle='#111';x.beginPath();pr.forEach((p,i)=>{const q=P(p);i?x.lineTo(q.x,q.y):x.moveTo(q.x,q.y)});x.closePath();x.fill();x.lineWidth=0.35;x.stroke();
       const a=P(pr[pr.length-1]),b=P(pr[pr.length-2]),u=nrm(sub(b,a)),n={x:u.y,y:-u.x},off=(R.c*k+Math.max(0.4,barDia(R.md)*k/2));const s0=add(a,mul(n,off)),s1=add(b,mul(n,off));
       x.lineWidth=Math.max(0.3,barDia(R.md)*k);x.beginPath();x.moveTo(s0.x-u.x*4,s0.y-u.y*4);x.lineTo(s1.x+u.x*4,s1.y+u.y*4);x.stroke();x.fillStyle='#111';const Ls=dist(s0,s1),st=R.ds*k;for(let t=2;t<Ls;t+=st){const q=add(s0,mul(u,t));dot2(x,q.x+n.x*1.2,q.y+n.y*1.2,0.45)}
@@ -2080,7 +2112,7 @@ $('#rbIn').onchange=async()=>{const f=$('#rbIn').files[0];if(!f)return;try{const
       v.src=d.app||d.source||'Civil Toolkit';S.rebar[k]={...(S.rebar[k]||{}),...v};n++})});toast('นำเข้าเหล็กเสริม '+n+' รายการ');}catch(e){toast('ไฟล์นี้ไม่ใช่ผลออกแบบเหล็กเสริม')}$('#rbIn').value=''};
 
 // ================= App shell: version, sync, manual, install, service worker
-const APP_VER='v6.6';$('#verL').textContent=APP_VER;
+const APP_VER='v6.7';$('#verL').textContent=APP_VER;
 const isEmbedded=/claude\.ai|claudeusercontent|anthropic/.test(location.host)||location.protocol==='blob:';
 const LSK={sync:'yothacad-sync',saved:'yothacad-savedAt',last:'yothacad-lastSync',dev:'yothacad-device'};
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -2129,7 +2161,7 @@ function helpHTML(){const T=(t,b,open)=>`<details${open?' open':''}><summary>${t
     <ul><li>เริ่มเร็วที่สุด: กด <b>สร้างกริดและโครงสร้าง</b> ใส่ระยะช่วงเสา แล้วแอปจะวางกริด ฐานราก เสา คาน พื้น และผนังรอบนอกให้</li><li>ดูตัวอย่างงานครบชุด: ไฟล์ → เปิดบ้านตัวอย่าง (จะแทนที่แบบปัจจุบัน ควรสำรองก่อน)</li><li>หน่วยทั้งหมดเป็นเมตร ยกเว้นขนาดบนแผ่นงานเป็นมิลลิเมตร</li><li><b>โครงการ:</b> ปุ่มชื่อโครงการด้านบน สร้าง เปิด ทำสำเนา เปลี่ยนชื่อ ส่งออก และลบโครงการ แต่ละโครงการเก็บแยกกัน</li><li><b>ทั้งหมด / สถาปัตย์ / โครงสร้าง:</b> เลือกงานที่จะเขียน งานอีกฝั่งจะล็อกไว้เป็นพื้นหลังจาง ๆ คลิกโดนไม่ได้ ในโหมดโครงสร้าง 3D จะซ่อนผนังและแสดงโครงหลังคา</li></ul>`,1)+
   T('2. โครงสร้าง: กริด ฐานราก เสา คาน พื้น บันได',`<ul><li><b>กริด</b> คลิก 2 จุด ชื่อแกนตั้งให้อัตโนมัติ (แนวตั้ง 1, 2, 3 / แนวนอน A, B, C)</li><li><b>ฐานราก</b> คลิกที่ศูนย์กลางเสา กำหนดขนาด ความลึก ตอม่อ และเสาเข็ม 0–6 ต้น หรือเลือกเสาแล้วกด "สร้างฐานรากใต้เสา"</li>
     <li><b>เสา</b> คลิกวาง ปรับขนาด รูปทรง มุมหมุน และความสูงที่แผงข้าง (เว้นว่าง = สูงเท่าชั้น)</li><li><b>คาน</b> คลิกต่อเนื่องเป็นแนว ตั้ง "ระดับคาน" เป็นคานคอดินได้</li><li><b>พื้น</b> สี่เหลี่ยม 2 คลิก หรือหลายเหลี่ยม (เว้นช่องบันไดโดยวาดเป็นรูปหลายเหลี่ยม)</li>
-    <li><b>บันได</b> คลิกตีนบันไดแล้วคลิกปลายทางขึ้น แอปคำนวณลูกตั้ง/ลูกนอนและเตือนเมื่อลูกนอนน้อยกว่า 22 ซม.</li></ul>`)+
+    <li><b>บันได</b> 7 รูปแบบ: ทางเดียว ทางเดียวมีชานพัก รูปตัว L (ชานพักหรือขั้นเวียน) รูปตัว U (พับผ้า) รูปตัว U สามช่วง และบันไดวน เลือกโครงสร้างคอนกรีต เหล็ก หรือไม้ ราวเหล็ก กระจก หรือไม้ ทิศเลี้ยว ลูกนอน ความลึกชานพัก และจำนวนขั้นช่วงแรกได้ แอปคำนวณลูกตั้งให้ไม่เกิน 18 ซม.</li></ul>`)+
   T('3. สถาปัตย์: ผนัง ประตู หน้าต่าง หลังคา ห้อง เฟอร์นิเจอร์',`<ul><li><b>ผนัง</b> คลิกต่อเนื่อง มุมผนังต่อกันเอง</li><li><b>ประตู/หน้าต่าง</b> เลือกแบบจากคลังภาพ (บานเปิด บานเลื่อน บานเฟี้ยม ประตูม้วน บานกระทุ้ง บานเกล็ด ฯลฯ) แล้วคลิกบนผนัง เปลี่ยนวัสดุวงกบ สี และชนิดกระจกได้</li><li><b>ห้อง</b> เลือกวัสดุปูพื้นและสีได้ แสดงลายในแปลนและ 3D • <b>พื้น</b> เลือกหล่อในที่ พื้นสำเร็จรูป วางบนดิน หรือเมทัลเด็ค</li><li><b>หลังคา</b> 11 ทรง เลือกวัสดุมุง (เมทัลชีท กระเบื้อง ชิงเกิ้ล uPVC) และสีได้ โครงหลังคาเหล็กหรือไม้สร้างอัตโนมัติ ครบทั้งอะเส ขื่อ ดั้ง อกไก่ ตะเฆ่ สะพานรับจันทัน จันทัน และแป/ระแนง (ปรับระยะจันทัน ระยะแป และหน้าตัดแยกตามชนิดได้) กด "แปลงโครงเป็นชิ้นที่แก้ไขได้" เพื่อย้าย ลบ หรือเปลี่ยนขนาดทีละชิ้น และใช้เครื่องมือ <b>โครงหลังคา</b> (พิมพ์ rm2) วาดชิ้นเพิ่มเอง เช่น ค้ำยัน เชิงชาย ระดับปลายจับตามผิวหลังคาให้เอง • หลังคามีครอบสัน ครอบตะเฆ่ ครอบข้าง เชิงชายและปั้นลม (ไม้เทียม ไม้จริง หรือเมทัลชีทพับ) และปิดหน้าจั่วด้วยไม้ฝา แผ่นเรียบ หรือผนัง เลือกวัสดุและสีได้ที่แผงคุณสมบัติหลังคา ดูได้ที่ปุ่ม "หลังคา: โครงหลังคา" ใน 3D และผังโครงหลังคาในโหมดโครงสร้าง</li><li><b>ผนัง</b> ตั้งแนวผนังเป็นกึ่งกลางเสา ชิดริมนอก หรือชิดริมในได้ • <b>กริด</b> เลือกกริดแล้วกด ยืด/หด หรือ "จัดกริดทั้งหมดให้พ้นแบบ"</li>
     <li><b>ห้อง</b> ใส่ชื่อห้อง แอปคำนวณพื้นที่ให้ ห้องที่ชื่อมีคำว่า "น้ำ" จะส่งเป็นพื้นห้องน้ำไป Civil Toolkit</li><li><b>เฟอร์นิเจอร์</b> เลือกจากคลังที่แผงข้าง เข้าใกล้ผนังแล้วจะหันหลังชิดผนังเอง</li></ul>`)+
   T('4. การเขียนให้แม่นยำ',`<ul><li><b>จับจุด</b> (F3) จุดปลาย จุดกึ่งกลาง จุดตัด ศูนย์กลาง • <b>ปัดระยะ</b> (F9) ตามค่าที่ตั้งในแผงคุณสมบัติ • <b>ตั้งฉาก</b> (F8)</li>
@@ -2497,6 +2529,29 @@ function roofCaps(e,base){const M=ROOFMAT[e.mat]||ROOFMAT.metal,tile=!!M.tile,cm
       j.fs.forEach(fi=>wing(j,faces[fi],0.08,MAT.mortar,0.004,0.012))}
     else{const ms=j.fs.map(fi=>wing(j,faces[fi],0.17,cm,0.012,0.004));if(j.fs.length>=2)addRod(j.a,j.b,0.022,0.022,cm,base,e.id,0.03);
       else{const m=ms[0],out=nrm3([-m[0],-m[1],0]),A=add3(j.a,mul3(out,0.012)),B=add3(j.b,mul3(out,0.012));slabMesh([add3(A,[0,0,0.016]),add3(B,[0,0,0.016]),add3(B,[0,0,-0.12]),add3(A,[0,0,-0.12])],out,0,0.004,cm,base,e.id)}}})}
+
+// ================= v6.7: stairs (types, landings, winders, spiral, railings)
+function stairLibHTML(){const d=D.stair;return`<h3>บันได — เลือกรูปแบบ</h3><p class="hint">แบบตรงคลิก 2 จุด (ความยาวตามที่คลิก) แบบมีชานพักและหักเลี้ยวคลิกตีนบันไดแล้วคลิกทิศขึ้น ระยะคำนวณจากลูกนอน บันไดวนคลิกจุดศูนย์กลางแล้วคลิกรัศมี</p><div class="libg">`+
+  STK.map(([k,n])=>`<button class="libi${(d.stk||'straight')===k?' on':''}" data-stk="${k}">${svgStair(k)}${n}</button>`).join('')+'</div><h3 style="margin-top:14px">ค่าตั้งต้น</h3>'+FIELDS.stair.filter(f=>!['stk','_len'].includes(f[1])).map(f=>fieldHTML(f,d[f[1]]??'','def')).join('')}
+function svgStair(k){const e={a:{x:0,y:0},b:{x:1,y:0},stk:k,w:1,h:3.0,tr:0.25,turn:'l',gap:0.1};const S_=stairParts(e),pls=[...S_.F.map(flightRect),...S_.Ls.map(l=>l.poly),...S_.W.map(w=>w.poly)];const B=bbox(pls.flat()),m=.15,W=B.x1-B.x0+2*m,H=B.y1-B.y0+2*m,sw=Math.max(W,H)/40;
+  let s=pls.map(pl=>`<polygon points="${pl.map(p=>p.x+','+p.y).join(' ')}"/>`).join('');S_.F.forEach(f=>{const q=perp(f.u);for(let i=1;i<f.n;i+=1){const c=add(f.p0,mul(f.u,i*f.tr));const a=add(c,mul(q,f.w/2)),b=add(c,mul(q,-f.w/2));s+=`<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke-width="${sw*0.5}"/>`}});
+  s+=`<polyline points="${S_.path.map(p=>p.x+','+p.y).join(' ')}" stroke-width="${sw*1.2}"/>`;return`<svg viewBox="${B.x0-m} ${-(B.y1+m)} ${W} ${H}" aria-hidden="true"><g transform="scale(1,-1)" fill="none" stroke="currentColor" stroke-width="${sw}">${s}</g></svg>`}
+function prism3(poly,z0,z1,mat,el,id){if(z1-z0<1e-4||poly.length<3)return;const geo=new THREE.ExtrudeGeometry(new THREE.Shape(poly.map(q=>new THREE.Vector2(q.x,q.y))),{depth:z1-z0,bevelEnabled:false});const m=addMesh(geo,mat,id,new THREE.Vector3(0,el+z0,0));m.rotation.x=-Math.PI/2;return m}
+function build3Stair(e,el){const S_=stairParts(e),mt=e.smat||'rc',rc=mt==='rc',trd=mt==='wood'?MAT.f_wood:MAT.f_wood,str=mt==='wood'?MAT.rf_wood:MAT.rf_steel,sm=sel.has(e.id)?MAT.sel:null;
+  S_.F.forEach(f=>{const ang=Math.atan2(f.u.y,f.u.x),q=perp(f.u);if(rc){const geo=new THREE.ExtrudeGeometry(new THREE.Shape(flightProfile(f).map(p=>new THREE.Vector2(p.x,p.y))),{depth:f.w,bevelEnabled:false});geo.translate(0,0,-f.w/2);addMesh(geo,sm||MAT.stair,e.id,V3(f.p0.x,f.p0.y,el),ang);return}
+    for(let i=0;i<f.n;i++){const c=add(f.p0,mul(f.u,i*f.tr));prism3([add(c,mul(q,f.w/2)),add(add(c,mul(f.u,f.tr+0.03)),mul(q,f.w/2)),add(add(c,mul(f.u,f.tr+0.03)),mul(q,-f.w/2)),add(c,mul(q,-f.w/2))],f.z0+(i+1)*f.rh-0.04,f.z0+(i+1)*f.rh,sm||trd,el,e.id)}
+    const run=f.n*f.tr,zt=f.z0+f.n*f.rh;[-1,1].forEach(sg=>{const o=mul(q,sg*(f.w/2+0.03));addBeam3([f.p0.x+o.x,f.p0.y+o.y,f.z0-0.05],[f.p0.x+f.u.x*run+o.x,f.p0.y+f.u.y*run+o.y,zt-0.05],{b:.05,h:mt==='wood'?.25:.2},sm||str,el,e.id)})});
+  S_.Ls.forEach(l=>prism3(l.poly,l.z-(rc?0.15:0.04),l.z,sm||(rc?MAT.stair:trd),el,e.id));S_.W.forEach(w=>prism3(w.poly,w.z-(rc&&!S_.spiral?0.15:0.05),w.z,sm||(rc&&!S_.spiral?MAT.stair:(S_.spiral&&rc?MAT.stair:trd)),el,e.id));
+  if(S_.spiral){const c=S_.spiral.c;addRod([c.x,c.y,0],[c.x,c.y,S_.H+0.95],0.08,0.08,sm||MAT.rf_steel,el,e.id,0)}
+  if((e.rail||'steel')!=='none')stairRails(e,S_,el)}
+function stairRails(e,S_,el){const kind=e.rail||'steel',hr=0.9,rm=kind==='wood'?MAT.rf_wood:MAT.rf_steel,sm=sel.has(e.id)?MAT.sel:null;const rod=(a,b,r)=>addRod(a,b,r,r,sm||rm,el,e.id,0);
+  const run=(A,B,za,zb)=>{const L=dist(A,B);if(L<0.05)return;rod([A.x,A.y,za+hr],[B.x,B.y,zb+hr],kind==='wood'?0.035:0.025);const k=Math.max(1,Math.ceil(L/1.0));
+    if(kind==='glass'){slabMesh([[A.x,A.y,za+0.08],[B.x,B.y,zb+0.08],[B.x,B.y,zb+hr-0.04],[A.x,A.y,za+hr-0.04]],[0,0,1].map((v,i)=>i<2?perp(nrm(sub(B,A)))[i?'y':'x']:0),-0.006,0.012,MAT.glass,el,e.id);for(let i=0;i<=k;i+=k)rod([lerp(A,B,i/k).x,lerp(A,B,i/k).y,za+(zb-za)*i/k],[lerp(A,B,i/k).x,lerp(A,B,i/k).y,za+(zb-za)*i/k+hr],0.02)}
+    else{for(let i=0;i<=k;i++){const P_=lerp(A,B,i/k),z=za+(zb-za)*i/k;rod([P_.x,P_.y,z],[P_.x,P_.y,z+hr],kind==='wood'?0.03:0.018)}if(kind==='steel')rod([A.x,A.y,za+hr*0.5],[B.x,B.y,zb+hr*0.5],0.012)}};
+  if(S_.spiral){const{c,R:Rr,a0,sa,dirA}=S_.spiral,rr=Rr-0.04;let prev=null;for(let i=0;i<=S_.n;i++){const t=a0+dirA*i*sa,P_=add(c,{x:rr*Math.cos(t),y:rr*Math.sin(t)}),z=Math.min(S_.H,(i+1)*S_.rh);if(prev)run(prev.P,P_,prev.z,z);prev={P:P_,z}}return}
+  S_.F.forEach(f=>{const q=perp(f.u),run_=f.n*f.tr;[-1,1].forEach(sg=>{const o=mul(q,sg*(f.w/2-0.04));run(add(f.p0,o),add(add(f.p0,mul(f.u,run_)),o),f.z0+f.rh,f.z0+f.n*f.rh)})});
+  const ends=S_.F.flatMap(f=>[f.p0,add(f.p0,mul(f.u,f.n*f.tr))]);[...S_.Ls,...S_.W].forEach(l=>{const pl=l.poly;for(let i=0;i<pl.length;i++){const a=pl[i],b=pl[(i+1)%pl.length],mid=lerp(a,b,.5);if(ends.some(p2=>dist(p2,mid)<0.06)||dist(a,b)<0.2)continue;
+      if(S_.W.includes(l)&&S_.W.some(o=>o!==l&&o.poly.some(p2=>dist(p2,a)<1e-3)&&o.poly.some(p2=>dist(p2,b)<1e-3)))continue;const cen=centroid(pl),n2=nrm(sub(cen,mid)),off=mul(n2,0.04);run(add(a,off),add(b,off),l.z,l.z)}})}
 
 // ================= Boot
 readColors();buildTools();
