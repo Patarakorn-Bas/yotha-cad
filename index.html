@@ -1307,7 +1307,7 @@ function init3(){if(!window.THREE){$('#v3wrap').insertAdjacentHTML('beforeend','
   Object.assign(dl.shadow.camera,{left:-40,right:40,top:40,bottom:-40,near:1,far:150});dl.shadow.bias=-0.0005;scene.add(dl);scene.add(dl.target);MAT.light=dl;
   const S0=(c,o={})=>new THREE.MeshStandardMaterial({color:c,roughness:.9,metalness:0,...o});
   Object.assign(MAT,{col:S0(0xa9b0b6),beam:S0(0x9ea6ad),slab:S0(0xc4c9cc),wall:S0(0xece6da),door:S0(0x9a6a3a),glass:S0(0x8fcbea,{transparent:true,opacity:.38,roughness:.1}),
-    foot:S0(0x9b98a8),rf_steel:S0(0x5d6873,{metalness:.5,roughness:.45}),m_lamp:S0(0xfffaf0,{emissive:0xfff1c9,emissiveIntensity:.9}),m_white:S0(0xf1f1ee,{roughness:.5}),m_metal:S0(0x8a9096,{metalness:.5,roughness:.4}),m_wood:S0(0x8a6a45),m_tank:S0(0x2f5d8a,{roughness:.5}),m_septic:S0(0x3d6b45,{roughness:.6}),m_conc:S0(0xa9aeb2),m_pipe:S0(0x9aa3ab,{metalness:.3}),p_cw:S0(0x1f6fd0,{roughness:.4}),p_hw:S0(0xd0402f,{roughness:.4}),p_ws:S0(0x8a9096,{roughness:.5}),p_sl:S0(0x7a4a2a,{roughness:.5}),p_vt:S0(0x2e9b5a,{roughness:.5}),p_rw:S0(0x2aa3b8,{roughness:.5}),rf_wood:S0(0x8a6a45),f_cer:S0(0xf4f6f7,{roughness:.35}),f_wood:S0(0x9c7350),f_fabric:S0(0x6f8193),f_white:S0(0xeeeeee),f_stone:S0(0xbdb6ab,{roughness:.5}),f_metal:S0(0x55585c,{metalness:.4,roughness:.5}),f_black:S0(0x1e1f22,{roughness:.4}),f_plant:S0(0x4f7d3a),f_pot:S0(0x9a5b3c),f_car:S0(0x2f5d8a,{roughness:.4,metalness:.2}),pile:S0(0x8d8a98),stair:S0(0xd3d0c8),roof:S0(0x9a4a32,{side:THREE.DoubleSide,roughness:.8}),
+    foot:S0(0x9b98a8),rf_steel:S0(0x5d6873,{metalness:.5,roughness:.45}),mortar:S0(0x9d978d,{roughness:.95}),m_lamp:S0(0xfffaf0,{emissive:0xfff1c9,emissiveIntensity:.9}),m_white:S0(0xf1f1ee,{roughness:.5}),m_metal:S0(0x8a9096,{metalness:.5,roughness:.4}),m_wood:S0(0x8a6a45),m_tank:S0(0x2f5d8a,{roughness:.5}),m_septic:S0(0x3d6b45,{roughness:.6}),m_conc:S0(0xa9aeb2),m_pipe:S0(0x9aa3ab,{metalness:.3}),p_cw:S0(0x1f6fd0,{roughness:.4}),p_hw:S0(0xd0402f,{roughness:.4}),p_ws:S0(0x8a9096,{roughness:.5}),p_sl:S0(0x7a4a2a,{roughness:.5}),p_vt:S0(0x2e9b5a,{roughness:.5}),p_rw:S0(0x2aa3b8,{roughness:.5}),rf_wood:S0(0x8a6a45),f_cer:S0(0xf4f6f7,{roughness:.35}),f_wood:S0(0x9c7350),f_fabric:S0(0x6f8193),f_white:S0(0xeeeeee),f_stone:S0(0xbdb6ab,{roughness:.5}),f_metal:S0(0x55585c,{metalness:.4,roughness:.5}),f_black:S0(0x1e1f22,{roughness:.4}),f_plant:S0(0x4f7d3a),f_pot:S0(0x9a5b3c),f_car:S0(0x2f5d8a,{roughness:.4,metalness:.2}),pile:S0(0x8d8a98),stair:S0(0xd3d0c8),roof:S0(0x9a4a32,{side:THREE.DoubleSide,roughness:.8}),
     sel:S0(0xf3be2c,{emissive:0x3a2a00,side:THREE.DoubleSide}),ground:S0(0x9aa394,{transparent:true,opacity:.55,depthWrite:false}),edge:new THREE.LineBasicMaterial({color:0x2a3138,transparent:true,opacity:.35}),grid:new THREE.LineDashedMaterial({color:0xc0392b,dashSize:.6,gapSize:.25})});
   root=new THREE.Group();scene.add(root);
   const gnd=new THREE.Mesh(new THREE.PlaneGeometry(400,400),MAT.ground);gnd.rotation.x=-Math.PI/2;gnd.position.y=-0.3;gnd.receiveShadow=true;gnd.renderOrder=-1;scene.add(gnd);
@@ -1357,8 +1357,8 @@ function build3(){WOFF.clear();while(root.children.length){const c=root.children
       case 'roof':{const base=roofBase(e),frameOnly=show3.roof==='frame'||DISC==='struct';if(show3.roof===false)break;
         if(!frameOnly){const gm=gabMat(e);roofFaces(e).forEach(f=>{const I=faceInfo(f);if(I.vert&&(onOuter(e,f)||!gm))return;const geo=faceGeoUV(f,I);const m=addMesh(geo,I.vert?gm:roofMat(e),e.id,new THREE.Vector3(0,base,0),0,!I.vert);m.castShadow=true});
           if(gm)gableInfill(e).forEach(f=>{const m=addMesh(faceGeoUV(f,faceInfo(f)),gm,e.id,new THREE.Vector3(0,base,0),0,true);m.castShadow=true});
-          const TR=roofTrim(e),tile=(ROOFMAT[e.mat]||ROOFMAT.metal).tile;if((e.fas||'smart')!=='none'){const fm=fasMat(e);[...TR.eave,...TR.top,...TR.rake].forEach(([a,b])=>addBeam3([a[0],a[1],a[2]-0.1],[b[0],b[1],b[2]-0.1],{b:.025,h:.2},fm,base,e.id))}
-          if(e.cap!=='none'){const cm=capMat(e);[...TR.ridge,...TR.hip,...TR.rake,...TR.top].forEach(([a,b])=>addCap3(a,b,tile,cm,base,e.id))}}
+          const TR=roofTrim(e),tile=(ROOFMAT[e.mat]||ROOFMAT.metal).tile;if((e.fas||'smart')!=='none'){const fm=fasMat(e);fasciaGeos(e,TR).forEach(geo=>{const m=new THREE.Mesh(geo,fm);m.position.y=base;m.castShadow=true;m.receiveShadow=true;m.userData.id=e.id;root.add(m)})}
+          if(e.cap!=='none')roofCaps(e,base)}
         if(!frameOnly&&e.sof&&e.sof!=='none'&&e.kind!=='flat'){const F=roofFrame(e),o=[F.P(0,0),F.P(F.Lu,0),F.P(F.Lu,F.Lv),F.P(0,F.Lv)],sh=new THREE.Shape(o.map(q=>new THREE.Vector2(q.x,q.y)));sh.holes.push(new THREE.Path(e.pts.map(q=>new THREE.Vector2(q.x,q.y))));
           const m=new THREE.Mesh(new THREE.ShapeGeometry(sh),texFloor(e.sof,null,CEIL,THREE.BackSide).mat);m.rotation.x=-Math.PI/2;m.position.y=base-0.03;m.userData.id=e.id;root.add(m)}
         if(frameOnly||e.kind==='flat'){const mt=e.frame==='wood'?MAT.rf_wood:MAT.rf_steel;roofMembers(e).forEach(mb=>addBeam3(mb.a,mb.b,mb.s,mt,base,e.id))}break}
@@ -2080,7 +2080,7 @@ $('#rbIn').onchange=async()=>{const f=$('#rbIn').files[0];if(!f)return;try{const
       v.src=d.app||d.source||'Civil Toolkit';S.rebar[k]={...(S.rebar[k]||{}),...v};n++})});toast('นำเข้าเหล็กเสริม '+n+' รายการ');}catch(e){toast('ไฟล์นี้ไม่ใช่ผลออกแบบเหล็กเสริม')}$('#rbIn').value=''};
 
 // ================= App shell: version, sync, manual, install, service worker
-const APP_VER='v6.4';$('#verL').textContent=APP_VER;
+const APP_VER='v6.6';$('#verL').textContent=APP_VER;
 const isEmbedded=/claude\.ai|claudeusercontent|anthropic/.test(location.host)||location.protocol==='blob:';
 const LSK={sync:'yothacad-sync',saved:'yothacad-savedAt',last:'yothacad-lastSync',dev:'yothacad-device'};
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -2451,12 +2451,52 @@ function gabMat(e){const g=e.gab||'siding';if(g==='none')return null;if(g==='wal
       if(g==='wsid')for(let i=0;i<30;i++){x.strokeStyle=`rgba(0,0,0,${0.03+R_()*0.05})`;x.beginPath();const yy=N*0.15+R_()*N*0.8;x.moveTo(0,yy);x.lineTo(N,yy+(R_()-.5)*4);x.stroke()}
       const g2=y.createLinearGradient(0,0,0,N);g2.addColorStop(0,'#222');g2.addColorStop(0.12,'#888');g2.addColorStop(1,'#ccc');y.fillStyle=g2;y.fillRect(0,0,N,N)});
   const m=new THREE.MeshStandardMaterial({map:T_.map,bumpMap:T_.bump,bumpScale:0.6,roughness:0.75,side:THREE.DoubleSide});TRMC.set(key,m);return m}
-function fasMat(e){if(sel.has(e.id))return MAT.sel;const f=e.fas||'smart',col=f==='metal'?(e.color||(ROOFMAT[e.mat]||ROOFMAT.metal).c):(e.fasc||(FASM[f]||FASM.smart).c),key='f|'+f+'|'+col;if(!TRMC.has(key))TRMC.set(key,new THREE.MeshStandardMaterial({color:col,roughness:f==='metal'?0.4:0.7,metalness:f==='metal'?0.4:0}));return TRMC.get(key)}
+function fasMat(e){if(sel.has(e.id))return MAT.sel;const f=e.fas||'smart',col=f==='metal'?(e.color||(ROOFMAT[e.mat]||ROOFMAT.metal).c):(e.fasc||(FASM[f]||FASM.smart).c),key='f|'+f+'|'+col;if(!TRMC.has(key))TRMC.set(key,new THREE.MeshStandardMaterial({color:col,roughness:f==='metal'?0.4:0.7,metalness:f==='metal'?0.4:0,side:THREE.DoubleSide}));return TRMC.get(key)}
 function capMat(e){if(sel.has(e.id))return MAT.sel;const M=ROOFMAT[e.mat]||ROOFMAT.metal,col=shd(e.color||M.c,-0.12),key='c|'+col+'|'+(M.metal?1:0);if(!TRMC.has(key))TRMC.set(key,new THREE.MeshStandardMaterial({color:col,roughness:M.metal?0.4:0.8,metalness:M.metal?0.4:0}));return TRMC.get(key)}
 function addCap3(a,b,tile,mat,base,id){const A=new THREE.Vector3(a[0],a[2]+base,-a[1]),B=new THREE.Vector3(b[0],b[2]+base,-b[1]),L=A.distanceTo(B);if(L<0.05)return;
   const geo=tile?new THREE.CylinderGeometry(0.1,0.1,L,14).rotateZ(Math.PI/2):new THREE.BoxGeometry(L,0.05,0.32);const m=new THREE.Mesh(geo,mat);m.position.copy(A).add(B).multiplyScalar(0.5);m.position.y+=tile?0.02:0.03;
   const x=B.clone().sub(A).normalize();let up=new THREE.Vector3(0,1,0);if(Math.abs(x.dot(up))>0.95)up=new THREE.Vector3(1,0,0);const z=new THREE.Vector3().crossVectors(x,up).normalize(),y=new THREE.Vector3().crossVectors(z,x);
   m.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(x,y,z));m.castShadow=true;m.userData.id=id;root.add(m)}
+
+// ----- mitred fascia / barge boards (45° at corners)
+function fasciaGeos(e,TR){const T=0.025,H=0.2,F=roofFrame(e),cen=centroid([F.P(0,0),F.P(F.Lu,0),F.P(F.Lu,F.Lv),F.P(0,F.Lv)]);
+  const E=[...TR.eave,...TR.top,...TR.rake].map(([a,b])=>{const A={x:a[0],y:a[1]},B={x:b[0],y:b[1]},L=dist(A,B);if(L<1e-4)return null;const u=nrm(sub(B,A));let n=perp(u);if(dot(n,sub(lerp(A,B,.5),cen))<0)n=mul(n,-1);return{A,B,za:a[2],zb:b[2],u,n,L}}).filter(Boolean);
+  const same=(p,q)=>dist(p,q)<1e-3;
+  const corner=(ed,P,isA)=>{const nb=E.find(o=>o!==ed&&(same(o.A,P)||same(o.B,P))&&Math.abs(crs(o.u,ed.u))>1e-3);
+    if(!nb)return{i:cp(P),o:add(P,mul(ed.n,T))};const iL=lineLine(ed.A,ed.B,nb.A,nb.B),oL=lineLine(add(ed.A,mul(ed.n,T)),add(ed.B,mul(ed.n,T)),add(nb.A,mul(nb.n,T)),add(nb.B,mul(nb.n,T)));
+    return{i:iL||cp(P),o:oL||add(P,mul(ed.n,T))}};
+  return E.map(ed=>{const a=corner(ed,ed.A,true),b=corner(ed,ed.B,false),zt=q=>ed.za+(ed.zb-ed.za)*(dot(sub(q,ed.A),ed.u)/ed.L);
+    const fp=[a.i,b.i,b.o,a.o],top=fp.map(q=>[q.x,zt(q),-q.y]),bot=fp.map(q=>[q.x,zt(q)-H,-q.y]),pos=[];
+    const quad=(p0,p1,p2,p3)=>{pos.push(...p0,...p1,...p2,...p0,...p2,...p3)};
+    quad(top[0],top[1],top[2],top[3]);quad(bot[3],bot[2],bot[1],bot[0]);for(let i=0;i<4;i++){const j=(i+1)%4;quad(bot[i],bot[j],top[j],top[i])}
+    const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geo.computeVertexNormals();return geo})}
+
+// ----- realistic ridge / hip / rake caps (mitred wings, bead, segmented tile caps)
+const sub3=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]],add3=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]],mul3=(a,k)=>[a[0]*k,a[1]*k,a[2]*k],len3=a=>Math.hypot(a[0],a[1],a[2]),nrm3=a=>{const l=len3(a)||1;return[a[0]/l,a[1]/l,a[2]/l]},cross3=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+function slabMesh(pts,n,lift,th,mat,base,id){const T3=p=>[p[0],p[2]+base,-p[1]],bot=pts.map(p=>T3(add3(p,mul3(n,lift)))),top=pts.map(p=>T3(add3(p,mul3(n,lift+th)))),pos=[],k=pts.length;
+  const tri=(a,b,c)=>pos.push(...a,...b,...c);for(let i=1;i<k-1;i++){tri(top[0],top[i],top[i+1]);tri(bot[0],bot[i+1],bot[i])}for(let i=0;i<k;i++){const j=(i+1)%k;tri(bot[i],bot[j],top[j]);tri(bot[i],top[j],top[i])}
+  const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geo.computeVertexNormals();const m=new THREE.Mesh(geo,sel.has(id)?MAT.sel:mat);m.castShadow=true;m.receiveShadow=true;m.userData.id=id;root.add(m)}
+function addRod(a,b,rTop,rBot,mat,base,id,lift){const A=new THREE.Vector3(a[0],a[2]+base+lift,-a[1]),B=new THREE.Vector3(b[0],b[2]+base+lift,-b[1]),L=A.distanceTo(B);if(L<0.02)return;
+  const geo=new THREE.CylinderGeometry(rTop,rBot,L,16).rotateZ(Math.PI/2);const m=new THREE.Mesh(geo,sel.has(id)?MAT.sel:mat);m.position.copy(A).add(B).multiplyScalar(0.5);
+  const x=B.clone().sub(A).normalize();let up=new THREE.Vector3(0,1,0);if(Math.abs(x.dot(up))>0.95)up=new THREE.Vector3(1,0,0);const z=new THREE.Vector3().crossVectors(x,up).normalize(),y=new THREE.Vector3().crossVectors(z,x);
+  m.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(x,y,z));m.castShadow=true;m.userData.id=id;root.add(m)}
+function roofCaps(e,base){const M=ROOFMAT[e.mat]||ROOFMAT.metal,tile=!!M.tile,cm=capMat(e);
+  const faces=roofFaces(e).map(f=>({f,I:faceInfo(f)})).filter(o=>!o.I.vert);const K=p=>p.map(v=>v.toFixed(3)).join(','),ek=(a,b)=>[K(a),K(b)].sort().join('|'),em=new Map();
+  faces.forEach((o,fi)=>{const f=o.f,zs=f.map(p=>p[2]);o.zmin=Math.min(...zs);o.zmax=Math.max(...zs);o.c=f.reduce((q,p)=>[q[0]+p[0]/f.length,q[1]+p[1]/f.length,q[2]+p[2]/f.length],[0,0,0]);
+    for(let i=0;i<f.length;i++){const a=f[i],b=f[(i+1)%f.length];if(len3(sub3(a,b))<0.05)continue;const k=ek(a,b),x=em.get(k)||{a,b,fs:[]};x.fs.push(fi);em.set(k,x)}});
+  const capEdge=new Set(),jobs=[];em.forEach((x,k)=>{const hz=Math.abs(x.a[2]-x.b[2])<0.02;let kind=null;
+    if(x.fs.length>=2){if(!hz)kind='hip';else if(x.fs.every(fi=>Math.abs(faces[fi].zmax-x.a[2])<0.02))kind='ridge'}else{const o=faces[x.fs[0]];if(!hz)kind='rake';else if(Math.abs(x.a[2]-o.zmin)>0.02)kind='top'}
+    if(kind){if(kind==='ridge'||kind==='hip')capEdge.add(k);jobs.push({...x,kind})}});
+  const wing=(j,o,w,mat,lift,th)=>{const n=o.I.n,f=o.f,dir=nrm3(sub3(j.b,j.a));let m=nrm3(cross3(n,dir));if(dot3(m,sub3(o.c,j.a))<0)m=mul3(m,-1);
+    const endQ=(P,away)=>{const idx=f.findIndex(p=>len3(sub3(p,P))<1e-3);if(idx<0)return m;const cands=[f[(idx-1+f.length)%f.length],f[(idx+1)%f.length]];
+      const Q=cands.find(q=>len3(sub3(q,P))>1e-4&&Math.abs(dot3(nrm3(sub3(q,P)),away))<0.999)||cands[0];const d2=nrm3(sub3(Q,P));return capEdge.has(ek(P,Q))?nrm3(add3(away,d2)):d2};
+    const corner=(P,away)=>{const q=endQ(P,away),qb=dot3(q,m);if(qb<0.05)return add3(P,mul3(m,w));return add3(P,mul3(q,Math.min(w/qb,w*4)))};
+    slabMesh([j.a,j.b,corner(j.b,mul3(dir,-1)),corner(j.a,dir)],n,lift,th,mat,base,e.id);return m};
+  jobs.forEach(j=>{if(tile){const hi=j.a[2]>=j.b[2]?j.a:j.b,lo=hi===j.a?j.b:j.a,L=len3(sub3(lo,hi)),d=nrm3(sub3(lo,hi)),n=Math.max(1,Math.ceil(L/0.36)),sg=L/n;
+      for(let i=0;i<n;i++){const p0=add3(hi,mul3(d,i*sg)),p1=add3(hi,mul3(d,Math.min(L,(i+1)*sg+0.03)));addRod(p0,p1,0.1,0.118,cm,base,e.id,0.03)}
+      j.fs.forEach(fi=>wing(j,faces[fi],0.08,MAT.mortar,0.004,0.012))}
+    else{const ms=j.fs.map(fi=>wing(j,faces[fi],0.17,cm,0.012,0.004));if(j.fs.length>=2)addRod(j.a,j.b,0.022,0.022,cm,base,e.id,0.03);
+      else{const m=ms[0],out=nrm3([-m[0],-m[1],0]),A=add3(j.a,mul3(out,0.012)),B=add3(j.b,mul3(out,0.012));slabMesh([add3(A,[0,0,0.016]),add3(B,[0,0,0.016]),add3(B,[0,0,-0.12]),add3(A,[0,0,-0.12])],out,0,0.004,cm,base,e.id)}}})}
 
 // ================= Boot
 readColors();buildTools();
