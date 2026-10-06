@@ -639,6 +639,30 @@ Object.assign(LIB,{
  pickup:{n:'รถกระบะ',c:'ภายนอก',sc:'ยานพาหนะ',w:1.85,d:5.3,h:1.8,m:'car',s:[['q',-.925,-2.65,.925,2.65,.3],['q',-.8,-.4,.8,1.3,.15],['r',-.85,-2.5,.85,-.5]],b:[box(-.925,-2.65,.925,2.65,.4,1.0,'car'),box(-.82,-.4,.82,1.3,1.0,1.8,'glass'),['c',-.88,-1.7,.38,.38,0,.76,'tire'],['c',.88,-1.7,.38,.38,0,.76,'tire'],['c',-.88,1.6,.38,.38,0,.76,'tire'],['c',.88,1.6,.38,.38,0,.76,'tire']]},
  moto:{n:'รถจักรยานยนต์',c:'ภายนอก',sc:'ยานพาหนะ',w:.7,d:1.9,h:1.1,m:'car',s:[['q',-.2,-.95,.2,.95,.15],['l',-.35,-.55,.35,-.55]],b:[box(-.15,-.7,.15,.7,.35,.9,'car'),['c',0,-.7,.04,.3,0,.6,'tire'],['c',0,.7,.04,.3,0,.6,'tire']]},
  bicycle:{n:'จักรยาน',c:'ภายนอก',sc:'ยานพาหนะ',w:.6,d:1.7,h:1.0,m:'metal',s:[['l',0,-.85,0,.85],['e',0,-.55,.04,.3],['e',0,.55,.04,.3],['l',-.3,-.6,.3,-.6]],b:[['c',0,-.55,.02,.33,0,.66,'tire'],['c',0,.55,.02,.33,0,.66,'tire'],box(-.02,-.55,.02,.55,.45,.6,'metal')]}});
+Object.assign(LIB,{
+ wcClose:{n:'ชักโครกสองชิ้น (Close-coupled)',c:'สุขภัณฑ์',w:.38,d:.68,h:.78,m:'cer',s:[['q',-.19,.2,.19,.34,.04],['e',0,-.06,.18,.25],['e',0,-.08,.12,.17]],b:[['c',0,.02,.12,.15,0,.28,'cer'],['c',0,-.06,.18,.25,.28,.4,'cer'],['c',0,-.06,.185,.255,.4,.42,'white'],box(-.19,.2,.19,.34,.38,.78,'cer'),box(-.03,.25,.03,.29,.78,.8,'metal')]},
+ wcOne:{n:'ชักโครกชิ้นเดียว ทรงรี',c:'สุขภัณฑ์',w:.4,d:.72,h:.68,m:'cer',s:[['q',-.2,-.36,.2,.36,.16],['e',0,-.1,.17,.22],['e',0,-.12,.11,.15]],b:[['c',0,0,.15,.25,0,.3,'cer'],['c',0,-.08,.19,.27,.3,.4,'cer'],['c',0,-.1,.19,.27,.4,.42,'white'],box(-.18,.14,.18,.36,.3,.68,'cer')],sph:[[0,.25,.6,.17,'cer']]},
+ wcSquare:{n:'ชักโครกทรงเหลี่ยมโมเดิร์น',c:'สุขภัณฑ์',w:.38,d:.66,h:.76,m:'cer',s:[['q',-.19,-.33,.19,.33,.04],['q',-.15,-.28,.15,.12,.03],['r',-.19,.18,.19,.33]],b:[box(-.15,-.25,.15,.18,0,.3,'cer'),box(-.19,-.33,.19,.18,.3,.41,'cer'),box(-.19,-.33,.19,.18,.41,.43,'white'),box(-.19,.18,.19,.33,.3,.76,'cer')]},
+ wcPanel:{n:'ชักโครกแขวนผนัง + แผงซ่อนถังพักน้ำ',c:'สุขภัณฑ์',w:.6,d:.7,h:1.2,m:'cer',s:[['r',-.3,.5,.3,.7],['e',0,.12,.18,.25],['e',0,.1,.11,.16]],b:[box(-.3,.5,.3,.7,0,1.2,'stone'),box(-.1,.49,.1,.5,.95,1.1,'metal'),['c',0,.15,.18,.27,.32,.42,'cer'],['c',0,.15,.185,.275,.42,.44,'white'],box(-.17,.38,.17,.5,.28,.44,'cer')]},
+ wcSquat:{n:'โถส้วมนั่งยอง',c:'สุขภัณฑ์',w:.45,d:.6,h:.12,m:'cer',s:[['q',-.225,-.3,.225,.3,.15],['e',0,.02,.12,.18],['r',-.2,-.28,-.08,-.12],['r',.08,-.28,.2,-.12]],b:[box(-.225,-.3,.225,.3,0,.08,'stone'),['c',0,.02,.15,.23,.08,.11,'cer'],box(-.2,-.28,-.08,-.12,.08,.1,'cer'),box(.08,-.28,.2,-.12,.08,.1,'cer')]},
+ wcSmall:{n:'ชักโครกขนาดเล็ก (ห้องน้ำแคบ)',c:'สุขภัณฑ์',w:.35,d:.6,h:.72,m:'cer',s:[['q',-.175,.16,.175,.3,.03],['e',0,-.06,.16,.21]],b:[['c',0,0,.11,.14,0,.28,'cer'],['c',0,-.06,.16,.21,.28,.39,'cer'],['c',0,-.06,.165,.215,.39,.41,'white'],box(-.175,.16,.175,.3,.36,.72,'cer')]},
+ wcBidet:{n:'ชักโครก + สายฉีดชำระ',c:'สุขภัณฑ์',w:.55,d:.68,h:.78,m:'cer',s:[['q',-.19,.2,.19,.34,.04],['e',0,-.06,.18,.25],['e',.26,.3,.035,.035]],b:[['c',0,.02,.12,.15,0,.28,'cer'],['c',0,-.06,.18,.25,.28,.4,'cer'],['c',0,-.06,.185,.255,.4,.42,'white'],box(-.19,.2,.19,.34,.38,.78,'cer'),box(.24,.31,.28,.34,.55,.75,'metal')]},
+ shRain:{n:'ชุดฝักบัวเรนชาวเวอร์ (ก้านแข็ง)',c:'สุขภัณฑ์',w:.35,d:.4,h:2.15,m:'metal',s:[['e',0,-.1,.12,.12],['l',0,.15,0,-.1],['e',.1,.12,.03,.03]],b:[box(-.015,.14,.015,.17,.95,2.1,'metal'),box(-.015,-.12,.015,.17,2.08,2.1,'metal'),['c',0,-.1,.13,.13,2.04,2.06,'metal'],box(-.06,.13,.06,.17,1.0,1.08,'metal'),box(.08,.12,.12,.17,1.2,1.4,'metal')]},
+ shSlide:{n:'ฝักบัวสายอ่อน + ราวเลื่อน',c:'สุขภัณฑ์',w:.2,d:.15,h:1.9,m:'metal',s:[['r',-.02,0,.02,.075],['e',0,-.03,.04,.04]],b:[box(-.015,.05,.015,.075,1.0,1.9,'metal'),box(-.03,-.06,.03,.05,1.55,1.6,'metal'),box(-.05,.04,.05,.075,1.0,1.08,'metal')]},
+ shEncl:{n:'ตู้อาบน้ำกระจกเข้ามุม 90×90',c:'สุขภัณฑ์',w:.9,d:.9,h:2.0,m:'glass',s:[['r',-.45,-.45,.45,.45],['l',-.45,-.45,.45,-.45],['l',-.45,-.45,-.45,.45],['e',.05,.05,.05,.05]],b:[box(-.45,-.45,.45,.45,0,.04,'stone'),box(-.45,-.46,.45,-.44,.04,1.95,'glass'),box(-.46,-.45,-.44,.45,.04,1.95,'glass'),box(-.45,-.46,.45,-.44,1.95,1.98,'metal'),box(-.46,-.45,-.44,.45,1.95,1.98,'metal'),box(.4,.3,.44,.34,.95,1.9,'metal'),['c',.42,.1,.11,.11,1.98,2.0,'metal']]},
+ shQuad:{n:'ตู้อาบน้ำทรงโค้ง (Quadrant)',c:'สุขภัณฑ์',w:.9,d:.9,h:2.0,m:'glass',s:[['r',-.45,-.45,.45,.45],['e',-.45,-.45,.9,.9],['e',.3,.3,.05,.05]],b:[box(-.45,-.45,.45,.45,0,.04,'stone'),['c',.45,.45,.9,.9,.04,.05,'stone']]},
+ shWalk:{n:'ผนังกระจก Walk-in 120 ซม.',c:'สุขภัณฑ์',w:1.2,d:.9,h:2.0,m:'glass',s:[['r',-.6,-.45,.6,.45],['l',-.6,-.45,.3,-.45],['r',-.45,.3,.45,.36]],b:[box(-.6,-.45,.6,.45,0,.02,'stone'),box(-.6,-.46,.3,-.44,.02,2.0,'glass'),box(-.6,-.46,.3,-.44,1.98,2.0,'black'),box(-.01,-.45,.01,.45,1.98,2.0,'black'),box(-.45,.36,.45,.45,1.0,1.4,'stone'),['c',0,.1,.15,.15,2.08,2.1,'black']]},
+ shBench:{n:'มุมอาบน้ำพร้อมม้านั่ง',c:'สุขภัณฑ์',w:1.2,d:1.0,h:2.1,m:'stone',s:[['r',-.6,-.5,.6,.5],['r',-.6,.15,-.1,.5],['e',.2,.1,.12,.12]],b:[box(-.6,-.5,.6,.5,0,.02,'stone'),box(-.6,.15,-.1,.5,0,.45,'wood'),['c',.2,.1,.13,.13,2.08,2.1,'metal'],box(.19,.47,.21,.5,1.0,2.1,'metal')]},
+ shHeater:{n:'เครื่องทำน้ำอุ่น + ฝักบัว',c:'สุขภัณฑ์',w:.35,d:.15,h:1.9,m:'white',s:[['r',-.175,0,.175,.075],['e',.1,-.04,.04,.04]],b:[box(-.15,-.02,.15,.075,1.4,1.75,'white'),box(-.1,-.03,.0,-.02,1.55,1.65,'black'),box(.12,.03,.15,.075,1.0,1.9,'metal')]},
+ basinPed:{n:'อ่างล้างหน้าขาตั้ง',c:'สุขภัณฑ์',w:.55,d:.45,h:.85,m:'cer',s:[['q',-.275,-.225,.275,.225,.12],['e',0,-.03,.18,.13],['e',0,.17,.025,.025]],b:[['c',0,.08,.1,.08,0,.7,'cer'],box(-.275,-.225,.275,.225,.7,.85,'cer'),box(-.02,.15,.02,.19,.85,1.0,'metal')]},
+ basinWall:{n:'อ่างล้างหน้าแขวนผนัง',c:'สุขภัณฑ์',w:.5,d:.4,h:.85,m:'cer',s:[['q',-.25,-.2,.25,.2,.1],['e',0,-.02,.16,.12]],b:[box(-.25,-.2,.25,.2,.72,.85,'cer'),box(-.02,.14,.02,.18,.85,1.0,'metal'),['c',0,.12,.04,.04,.45,.72,'metal']]},
+ vanity60:{n:'ตู้อ่างล้างหน้า 60 ซม.',c:'สุขภัณฑ์',w:.6,d:.47,h:.88,m:'wood',s:[['r',-.3,-.235,.3,.235],['e',0,-.02,.2,.14]],b:[box(-.3,-.235,.3,.235,.1,.82,'wood'),box(-.3,-.235,.3,.235,.82,.88,'cer'),box(-.02,.17,.02,.21,.88,1.03,'metal')]},
+ vanity100:{n:'ตู้อ่างล้างหน้าแบบลอย 100 ซม.',c:'สุขภัณฑ์',w:1.0,d:.5,h:.9,m:'wood',s:[['r',-.5,-.25,.5,.25],['q',-.22,-.17,.22,.12,.06]],b:[box(-.5,-.25,.5,.25,.42,.84,'wood'),box(-.5,-.25,.5,.25,.84,.88,'stone'),box(-.02,.18,.02,.22,.88,1.05,'metal'),box(-.4,.22,.4,.25,1.1,1.9,'glass')]},
+ basinRound:{n:'อ่างทรงกลมวางบนเคาน์เตอร์หิน',c:'สุขภัณฑ์',w:1.2,d:.5,h:1.0,m:'stone',s:[['r',-.6,-.25,.6,.25],['e',0,-.02,.2,.2],['e',0,.19,.025,.025]],b:[box(-.6,-.25,.6,.25,.78,.84,'stone'),box(-.6,-.25,-.55,.25,0,.78,'stone'),box(.55,-.25,.6,.25,0,.78,'stone'),['c',0,-.02,.2,.2,.84,.99,'cer'],box(-.02,.17,.02,.21,.84,1.08,'metal')]},
+ tubBuilt:{n:'อ่างอาบน้ำบิวท์อิน 170',c:'สุขภัณฑ์',w:1.7,d:.75,h:.55,m:'cer',s:[['r',-.85,-.375,.85,.375],['q',-.75,-.28,.75,.28,.2],['e',.65,0,.03,.03]],b:[box(-.85,-.375,.85,.375,0,.55,'stone'),box(-.75,-.28,.75,.28,.55,.56,'water')]},
+ tubJacuzzi:{n:'อ่างจากุซซี่',c:'สุขภัณฑ์',w:1.5,d:1.5,h:.6,m:'cer',s:[['r',-.75,-.75,.75,.75],['e',0,0,.6,.6],['e',-.3,.3,.06,.06],['e',.3,.3,.06,.06]],b:[box(-.75,-.75,.75,.75,0,.6,'stone'),['c',0,0,.6,.6,.6,.61,'water']]},
+ mirrorLed:{n:'กระจกเงากลมมีไฟ LED',c:'สุขภัณฑ์',w:.7,d:.05,h:1.9,m:'glass',s:[['r',-.35,-.025,.35,.025],['l',-.35,0,.35,0]],b:[['c',0,.02,.35,.02,1.2,1.9,'glass']]},
+ towelRack:{n:'ราวแขวนผ้าขนหนู 2 ชั้น',c:'สุขภัณฑ์',w:.6,d:.25,h:1.6,m:'metal',s:[['r',-.3,-.125,.3,.125],['l',-.3,0,.3,0]],b:[box(-.3,.1,.3,.125,1.3,1.32,'metal'),box(-.3,-.1,.3,-.08,1.5,1.52,'metal'),box(-.3,-.125,-.28,.125,1.3,1.52,'metal'),box(.28,-.125,.3,.125,1.3,1.52,'metal')]}});
 let WOFF=new Map();
 function levelCenter(lid){const k='c:'+lid;if(WOFF.has(k))return WOFF.get(k);let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;S.els.forEach(e=>{if(e.level!==lid||!(e.type==='wall'||e.type==='column'||e.type==='slab'))return;keyPts(e).forEach(q=>{x0=Math.min(x0,q.x);y0=Math.min(y0,q.y);x1=Math.max(x1,q.x);y1=Math.max(y1,q.y)})});
   const c=x0<x1?{x:(x0+x1)/2,y:(y0+y1)/2}:{x:0,y:0};WOFF.set(k,c);return c}
@@ -1542,7 +1566,7 @@ function init3(){if(!window.THREE){$('#v3wrap').insertAdjacentHTML('beforeend','
   R=new THREE.WebGLRenderer({canvas:cv3,antialias:true,preserveDrawingBuffer:true});R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;
   scene=new THREE.Scene();cam=new THREE.PerspectiveCamera(45,1,0.05,2000);
   scene.add(new THREE.HemisphereLight(0xffffff,0x8a8f93,0.75));
-  const dl=new THREE.DirectionalLight(0xffffff,0.75);dl.position.set(20,35,15);dl.castShadow=true;dl.shadow.mapSize.set(2048,2048);
+  const dl=new THREE.DirectionalLight(0xffffff,0.75);dl.position.set(20,35,15);dl.castShadow=true;dl.shadow.mapSize.set(4096,4096);const fl=new THREE.DirectionalLight(0xffffff,0.22);fl.position.set(-25,18,-20);scene.add(fl);
   Object.assign(dl.shadow.camera,{left:-40,right:40,top:40,bottom:-40,near:1,far:150});dl.shadow.bias=-0.0005;scene.add(dl);scene.add(dl.target);MAT.light=dl;
   const S0=(c,o={})=>new THREE.MeshStandardMaterial({color:c,roughness:.9,metalness:0,...o});
   Object.assign(MAT,{col:S0(0xa9b0b6),beam:S0(0x9ea6ad),slab:S0(0xc4c9cc),wall:S0(0xece6da),door:S0(0x9a6a3a),glass:S0(0x8fcbea,{transparent:true,opacity:.38,roughness:.1}),
@@ -1551,7 +1575,7 @@ function init3(){if(!window.THREE){$('#v3wrap').insertAdjacentHTML('beforeend','
   root=new THREE.Group();scene.add(root);
   const gnd=new THREE.Mesh(new THREE.PlaneGeometry(400,400),MAT.ground);gnd.rotation.x=-Math.PI/2;gnd.position.y=-0.3;MAT.gnd=gnd;gnd.receiveShadow=true;gnd.renderOrder=-1;scene.add(gnd);
   orbitEvents();resize3()}
-function resize3(){if(!R)return;const r=cv3.getBoundingClientRect();if(r.width<2||r.height<2)return;R.setPixelRatio(window.devicePixelRatio||1);R.setSize(r.width,r.height,false);cam.aspect=r.width/r.height;cam.updateProjectionMatrix();req3()}
+function resize3(){if(!R)return;const r=cv3.getBoundingClientRect();if(r.width<2||r.height<2)return;R.setPixelRatio(Math.min(2.5,Math.max(1.25,window.devicePixelRatio||1)));R.setSize(r.width,r.height,false);cam.aspect=r.width/r.height;cam.updateProjectionMatrix();req3()}
 function req3(){if(!R||raf3)return;raf3=requestAnimationFrame(()=>{raf3=0;render3()})}
 function render3(){if(!R)return;const vc=$('#views').classList;if(vc.contains('m2d')||vc.contains('msec')||vc.contains('msheet'))return;
   scene.background=new THREE.Color(C['v3-bg']||'#dde2e5');if(dirty3){build3();dirty3=false}
@@ -1590,8 +1614,8 @@ function build3(){WOFF.clear();modernMats();if(MAT.gnd)MAT.gnd.position.y=GROUND
       case 'rmem':{if(!(show3.roof==='frame'||DISC==='struct'||show3.roof===false))break;const m=rmemM(e),sp=SECLIB[e.sec]||SECLIB.C150;addBeam3(m.a,m.b,sp,sp.wood?MAT.rf_wood:MAT.rf_steel,el,e.id);break}
       case 'pipe':{const Y=PSYS[e.sys]||PSYS.cw,rr=Math.max(0.012,inchMM(e.dia||Y.dia)/2000),zz=el+(isFinite(parseFloat(e.z))?parseFloat(e.z):Y.z),mt=MAT['p_'+(e.sys||'cw')]||MAT.f_white;
         for(let i=0;i<e.pts.length-1;i++)addBeam3([e.pts[i].x,e.pts[i].y,0],[e.pts[i+1].x,e.pts[i+1].y,0],{b:rr*2,h:rr*2},sel.has(e.id)?MAT.sel:mt,zz,e.id);break}
-      case 'furn':furnSpheres(e,el);furnBoxes(e).forEach(bx=>{if(bx.z1-bx.z0<1e-4)return;const geo=new THREE.ExtrudeGeometry(new THREE.Shape(bx.poly.map(q=>new THREE.Vector2(q.x,q.y))),{depth:bx.z1-bx.z0,bevelEnabled:false});
-        const m=addMesh(geo,bx.m==='glass'?MAT.glass:(MAT['f_'+bx.m]||MAT.f_wood),e.id,new THREE.Vector3(0,furnBase(e,el)+bx.z0,0));m.rotation.x=-Math.PI/2});break;
+      case 'furn':furnSpheres(e,el);furnBoxes(e).forEach(bx=>{if(bx.z1-bx.z0<1e-4)return;const G_=furnGeo(bx);
+        const m=addMesh(G_.geo,bx.m==='glass'?MAT.glass:(MAT['f_'+bx.m]||MAT.f_wood),e.id,new THREE.Vector3(0,furnBase(e,el)+bx.z0,0),0,G_.soft);m.rotation.x=-Math.PI/2});break;
       case 'roof':{const PP=roofParts(e);PP._seen=new Set();PP._caps=[];PP.forEach(q=>buildRoofPart(q));if(PP.length>1&&e.cap!=='none'&&show3.roof===true&&DISC!=='struct'){const tile=!!(ROOFMAT[e.mat]||ROOFMAT.metal).tile,cm=capMat(e),base=roofBase(e);creaseCaps(e,PP,tile,cm,base);finalizeCaps(PP._caps,tile,cm,base,e.id)}if(!isRectPts(e.pts)&&show3.roof===true&&DISC!=='struct'){polySoffit3(e);if(PP.length>1&&(e.fas||'smart')!=='none'){const fm=fasMat(e),base=roofBase(e);fasciaGeos({...e,_outer:roofOuter(e)},roofTrim(e)).forEach(geo=>{const m=new THREE.Mesh(geo,fm);m.position.y=base;m.castShadow=true;m.userData.id=e.id;root.add(m)})}}break}
       case 'clg':{if(DISC==='struct'||!show3.ceil||e.ct==='none')break;const geo=new THREE.ShapeGeometry(new THREE.Shape(e.pts.map(q=>new THREE.Vector2(q.x,q.y))));const m=new THREE.Mesh(geo,sel.has(e.id)?MAT.sel:texFloor(e.ct||'gyp',e.cc,CEIL,THREE.BackSide).mat);m.rotation.x=-Math.PI/2;m.position.y=el+ceilH(e);m.receiveShadow=true;m.userData.id=e.id;root.add(m);break}
       case 'porch':build3Porch(e);break;
@@ -1758,7 +1782,8 @@ function exportCSV(){const Q=qtyData();const rows=[['ชั้น','ฐานร
 function canvasBlob(c){return new Promise(r=>c.toBlob(r,'image/png'))}
 async function exportPNG2(){const m=mouse;mouse=null;draw2();const b=await canvasBlob(cv2);mouse=m;draw2();saveFile('plan-'+(lvIdx(cur)+1)+'.png',b)}
 async function exportPNG3(){const sg=show3.grid,ss=new Set(sel);show3.grid=false;sel.clear();dirty3=true;try{await exportPNG3_()}finally{show3.grid=sg;ss.forEach(i=>sel.add(i));dirty3=true;req3()}}
-async function exportPNG3_(){if(!R){toast('ระบบ 3D ไม่พร้อม');return}if($('#views').classList.contains('m2d'))setView('split');await new Promise(r=>setTimeout(r,60));render3();saveFile('model-3d.png',await canvasBlob(cv3))}
+async function exportPNG3_(){if(!R){toast('ระบบ 3D ไม่พร้อม');return}if($('#views').classList.contains('m2d'))setView('split');await new Promise(r=>setTimeout(r,60));const pr=R.getPixelRatio?R.getPixelRatio():(window.devicePixelRatio||1),r=cv3.getBoundingClientRect(),hd=Math.min(4,Math.max(2,3200/Math.max(1,r.width)));
+  try{R.setPixelRatio(hd);R.setSize(r.width,r.height,false);render3();saveFile('model-3d.png',await canvasBlob(cv3))}finally{R.setPixelRatio(pr);R.setSize(r.width,r.height,false);req3()}}
 const fileIn=$('#fileIn');
 fileIn.onchange=async()=>{const f=fileIn.files[0];if(!f)return;try{const d=JSON.parse(await f.text());const s=d.S||d;if(!s.levels||!s.els)throw 0;
     importAsProject(s,d.cur);setTimeout(()=>{fit2();camView('iso')},30);toast('เปิด '+f.name+' แล้ว')}catch(e){toast('ไฟล์นี้ไม่ใช่โปรเจกต์โยธาแคด')}fileIn.value=''};
@@ -2343,7 +2368,7 @@ $('#rbIn').onchange=async()=>{const f=$('#rbIn').files[0];if(!f)return;try{const
       v.src=d.app||d.source||'Civil Toolkit';S.rebar[k]={...(S.rebar[k]||{}),...v};n++})});toast('นำเข้าเหล็กเสริม '+n+' รายการ');}catch(e){toast('ไฟล์นี้ไม่ใช่ผลออกแบบเหล็กเสริม')}$('#rbIn').value=''};
 
 // ================= App shell: version, sync, manual, install, service worker
-const APP_VER='v7.9.1';$('#verL').textContent=APP_VER;
+const APP_VER='v8.0';$('#verL').textContent=APP_VER;
 const isEmbedded=/claude\.ai|claudeusercontent|anthropic/.test(location.host)||location.protocol==='blob:';
 const LSK={sync:'yothacad-sync',saved:'yothacad-savedAt',last:'yothacad-lastSync',dev:'yothacad-device'};
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -2507,8 +2532,8 @@ const TEXC=new Map(),RMATC=new Map(),FMATC=new Map(),OMATC=new Map();
 function hexRGB(h){const n=parseInt(String(h||'#888888').replace('#',''),16)||0x888888;return[n>>16&255,n>>8&255,n&255]}
 function shd(h,k){const[r,g2,b]=hexRGB(h),f=v=>Math.max(0,Math.min(255,Math.round(k>=0?v+(255-v)*k:v*(1+k))));return`rgb(${f(r)},${f(g2)},${f(b)})`}
 function rng(seed){let a=seed>>>0||1;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-function mkTex(key,tu,tv,draw){if(TEXC.has(key))return TEXC.get(key);const N=256,c=document.createElement('canvas'),b=document.createElement('canvas');c.width=c.height=b.width=b.height=N;draw(c.getContext('2d'),b.getContext('2d'),N);
-  const mk=cv=>{const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(1/tu,1/tv);t.anisotropy=4;return t};const r={map:mk(c),bump:mk(b),tu,tv};TEXC.set(key,r);return r}
+function mkTex(key,tu,tv,draw){if(TEXC.has(key))return TEXC.get(key);const N=/^[fc]\|/.test(key)?1024:512,c=document.createElement('canvas'),b=document.createElement('canvas');c.width=c.height=b.width=b.height=N;draw(c.getContext('2d'),b.getContext('2d'),N);
+  const mk=cv=>{const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(1/tu,1/tv);t.anisotropy=R&&R.capabilities?R.capabilities.getMaxAnisotropy():8;t.generateMipmaps=true;t.minFilter=THREE.LinearMipmapLinearFilter;return t};const r={map:mk(c),bump:mk(b),tu,tv};TEXC.set(key,r);return r}
 function roofTex(mat,col){const M=ROOFMAT[mat]||ROOFMAT.metal;col=col||M.c;return mkTex('r|'+mat+'|'+col,M.tu,M.tv,(x,y,N)=>{const R_=rng(N+col.length);
   if(M.tex==='rib'){for(let i=0;i<N;i++){const u=i/N;let k=0,h=0;if(u<0.05){k=0.12;h=u/0.05}else if(u<0.17){k=0.2;h=1}else if(u<0.22){k=-0.32;h=1-(u-0.17)/0.05}else if(Math.abs(u-0.5)<0.03||Math.abs(u-0.75)<0.03){k=-0.08;h=0.25}else{k=0;h=0}
       x.fillStyle=shd(col,k);x.fillRect(i,0,1,N);const gv=Math.round(70+h*170);y.fillStyle=`rgb(${gv},${gv},${gv})`;y.fillRect(i,0,1,N)}}
@@ -3534,6 +3559,14 @@ function openRenderPrompt(){const d=$('#rpDlg');const sel=(id,obj,v)=>`<select d
   $('#rpCopy').onclick=async()=>{const t=$('#rpOut').value;try{await navigator.clipboard.writeText(t);toast('คัดลอก Prompt แล้ว')}catch(_){const ta=$('#rpOut');ta.removeAttribute('readonly');ta.select();try{document.execCommand('copy');toast('คัดลอก Prompt แล้ว')}catch(__){toast('เลือกข้อความแล้วกดคัดลอกเอง')}ta.setAttribute('readonly','')}};
   $('#rpImg').onclick=()=>exportPNG3();$('#rpClose').onclick=()=>d.close();upd();d.showModal?d.showModal():d.setAttribute('open','')}
 
+// ================= v8.0: sharper 3D (shadow fitting, HD textures, bevelled furniture, HD export)
+function fitShadow(){const dl=MAT.light;if(!dl||!root)return;const B=new THREE.Box3().setFromObject(root);if(B.isEmpty())return;const c=B.getCenter(new THREE.Vector3()),sz=B.getSize(new THREE.Vector3()),r=Math.max(6,Math.hypot(sz.x,sz.z)/2+2);
+  dl.target.position.copy(c);dl.position.set(c.x+r*0.9,c.y+r*1.6,c.z+r*0.7);const sc=dl.shadow.camera;sc.left=-r;sc.right=r;sc.top=r;sc.bottom=-r;sc.near=0.5;sc.far=r*5;sc.updateProjectionMatrix();dl.shadow.bias=-0.0003;if(dl.shadow.normalBias!==undefined)dl.shadow.normalBias=0.02}
+function furnGeo(bx){const h=bx.z1-bx.z0,soft=!['glass','water','metal'].includes(bx.m)&&h>0.03;let poly=bx.poly;if(soft){const bs=Math.min(0.012,h/4),P=offsetPoly(poly,polyCCW(poly)?bs:-bs,true);
+    if(P.length>=3&&polyArea(P)>0.0005){const geo=new THREE.ExtrudeGeometry(new THREE.Shape(P.map(q=>new THREE.Vector2(q.x,q.y))),{depth:Math.max(0.002,h-2*bs),bevelEnabled:true,bevelThickness:bs,bevelSize:bs,bevelSegments:2,curveSegments:12});geo.translate(0,0,bs);return{geo,soft:true}}}
+  return{geo:new THREE.ExtrudeGeometry(new THREE.Shape(poly.map(q=>new THREE.Vector2(q.x,q.y))),{depth:h,bevelEnabled:false,curveSegments:12}),soft:false}}
+
+const _build3=build3;build3=function(){_build3();fitShadow()};
 // ================= Boot
 readColors();buildTools();
 bootProjects();
