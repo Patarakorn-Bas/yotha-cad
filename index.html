@@ -47,7 +47,9 @@ html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
 body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "IBM Plex Sans Thai",system-ui,"Noto Sans Thai",sans-serif;overflow:hidden}
 button,input,select{font:inherit;color:inherit}
 #app{height:100%;display:grid;grid-template-rows:auto 1fr auto}
-header{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--panel);border-bottom:1px solid var(--line);overflow-x:auto;white-space:nowrap}
+header{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;padding:6px 10px;background:var(--panel);border-bottom:1px solid var(--line);white-space:nowrap}
+header>*{flex:none}header>.sp{flex:1 1 0}header .seg{flex:none;overflow:visible}header .seg button:first-child{border-radius:5px 0 0 5px}header .seg button:last-child{border-radius:0 5px 5px 0}
+@media(max-width:900px){header .seg button{padding:5px 8px}#projB{max-width:150px!important}}
 .brand{font-weight:600;font-size:15px;display:flex;align-items:center;gap:8px;margin-right:6px}
 .brand i{width:18px;height:18px;background:var(--accfill);display:inline-block;clip-path:polygon(0 100%,0 30%,50% 0,100% 30%,100% 100%,62% 100%,62% 60%,38% 60%,38% 100%)}
 .btn{border:1px solid var(--line);background:var(--panel2);border-radius:6px;padding:5px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
@@ -2341,7 +2343,7 @@ $('#rbIn').onchange=async()=>{const f=$('#rbIn').files[0];if(!f)return;try{const
       v.src=d.app||d.source||'Civil Toolkit';S.rebar[k]={...(S.rebar[k]||{}),...v};n++})});toast('นำเข้าเหล็กเสริม '+n+' รายการ');}catch(e){toast('ไฟล์นี้ไม่ใช่ผลออกแบบเหล็กเสริม')}$('#rbIn').value=''};
 
 // ================= App shell: version, sync, manual, install, service worker
-const APP_VER='v7.9';$('#verL').textContent=APP_VER;
+const APP_VER='v7.9.1';$('#verL').textContent=APP_VER;
 const isEmbedded=/claude\.ai|claudeusercontent|anthropic/.test(location.host)||location.protocol==='blob:';
 const LSK={sync:'yothacad-sync',saved:'yothacad-savedAt',last:'yothacad-lastSync',dev:'yothacad-device'};
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
