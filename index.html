@@ -24,7 +24,7 @@
   --acc:#a86f00;--accfill:#f3be2c;--accink:#2a1d00;--sel:#e0560f;
   --cv-bg:#fbfbf8;--cv-grid:#eceee8;--cv-grid2:#d9ddd3;--cv-wall:#34414c;--cv-col:#5f6c78;--cv-beam:#1f6fa8;
   --cv-slab:rgba(110,135,150,.13);--cv-slabline:#8a98a3;--cv-gridline:#c0392b;--cv-dim:#2b7a4b;--cv-line:#1d272f;
-  --cv-door:#8a5a2b;--cv-win:#2a87b8;--cv-under:rgba(30,40,48,.20);--cv-room:rgba(243,190,44,.10);--cv-roof:#9a4a32;--cv-foot:#6f5a9e;--v3-bg:#dde2e5;
+  --cv-door:#8a5a2b;--cv-win:#2a87b8;--cv-under:rgba(30,40,48,.20);--cv-room:rgba(140,135,125,.06);--cv-roof:#9a4a32;--cv-foot:#6f5a9e;--v3-bg:#dde2e5;
   color-scheme:light;
   box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
 }
@@ -33,13 +33,13 @@
   --acc:#f3be2c;--accfill:#f3be2c;--accink:#2a1d00;--sel:#ff8a3d;
   --cv-bg:#10151a;--cv-grid:#171e24;--cv-grid2:#222c35;--cv-wall:#d8dde1;--cv-col:#9aa6b1;--cv-beam:#5cb3e6;
   --cv-slab:rgba(150,170,185,.10);--cv-slabline:#5d6b77;--cv-gridline:#e0675a;--cv-dim:#6cc58f;--cv-line:#cfd6dc;
-  --cv-door:#d6a066;--cv-win:#62bde8;--cv-under:rgba(220,230,235,.16);--cv-room:rgba(243,190,44,.08);--cv-roof:#e08a6a;--cv-foot:#b19ae6;--v3-bg:#192026;color-scheme:dark;}}
+  --cv-door:#d6a066;--cv-win:#62bde8;--cv-under:rgba(220,230,235,.16);--cv-room:rgba(200,195,185,.05);--cv-roof:#e08a6a;--cv-foot:#b19ae6;--v3-bg:#192026;color-scheme:dark;}}
 :root[data-theme="dark"]{
   --bg:#13181d;--panel:#1a2127;--panel2:#20282f;--line:#2e3942;--ink:#e1e6ea;--muted:#8b98a3;
   --acc:#f3be2c;--accfill:#f3be2c;--accink:#2a1d00;--sel:#ff8a3d;
   --cv-bg:#10151a;--cv-grid:#171e24;--cv-grid2:#222c35;--cv-wall:#d8dde1;--cv-col:#9aa6b1;--cv-beam:#5cb3e6;
   --cv-slab:rgba(150,170,185,.10);--cv-slabline:#5d6b77;--cv-gridline:#e0675a;--cv-dim:#6cc58f;--cv-line:#cfd6dc;
-  --cv-door:#d6a066;--cv-win:#62bde8;--cv-under:rgba(220,230,235,.16);--cv-room:rgba(243,190,44,.08);--cv-roof:#e08a6a;--cv-foot:#b19ae6;--v3-bg:#192026;color-scheme:dark;}
+  --cv-door:#d6a066;--cv-win:#62bde8;--cv-under:rgba(220,230,235,.16);--cv-room:rgba(200,195,185,.05);--cv-roof:#e08a6a;--cv-foot:#b19ae6;--v3-bg:#192026;color-scheme:dark;}
 html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
 *,*::before,*::after{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -147,6 +147,11 @@ dialog .f{grid-template-columns:1fr 150px}
 #hEmpty .card{pointer-events:auto;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:20px 22px;max-width:420px;margin:16px}
 #hEmpty h2{margin:0 0 6px;font-size:18px}#hEmpty p{margin:0 0 14px;color:var(--muted)}
 #projDlg .f{grid-template-columns:1fr 210px}
+.rpdlg{width:min(760px,96vw)}.rpdlg h2{margin:0 0 10px;font-size:18px}.rpg{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px 12px}.rpg label,.rpn{display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:var(--muted)}.rpg select,.rpn input{border:1px solid var(--line);border-radius:6px;padding:6px 8px;background:var(--panel);color:var(--ink);font:inherit;font-size:13.5px}.rpn{margin-top:8px}#rpOut{width:100%;min-height:190px;margin:10px 0;border:1px solid var(--line);border-radius:6px;padding:10px;font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;background:var(--bg);color:var(--ink);resize:vertical}
+.libdlg{width:min(980px,96vw);height:min(720px,88vh);padding:0;display:none;flex-direction:column}.libdlg[open]{display:flex}.libhd{display:flex;gap:10px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}.libhd input{flex:1;border:1px solid var(--line);border-radius:6px;padding:7px 10px;background:var(--panel);color:var(--ink)}
+.libbd{flex:1;display:grid;grid-template-columns:190px 1fr;min-height:0}#libNav{overflow:auto;border-right:1px solid var(--line);padding:6px}#libNav button{display:flex;justify-content:space-between;width:100%;text-align:left;padding:8px 10px;border:0;background:none;border-radius:6px;color:var(--ink);font:inherit;cursor:pointer}#libNav button.on,#libNav button:hover{background:var(--accfill)}#libNav small{color:var(--muted)}
+#libGrid{overflow:auto;padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:10px;align-content:start}.libcard{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 8px;border:1px solid var(--line);border-radius:8px;background:var(--panel);cursor:pointer;font:inherit;color:var(--ink);text-align:center}.libcard svg{width:84px;height:64px;color:var(--ink)}.libcard small{color:var(--muted);font-size:11px}.libcard.on,.libcard:hover{border-color:var(--acc);background:var(--accfill)}
+.libcur{display:flex;gap:10px;align-items:center;width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);cursor:pointer;text-align:left;font:inherit;color:var(--ink)}.libcur svg{width:64px;height:52px;flex:none}.libcur span{display:flex;flex-direction:column;gap:2px}.libcur small{color:var(--muted)}.libcur em{font-style:normal;color:var(--acc);font-size:12px}.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}@media(max-width:640px){.libbd{grid-template-columns:1fr}#libNav{display:flex;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line)}#libNav button{width:auto;white-space:nowrap}}
 #gridDlg{max-width:640px}#gridDlg .g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:600px){#gridDlg .g2{grid-template-columns:1fr}}
 .sped .spr{display:grid;grid-template-columns:1fr 84px 26px;gap:6px;align-items:center;margin:4px 0;font-size:13px;color:var(--muted)}.sped input{width:100%;border:1px solid var(--line);background:var(--panel);border-radius:5px;padding:3px 6px}
 .spq{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}.spq .spt{flex:1;min-width:120px;border:1px solid var(--line);background:var(--panel);border-radius:5px;padding:3px 6px}
@@ -206,7 +211,7 @@ dialog .f{grid-template-columns:1fr 150px}
   <div class="brand"><i></i>โยธาแคด <small id="verL" style="font-weight:400;color:var(--muted);font-size:11px"></small></div>
   <button class="btn" id="projB" title="จัดการโครงการ" style="max-width:220px;overflow:hidden;text-overflow:ellipsis">โครงการ: <b id="projName" style="font-weight:600"></b></button>
   <select class="lv" id="lvSel" aria-label="ชั้นที่กำลังเขียน"></select>
-  <div class="seg" id="discSeg" title="เลือกงานที่จะเขียน"><button data-d="all" class="on">ทั้งหมด</button><button data-d="arch">สถาปัตย์</button><button data-d="struct">โครงสร้าง</button><button data-d="mep">งานระบบ</button></div>
+  <div class="seg" id="discSeg" title="เลือกงานที่จะเขียน"><button data-d="all" class="on">ทั้งหมด</button><button data-d="arch">สถาปัตย์</button><button data-d="struct">โครงสร้าง</button><button data-d="elec">ไฟฟ้า</button><button data-d="plumb">ประปา</button></div>
   <div class="seg" id="viewSeg">
     <button data-v="m2d">2D</button><button data-v="split" class="on">2D + 3D</button><button data-v="m3d">3D</button><button data-v="msec">รูปตัด</button><button data-v="msheet">แผ่นงาน</button>
   </div>
@@ -239,7 +244,7 @@ dialog .f{grid-template-columns:1fr 150px}
       <div class="vlabel">3D — ลากเพื่อหมุน • ลากขวาหรือสองนิ้วเพื่อเลื่อน</div>
       <div class="v3bar">
         <button class="btn" data-cam="iso">ไอโซ</button><button class="btn" data-cam="top">บน</button><button class="btn" data-cam="front">หน้า</button><button class="btn" data-cam="side">ข้าง</button><button class="btn" data-cam="fit">พอดีจอ</button>
-        <button class="btn" id="tgLv3">ชั้น: ทั้งหมด</button><button class="btn" id="tgRoof3">หลังคา: แสดง</button><button class="btn" id="tgGrid3">กริด: แสดง</button><button class="btn" id="tgCeil3">ฝ้า: แสดง</button><button class="btn" id="tgUnder3">ใต้ดิน: แสดง</button>
+        <button class="btn" id="tgLv3">ชั้น: ทั้งหมด</button><button class="btn" id="tgRoof3">หลังคา: แสดง</button><button class="btn pri" id="rpBtn">✨ Prompt เรนเดอร์ AI</button><button class="btn" id="tgGrid3">กริด: แสดง</button><button class="btn" id="tgCeil3">ฝ้า: แสดง</button><button class="btn" id="tgUnder3">ใต้ดิน: แสดง</button>
       </div>
     </div>
     <div id="vHwrap">
@@ -290,6 +295,8 @@ dialog .f{grid-template-columns:1fr 150px}
 <input type="file" id="fileIn" accept=".json,application/json">
 <input type="file" id="rbIn" accept=".json,application/json" style="display:none">
 
+<dialog id="rpDlg" class="rpdlg"><h2>Prompt สำหรับเรนเดอร์ภาพด้วย AI</h2><div id="rpBody"></div></dialog>
+<dialog id="libDlg" class="libdlg"><div class="libhd"><b>คลังเฟอร์นิเจอร์</b><input id="libQ" placeholder="ค้นหา เช่น โซฟา เตียง ชักโครก" aria-label="ค้นหาเฟอร์นิเจอร์"><button class="btn" id="libX">ปิด</button></div><div class="libbd"><nav id="libNav"></nav><div id="libGrid"></div></div></dialog>
 <dialog id="gridDlg">
   <h3>สร้างกริดและโครงสร้าง</h3>
   <p class="hint">แก้ระยะแต่ละช่วงได้โดยตรง กดปุ่มระยะเพื่อเพิ่มช่วงเร็ว หรือพิมพ์ด่วน เช่น 3@4, 3.5 (3 ช่วงละ 4 ม. แล้ว 3.5 ม.) โครงสร้างจะสร้างบนชั้นที่เลือกอยู่</p>
@@ -354,7 +361,7 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 
 // ================= Model
 const TYPE_NAME={wall:'ผนัง',column:'เสา',beam:'คาน',slab:'พื้น',door:'ประตู',window:'หน้าต่าง',grid:'เส้นกริด',dim:'เส้นบอกระยะ',line:'เส้น',
-  footing:'ฐานราก',stair:'บันได',roof:'หลังคา',room:'ห้อง',text:'ข้อความ',pline:'เส้นต่อเนื่อง',circle:'วงกลม',arc:'เส้นโค้ง',flr:'พื้นผิว (วัสดุปูพื้น)',porch:'ระเบียง / ชาน',steps:'บันไดหน้าบ้าน',rail:'ราวกันตก',clg:'ฝ้าเพดาน',rmem:'ชิ้นส่วนโครงหลังคา',furn:'เฟอร์นิเจอร์/สุขภัณฑ์',section:'แนวรูปตัด'};
+  footing:'ฐานราก',stair:'บันได',roof:'หลังคา',room:'ห้อง',text:'ข้อความ',pline:'เส้นต่อเนื่อง',circle:'วงกลม',arc:'เส้นโค้ง',flr:'พื้นผิว (วัสดุปูพื้น)',callout:'แบบขยาย (ขอบเขต)',porch:'ระเบียง / ชาน',steps:'บันไดหน้าบ้าน',rail:'ราวกันตก',clg:'ฝ้าเพดาน',rmem:'ชิ้นส่วนโครงหลังคา',furn:'เฟอร์นิเจอร์/สุขภัณฑ์',section:'แนวรูปตัด'};
 const SEGT=['line','wall','beam','grid'];
 function blank(){return{site:{gl:0,ffl:0.4,fft:0.05},v:3,levels:[{id:'L1',name:'ชั้น 1',height:3.5}],els:[],nextId:2,proj:defProj(),sheets:[]}}
 function defProj(){return{office:'สำนักงานออกแบบ',name:'โครงการบ้านพักอาศัย',owner:'',location:'',designer:'',engineer:'',engLic:'',checker:'',date:new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}),rev:''}}
@@ -364,7 +371,7 @@ let hist=[],fut=[];
 const D={wall:{t:0.15,h:'',j:'c',wm:'brick',wco:'#ece6da',wci:'#f4f1ea'},rmem:{k:'rafter',sec:'C150',zmode:'auto',za:3,zb:4},column:{w:0.25,d:0.25,shape:'rect',h:'',rot:0},beam:{w:0.2,d:0.4,at:'top'},slab:{t:0.12,mode:'rect',sk:'cast',sdir:'x'},
   door:{st:'d_single',w:0.9,h:2.1,flip:'0',side:'0',fm:'wood',fc:'#7a5230',gl:'clear'},window:{st:'w_slide',w:1.2,h:1.2,sill:0.9,side:'0',fm:'alu',fc:'#5a4632',gl:'green'},dim:{off:0.8},grid:{label:''},line:{},
   footing:{name:'F1',w:1.2,d:1.2,t:0.5,depth:1.5,sw:0.3,piles:'4',pd:0.22,pl:12,pshape:'sq',rot:0},
-  stair:{w:1.0,h:'',stk:'straight',smat:'rc',rail:'steel',tr:0.25,ld:'',turn:'l',split:'',gap:0.1,ang:''},roof:{mode:'rect',dz:0,sof:'fc',kind:'hip',pitch:30,over:0.8,ridge:'u',base:'',mat:'metal',color:'#7a2e26',frame:'steel',rs:1.0,ps:'',fas:'smart',fasc:'#efebe2',gab:'siding',gabc:'#d9cbb2',cap:'auto'},room:{name:'ห้อง',mode:'rect',zones:'1'},porch:{mode:'rect',zt:'',fin:'wash',fc:'#b9ab92',t:0.12,steps:'auto',canopy:'none',chh:2.7,cc2:'#5f6a72'},steps:{z1:'',z0:'',tr:0.3,sides:'1',fin:'wash',fc:'#b9ab92'},rail:{kind:'steel',h:1.0,zb:'',rc:'#2b2b2d'},flr:{fin:'tile60',fc:'#d9d4cb',mode:'room'},clg:{ct:'gyp',ch:'',cc:'#f4f3ef',mode:'room'},elec:{kind:'dl',ckt:''},plumb:{kind:'fd'},wire:{ckt:''},pipe:{sys:'cw',dia:'',z:''},text:{s:'ข้อความ',size:0.3,rot:0},
+  stair:{w:1.0,h:'',stk:'straight',smat:'rc',rail:'steel',tr:0.25,ld:'',turn:'l',split:'',gap:0.1,ang:''},roof:{mode:'rect',dz:0,sof:'fc',kind:'hip',pitch:30,over:0.8,ridge:'u',base:'',mat:'metal',color:'#7a2e26',frame:'steel',rs:1.0,ps:'',fas:'smart',fasc:'#efebe2',gab:'siding',gabc:'#d9cbb2',cap:'auto'},callout:{name:'แบบขยาย',scale:25},room:{name:'ห้อง',mode:'rect',zones:'1'},porch:{mode:'rect',zt:'',fin:'wash',fc:'#b9ab92',t:0.12,steps:'auto',canopy:'none',chh:2.7,cc2:'#5f6a72'},steps:{z1:'',z0:'',tr:0.3,sides:'1',fin:'wash',fc:'#b9ab92'},rail:{kind:'steel',h:1.0,zb:'',rc:'#2b2b2d'},flr:{fin:'tile60',fc:'#d9d4cb',mode:'room'},clg:{ct:'gyp',ch:'',cc:'#f4f3ef',mode:'room'},elec:{kind:'dl',ckt:''},plumb:{kind:'fd'},wire:{ckt:''},pipe:{sys:'cw',dia:'',z:''},text:{s:'ข้อความ',size:0.3,rot:0},
   pline:{},rect:{},circle:{},arc:{},furn:{kind:'bed2',rot:0,snapw:'1'},section:{depth:30,flip:'0',name:'',tag:''},offset:{d:1},mirror:{keep:'1'},array:{mode:'rect',nx:3,ny:1,dx:4,dy:4,n:6,ang:360,cx:0,cy:0}};
 const SN={obj:true,grid:true,ortho:false,step:0.05};
 const lvl=id=>S.levels.find(l=>l.id===id)||S.levels[0];
@@ -591,6 +598,45 @@ Object.assign(LIB,{benchWood:{n:'ม้านั่งไม้',c:'ภายน
   benchGarden:{n:'ม้านั่งสวนขาเหล็กมีพนักพิง',c:'ภายนอก',w:1.5,d:.6,h:.85,m:'wood',s:[['q',-.75,-.3,.75,.3,.03],['l',-.75,.18,.75,.18],['l',-.75,-.05,.75,-.05]],b:[box(-.72,-.28,.72,.15,.42,.46),box(-.72,.2,.72,.25,.5,.85),box(-.75,-.3,-.7,.3,0,.85,'black'),box(.7,-.3,.75,.3,0,.85,'black')]},
   benchLong:{n:'ม้านั่งยาวพร้อมพนักพิง',c:'ภายนอก',w:2.0,d:.6,h:.85,m:'wood',s:[['q',-1,-.3,1,.3,.04],['l',-1,.2,1,.2]],b:[box(-1,-.28,1,.2,.4,.45),box(-1,.2,1,.28,.45,.85),box(-.95,-.25,-.85,.25,0,.4,'metal'),box(.85,-.25,.95,.25,0,.4,'metal'),box(-.05,-.25,.05,.25,0,.4,'metal')]},
   swing:{n:'ชิงช้าระเบียง (แขวน)',c:'ภายนอก',w:1.5,d:.7,h:2.2,m:'wood',s:[['q',-.75,-.35,.75,.35,.05],['l',-.75,.2,.75,.2]],b:[box(-.65,-.25,.65,.2,.45,.5),box(-.65,.2,.65,.25,.5,.9),box(-.62,-.01,-.6,.01,.5,2.2,'metal'),box(.6,-.01,.62,.01,.5,2.2,'metal')]}});
+Object.assign(LIB.tree,{s:[['e',0,0,1.5,1.5],['e',-.75,.6,.6,.6],['e',.7,.65,.6,.6],['e',.8,-.55,.62,.62],['e',-.7,-.6,.6,.6],['e',0,0,.15,.15]],b:[['c',0,0,.13,.15,0,2.4,'wood']],sph:[[0,0,3.3,1.15,'plant'],[.7,.3,2.8,.8,'plant2'],[-.6,.5,2.9,.85,'plant'],[.2,-.7,2.7,.8,'plant2'],[-.4,-.3,3.9,.75,'plant']]});
+Object.assign(LIB,{
+ bunk:{n:'เตียงสองชั้น',c:'เฟอร์นิเจอร์',sc:'ห้องนอน',w:1.0,d:2.0,h:1.65,m:'wood',s:[['q',-.5,-1,.5,1,.03],['l',-.45,-.95,.45,-.95],['l',-.5,.75,.5,.75]],b:[box(-.5,-1,.5,1,.25,.4),box(-.5,-1,.5,1,1.15,1.3),box(-.45,-.95,.45,.95,.4,.55,'white'),box(-.45,-.95,.45,.95,1.3,1.45,'white'),box(-.5,-1,-.45,-.95,0,1.65),box(.45,-1,.5,-.95,0,1.65),box(-.5,.95,-.45,1,0,1.65),box(.45,.95,.5,1,0,1.65)]},
+ crib:{n:'เตียงเด็กอ่อน',c:'เฟอร์นิเจอร์',sc:'ห้องนอน',w:.7,d:1.3,h:.95,m:'white',s:[['q',-.35,-.65,.35,.65,.03],['r',-.3,-.6,.3,.6]],b:[box(-.35,-.65,.35,.65,.35,.45),box(-.35,-.65,-.32,.65,0,.95),box(.32,-.65,.35,.65,0,.95),box(-.35,-.65,.35,-.62,0,.95),box(-.35,.62,.35,.65,0,.95)]},
+ dresser:{n:'โต๊ะเครื่องแป้ง',c:'เฟอร์นิเจอร์',sc:'ห้องนอน',w:1.0,d:.45,h:1.5,m:'wood',s:[['q',-.5,-.225,.5,.225,.02],['r',-.35,.15,.35,.2],['q',-.2,-.55,.2,-.3,.05]],b:[box(-.5,-.225,.5,.225,.68,.75),box(-.5,-.225,-.42,.225,0,.68),box(.42,-.225,.5,.225,0,.68),box(-.35,.18,.35,.22,.9,1.5,'glass'),box(-.2,-.55,.2,-.3,0,.45,'fabric')]},
+ nightM:{n:'ตู้ข้างเตียงโมเดิร์น',c:'เฟอร์นิเจอร์',sc:'ห้องนอน',w:.5,d:.4,h:.5,m:'wood',s:[['q',-.25,-.2,.25,.2,.03],['l',-.25,0,.25,0]],b:[box(-.25,-.2,.25,.2,.08,.5),box(-.22,-.17,-.19,.17,0,.08,'metal'),box(.19,-.17,.22,.17,0,.08,'metal')]},
+ chest:{n:'ตู้ลิ้นชัก',c:'เฟอร์นิเจอร์',sc:'ห้องนอน',w:.9,d:.45,h:1.0,m:'wood',s:[['r',-.45,-.225,.45,.225],['l',-.45,-.1,.45,-.1]],b:[box(-.45,-.225,.45,.225,.05,1.0)]},
+ sofaL:{n:'โซฟาตัว L',c:'เฟอร์นิเจอร์',sc:'ห้องนั่งเล่น',w:2.7,d:1.8,h:.8,m:'fabric',s:[['q',-1.35,0,1.35,.9,.08],['q',.45,-.9,1.35,0,.08],['l',-1.35,.7,1.35,.7],['l',1.15,-.9,1.15,.7]],b:[box(-1.35,0,1.35,.9,0,.42),box(.45,-.9,1.35,0,0,.42),box(-1.35,.7,1.35,.9,.42,.8),box(1.15,-.9,1.35,.7,.42,.8)]},
+ ottoman:{n:'สตูลวางเท้า',c:'เฟอร์นิเจอร์',sc:'ห้องนั่งเล่น',w:.6,d:.6,h:.42,m:'fabric',s:[['q',-.3,-.3,.3,.3,.08]],b:[box(-.3,-.3,.3,.3,.05,.42)]},
+ bookshelf:{n:'ชั้นหนังสือ',c:'เฟอร์นิเจอร์',sc:'ห้องทำงาน',w:1.2,d:.35,h:2.0,m:'wood',s:[['r',-.6,-.175,.6,.175],['l',-.2,-.175,-.2,.175],['l',.2,-.175,.2,.175]],b:[box(-.6,-.175,.6,.175,0,.04),box(-.6,-.175,.6,.175,.5,.53),box(-.6,-.175,.6,.175,1.0,1.03),box(-.6,-.175,.6,.175,1.5,1.53),box(-.6,-.175,.6,.175,1.97,2.0),box(-.6,.15,.6,.175,0,2.0),box(-.6,-.175,-.57,.175,0,2.0),box(.57,-.175,.6,.175,0,2.0)]},
+ sideboard:{n:'ตู้ไซด์บอร์ด',c:'เฟอร์นิเจอร์',sc:'ห้องนั่งเล่น',w:1.8,d:.45,h:.8,m:'wood',s:[['q',-.9,-.225,.9,.225,.02],['l',-.3,-.225,-.3,.225],['l',.3,-.225,.3,.225]],b:[box(-.9,-.225,.9,.225,.15,.8),box(-.85,-.2,-.82,.2,0,.15,'metal'),box(.82,-.2,.85,.2,0,.15,'metal')]},
+ armchairM:{n:'เก้าอี้อาร์มแชร์',c:'เฟอร์นิเจอร์',sc:'ห้องนั่งเล่น',w:.75,d:.8,h:.8,m:'fabric',s:[['q',-.375,-.4,.375,.4,.1],['q',-.375,.2,.375,.4,.06]],b:[box(-.35,-.38,.35,.38,.18,.42),box(-.375,.2,.375,.4,.42,.8),box(-.375,-.38,-.3,.2,.42,.6),box(.3,-.38,.375,.2,.42,.6),box(-.32,-.35,-.29,.35,0,.18,'wood'),box(.29,-.35,.32,.35,0,.18,'wood')]},
+ tvFloat:{n:'ชั้นวางทีวีแบบลอย + ทีวี 65 นิ้ว',c:'เฟอร์นิเจอร์',sc:'ห้องนั่งเล่น',w:1.8,d:.4,h:1.5,m:'wood',s:[['q',-.9,-.2,.9,.2,.02],['r',-.73,.14,.73,.18]],b:[box(-.9,-.2,.9,.2,.3,.6),box(-.73,.12,.73,.17,.75,1.6,'black')]},
+ rugRound:{n:'พรมทรงกลม',c:'เฟอร์นิเจอร์',sc:'ห้องนั่งเล่น',w:1.8,d:1.8,h:.01,m:'fabric',s:[['e',0,0,.9,.9],['e',0,0,.78,.78]],b:[['c',0,0,.9,.9,0,.01,'fabric']]},
+ dining4r:{n:'โต๊ะอาหารกลม 4 ที่',c:'ครัว',sc:'ห้องทานอาหาร',w:1.6,d:1.6,h:.85,m:'wood',s:[['e',0,0,.5,.5],['q',-.2,.55,.2,.8,.05],['q',-.2,-.8,.2,-.55,.05],['q',.55,-.2,.8,.2,.05],['q',-.8,-.2,-.55,.2,.05]],b:[['c',0,0,.5,.5,.72,.76,'wood'],['c',0,0,.06,.06,0,.72,'metal'],...chair(0,.66,1),...chair(0,-.66,-1),...chairX(.66,0,1),...chairX(-.66,0,-1)]},
+ wine:{n:'ตู้บาร์ / ตู้ไวน์',c:'ครัว',sc:'ห้องทานอาหาร',w:1.0,d:.45,h:1.8,m:'wood',s:[['r',-.5,-.225,.5,.225],['l',-.5,-.225,.5,.225]],b:[box(-.5,-.225,.5,.225,0,1.8),box(-.45,-.23,.45,-.225,.9,1.75,'glass')]},
+ island:{n:'ไอส์แลนด์ครัว',c:'ครัว',sc:'ครัว',w:2.0,d:1.0,h:.92,m:'white',s:[['q',-1,-.5,1,.5,.03],['e',.45,0,.22,.17],['e',-.45,-.15,.12,.12],['e',-.45,.15,.12,.12]],b:[box(-.95,-.45,.95,.45,0,.88,'white'),box(-1,-.5,1,.5,.88,.92,'stone')]},
+ ovenTower:{n:'ตู้อบ + ไมโครเวฟบิวท์อิน',c:'ครัว',sc:'ครัว',w:.6,d:.6,h:2.2,m:'white',s:[['r',-.3,-.3,.3,.3],['l',-.3,-.25,.3,-.25]],b:[box(-.3,-.3,.3,.3,0,2.2,'white'),box(-.27,-.31,.27,-.3,.8,1.4,'black')]},
+ dishwasher:{n:'เครื่องล้างจาน',c:'ครัว',sc:'ครัว',w:.6,d:.6,h:.85,m:'metal',s:[['r',-.3,-.3,.3,.3],['t',0,0,.12,'DW']],b:[box(-.3,-.3,.3,.3,0,.85,'metal')]},
+ washerF:{n:'เครื่องซักผ้าฝาหน้า',c:'เฟอร์นิเจอร์',sc:'ซักล้าง',w:.6,d:.6,h:.85,m:'white',s:[['r',-.3,-.3,.3,.3],['e',0,-.02,.2,.2]],b:[box(-.3,-.3,.3,.3,0,.85,'white'),['c',0,-.31,.18,.01,.3,.66,'glass']]},
+ dryer:{n:'เครื่องอบผ้า',c:'เฟอร์นิเจอร์',sc:'ซักล้าง',w:.6,d:.6,h:.85,m:'white',s:[['r',-.3,-.3,.3,.3],['e',0,-.02,.18,.18],['t',0,0,.08,'D']],b:[box(-.3,-.3,.3,.3,0,.85,'white')]},
+ utilSink:{n:'อ่างซักล้าง',c:'เฟอร์นิเจอร์',sc:'ซักล้าง',w:.6,d:.5,h:.85,m:'metal',s:[['r',-.3,-.25,.3,.25],['q',-.24,-.19,.24,.15,.03]],b:[box(-.3,-.25,.3,.25,.7,.85,'metal'),box(-.28,-.23,-.25,.23,0,.7,'metal'),box(.25,-.23,.28,.23,0,.7,'metal')]},
+ ironing:{n:'โต๊ะรีดผ้า',c:'เฟอร์นิเจอร์',sc:'ซักล้าง',w:1.2,d:.35,h:.9,m:'fabric',s:[['q',-.6,-.175,.6,.175,.15]],b:[box(-.6,-.175,.6,.175,.86,.9,'fabric'),box(-.3,-.02,.3,.02,0,.86,'metal')]},
+ urinal:{n:'โถปัสสาวะชาย',c:'สุขภัณฑ์',w:.4,d:.35,h:1.2,m:'cer',s:[['q',-.2,-.175,.2,.175,.12],['e',0,-.02,.12,.1]],b:[box(-.18,-.1,.18,.175,.55,1.2,'cer')]},
+ showerTray:{n:'ถาดอาบน้ำ 90×90 + ฉากกระจก',c:'สุขภัณฑ์',w:.9,d:.9,h:2.0,m:'cer',s:[['r',-.45,-.45,.45,.45],['l',-.45,-.45,.45,.45],['e',0,0,.05,.05]],b:[box(-.45,-.45,.45,.45,0,.05,'cer'),box(-.45,-.46,.45,-.44,.05,2.0,'glass'),box(-.46,-.45,-.44,.45,.05,2.0,'glass')]},
+ tubCorner:{n:'อ่างอาบน้ำเข้ามุม',c:'สุขภัณฑ์',w:1.4,d:1.4,h:.55,m:'cer',s:[['r',-.7,-.7,.7,.7],['e',.1,.1,.45,.45]],b:[box(-.7,-.7,.7,.7,0,.55,'cer')]},
+ meeting:{n:'โต๊ะประชุม 6 ที่',c:'เฟอร์นิเจอร์',sc:'ห้องทำงาน',w:2.4,d:1.6,h:.85,m:'wood',s:[['q',-1,-.45,1,.45,.1],...[-.6,0,.6].flatMap(x=>[['q',x-.21,.5,x+.21,.8,.04],['q',x-.21,-.8,x+.21,-.5,.04]])],b:[box(-1,-.45,1,.45,.72,.76),box(-.7,-.05,.7,.05,0,.72,'metal'),...[-.6,0,.6].flatMap(x=>[...chairM(x,.62,1),...chairM(x,-.62,-1)])]},
+ filing:{n:'ตู้เอกสาร',c:'เฟอร์นิเจอร์',sc:'ห้องทำงาน',w:.5,d:.6,h:1.3,m:'metal',s:[['r',-.25,-.3,.25,.3],['l',-.25,-.15,.25,-.15]],b:[box(-.25,-.3,.25,.3,0,1.3,'metal')]},
+ palm:{n:'ต้นปาล์ม',c:'ภายนอก',sc:'ต้นไม้และสวน',w:2.2,d:2.2,h:4.8,m:'plant',s:[['e',0,0,.12,.12],['l',-1.1,0,1.1,0],['l',0,-1.1,0,1.1],['l',-.8,-.8,.8,.8],['l',-.8,.8,.8,-.8],['e',0,0,1.1,1.1]],b:[['c',0,0,.12,.14,0,4.2,'wood']],sph:[[0,0,4.4,.55,'plant2'],[.55,0,4.2,.45,'plant'],[-.55,0,4.2,.45,'plant'],[0,.55,4.2,.45,'plant'],[0,-.55,4.2,.45,'plant']]},
+ shrub:{n:'ไม้พุ่ม',c:'ภายนอก',sc:'ต้นไม้และสวน',w:1.0,d:1.0,h:1.0,m:'plant',s:[['e',0,0,.5,.5],['e',-.2,.15,.25,.25],['e',.2,-.1,.25,.25]],b:[],sph:[[0,0,.45,.45,'plant'],[.25,.15,.5,.3,'plant2'],[-.2,-.15,.5,.3,'plant']]},
+ plantIn:{n:'ต้นไม้ในร่ม (กระถาง)',c:'ภายนอก',sc:'ต้นไม้และสวน',w:.6,d:.6,h:1.4,m:'plant',s:[['e',0,0,.3,.3],['e',0,0,.18,.18]],b:[['c',0,0,.18,.18,0,.4,'pot']],sph:[[0,0,.85,.32,'plant'],[.12,.08,1.15,.22,'plant2']]},
+ planter:{n:'กระบะต้นไม้',c:'ภายนอก',sc:'ต้นไม้และสวน',w:1.5,d:.5,h:.6,m:'stone',s:[['r',-.75,-.25,.75,.25],['r',-.68,-.18,.68,.18]],b:[box(-.75,-.25,.75,.25,0,.45,'stone')],sph:[[-.45,0,.55,.2,'plant'],[0,0,.58,.22,'plant2'],[.45,0,.55,.2,'plant']]},
+ bbq:{n:'เตาบาร์บีคิว',c:'ภายนอก',sc:'ภายนอก',w:1.2,d:.6,h:1.1,m:'metal',s:[['r',-.6,-.3,.6,.3],['r',-.3,-.25,.3,.25]],b:[box(-.6,-.3,.6,.3,0,.85,'metal'),box(-.3,-.25,.3,.25,.85,1.1,'black')]},
+ umbrella:{n:'ร่มสนามพร้อมโต๊ะ',c:'ภายนอก',sc:'ภายนอก',w:2.4,d:2.4,h:2.4,m:'fabric',s:[['e',0,0,1.2,1.2],['e',0,0,.4,.4],['l',-1.2,0,1.2,0],['l',0,-1.2,0,1.2]],b:[['c',0,0,.4,.4,.72,.76,'wood'],['c',0,0,.03,.03,0,2.3,'metal'],['c',0,0,1.2,1.2,2.25,2.3,'white']]},
+ pool:{n:'สระว่ายน้ำ 4×8 ม.',c:'ภายนอก',sc:'ภายนอก',w:4.0,d:8.0,h:.05,m:'stone',s:[['r',-2,-4,2,4],['r',-1.8,-3.8,1.8,3.8],['l',-1.2,3.8,-1.2,3.2],['l',-.8,3.8,-.8,3.2]],b:[box(-2,-4,2,-3.8,0,.05,'stone'),box(-2,3.8,2,4,0,.05,'stone'),box(-2,-3.8,-1.8,3.8,0,.05,'stone'),box(1.8,-3.8,2,3.8,0,.05,'stone'),box(-1.8,-3.8,1.8,3.8,-.25,-.2,'water')]},
+ sedan:{n:'รถยนต์เก๋ง',c:'ภายนอก',sc:'ยานพาหนะ',w:1.8,d:4.6,h:1.45,m:'car',s:[['q',-.9,-2.3,.9,2.3,.35],['q',-.75,-1.0,.75,1.1,.2],['l',-.75,-.4,.75,-.4]],b:[box(-.9,-2.3,.9,2.3,.3,.85,'car'),box(-.78,-1.1,.78,1.1,.85,1.45,'glass'),['c',-.85,-1.4,.33,.33,0,.66,'tire'],['c',.85,-1.4,.33,.33,0,.66,'tire'],['c',-.85,1.4,.33,.33,0,.66,'tire'],['c',.85,1.4,.33,.33,0,.66,'tire']]},
+ pickup:{n:'รถกระบะ',c:'ภายนอก',sc:'ยานพาหนะ',w:1.85,d:5.3,h:1.8,m:'car',s:[['q',-.925,-2.65,.925,2.65,.3],['q',-.8,-.4,.8,1.3,.15],['r',-.85,-2.5,.85,-.5]],b:[box(-.925,-2.65,.925,2.65,.4,1.0,'car'),box(-.82,-.4,.82,1.3,1.0,1.8,'glass'),['c',-.88,-1.7,.38,.38,0,.76,'tire'],['c',.88,-1.7,.38,.38,0,.76,'tire'],['c',-.88,1.6,.38,.38,0,.76,'tire'],['c',.88,1.6,.38,.38,0,.76,'tire']]},
+ moto:{n:'รถจักรยานยนต์',c:'ภายนอก',sc:'ยานพาหนะ',w:.7,d:1.9,h:1.1,m:'car',s:[['q',-.2,-.95,.2,.95,.15],['l',-.35,-.55,.35,-.55]],b:[box(-.15,-.7,.15,.7,.35,.9,'car'),['c',0,-.7,.04,.3,0,.6,'tire'],['c',0,.7,.04,.3,0,.6,'tire']]},
+ bicycle:{n:'จักรยาน',c:'ภายนอก',sc:'ยานพาหนะ',w:.6,d:1.7,h:1.0,m:'metal',s:[['l',0,-.85,0,.85],['e',0,-.55,.04,.3],['e',0,.55,.04,.3],['l',-.3,-.6,.3,-.6]],b:[['c',0,-.55,.02,.33,0,.66,'tire'],['c',0,.55,.02,.33,0,.66,'tire'],box(-.02,-.55,.02,.55,.45,.6,'metal')]}});
 let WOFF=new Map();
 function levelCenter(lid){const k='c:'+lid;if(WOFF.has(k))return WOFF.get(k);let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;S.els.forEach(e=>{if(e.level!==lid||!(e.type==='wall'||e.type==='column'||e.type==='slab'))return;keyPts(e).forEach(q=>{x0=Math.min(x0,q.x);y0=Math.min(y0,q.y);x1=Math.max(x1,q.x);y1=Math.max(y1,q.y)})});
   const c=x0<x1?{x:(x0+x1)/2,y:(y0+y1)/2}:{x:0,y:0};WOFF.set(k,c);return c}
@@ -765,6 +811,8 @@ function drawEl(e,mode){const ov=mode==='s',ul=mode==='u';const col=k=>ov?C['sel
   switch(e.type){
     case 'slab':{polyPath(e.pts);if(!ul&&!ov){g.fillStyle=C['cv-slab'];g.fill();if(e.sk&&e.sk!=='cast')drawSlabKind(e);polyPath(e.pts)}g.strokeStyle=col('cv-slabline');g.lineWidth=ov?2.5:1;g.stroke();
       if(!ul&&!ov&&e.pts.length>=3&&!S.els.some(r=>r.type==='room'&&r.level===e.level))txt('พื้น หนา '+f2(e.t),ws(centroid(e.pts)),{c:C['muted'],size:11,w:'400'});break}
+    case 'callout':{const B=calloutBox(e),a=ws({x:B.x0,y:B.y1}),b=ws({x:B.x1,y:B.y0}),cl=ov?C['sel']:'#6c5ce7';g.strokeStyle=cl;g.lineWidth=ov?2.2:1.2;g.setLineDash([10,4]);g.beginPath();g.roundRect?g.roundRect(a.x,a.y,b.x-a.x,b.y-a.y,8):g.rect(a.x,a.y,b.x-a.x,b.y-a.y);g.stroke();g.setLineDash([]);
+      const bx=a.x,by=a.y;g.beginPath();g.arc(bx,by,11,0,7);g.fillStyle=C['cv-bg'];g.fill();g.stroke();const no=S.els.filter(x=>x.type==='callout').indexOf(e)+1;txt(String(no),{x:bx,y:by},{size:11,w:'700',c:cl});txt(e.name||'',{x:bx+16,y:by-12},{size:11,w:'600',c:cl,al:'left'});break}
     case 'porch':{const pc=ov?C['sel']:ul?C['cv-under']:C['cv-line'];polyPath(e.pts);if(!ov&&!ul){g.fillStyle=C['cv-bg'];g.fill();drawPattern(e,FIN[e.fin])}polyPath(e.pts);g.strokeStyle=pc;g.lineWidth=ov?2.5:1.4;g.stroke();
       if(!ul){porchSteps(e).forEach(q=>{polyPath(q.poly);g.lineWidth=0.8;g.stroke()});porchPosts(e).forEach(p2=>{const q=ws(p2),r=Math.max(3,0.1*view.s);g.fillStyle=pc;g.fillRect(q.x-r,q.y-r,2*r,2*r)});
         if((e.canopy||'none')!=='none'){g.setLineDash([8,4]);polyPath(offsetPoly(e.pts,polyCCW(e.pts)?-0.3:0.3,true));g.lineWidth=0.8;g.stroke();g.setLineDash([])}
@@ -775,10 +823,10 @@ function drawEl(e,mode){const ov=mode==='s',ul=mode==='u';const col=k=>ov?C['sel
       if(k==='wall'||k==='baluster'){const t=k==='wall'?0.1:0.15;for(let i=0;i<e.pts.length-1;i++){const a=e.pts[i],b=e.pts[i+1],q=perp(nrm(sub(b,a)));polyPath([add(a,mul(q,t/2)),add(b,mul(q,t/2)),add(b,mul(q,-t/2)),add(a,mul(q,-t/2))]);g.lineWidth=ov?2:1;if(k==='wall'&&!ov){g.fillStyle=C['cv-wall'];g.fill()}g.stroke()}}
       else{g.lineWidth=ov?2.5:(k==='glass'?0.8:1.4);polyPath(e.pts,true);g.stroke();if(k==='glass'){g.save();g.translate(0,2);polyPath(e.pts,true);g.stroke();g.restore()}
         for(let i=0;i<e.pts.length-1;i++){const a=e.pts[i],b=e.pts[i+1],L=dist(a,b),n2=Math.max(1,Math.ceil(L/1.2));for(let j=0;j<=n2;j++){const q=ws(lerp(a,b,j/n2));g.fillRect(q.x-2,q.y-2,4,4)}}}break}
-    case 'flr':{if(PRINT==='rcp'||(!PRINT&&DISC==='mep'))break;polyPath(e.pts);if(!ul&&DISC!=='struct'&&PRINT!=='plumb'&&PRINT!=='struct'&&PRINT!=='roofs')drawFinish(e);if(ov){polyPath(e.pts);g.strokeStyle=C['sel'];g.lineWidth=2.5;g.stroke()}break}
-    case 'clg':{const rcp=PRINT==='rcp'||(!PRINT&&DISC==='mep');if(!rcp&&!ov)break;if(!ul)drawPattern(e,CEIL[e.ct||'gyp']);polyPath(e.pts);g.strokeStyle=ov?C['sel']:C['muted'];g.lineWidth=ov?2.5:0.8;g.stroke();break}
-    case 'room':{const rcp=PRINT==='rcp'||(!PRINT&&DISC==='mep');polyPath(e.pts);if(!ov){g.fillStyle=C['cv-room'];g.fill();polyPath(e.pts)}g.strokeStyle=ov?C['sel']:C['muted'];g.lineWidth=ov?2.5:0.6;g.setLineDash(ov?[]:[2,3]);g.stroke();g.setLineDash([]);
-      const c=ws(centroid(e.pts));txt(e.name||'',{x:c.x,y:c.y-8},{size:13,w:'600',c:ov?C['sel']:C['ink']});txt(f2(polyArea(e.pts))+' ตร.ม.',{x:c.x,y:c.y+9},{size:11,w:'400',c:C['muted']});{const cc=centroid(e.pts),zc=zoneAt('clg',e.level,cc),zf=zoneAt('flr',e.level,cc);if(rcp&&zc)txt((CEIL[zc.ct||'gyp']||{}).n+(zc.ct==='none'?'':' สูง +'+f2(ceilH(zc))),{x:c.x,y:c.y+23},{size:10,w:'400',c:C['muted']});else if(!rcp&&zf&&DISC!=='struct')txt((FIN[zf.fin]||{}).n||'',{x:c.x,y:c.y+23},{size:10,w:'400',c:C['muted']})}break}
+    case 'flr':{if(isRCP())break;polyPath(e.pts);if(!ul&&DISC!=='struct'&&PRINT!=='plumb'&&PRINT!=='struct'&&PRINT!=='roofs')drawFinish(e);if(ov){polyPath(e.pts);g.strokeStyle=C['sel'];g.lineWidth=2.5;g.stroke()}break}
+    case 'clg':{const rcp=isRCP();if(!rcp&&!ov)break;if(!ul)drawPattern(e,CEIL[e.ct||'gyp']);polyPath(e.pts);g.strokeStyle=ov?C['sel']:C['muted'];g.lineWidth=ov?2.5:0.8;g.stroke();break}
+    case 'room':{const rcp=isRCP();polyPath(e.pts);if(!ov){g.fillStyle=C['cv-room'];g.fill();polyPath(e.pts)}g.strokeStyle=ov?C['sel']:C['muted'];g.lineWidth=ov?2.5:0.6;g.setLineDash(ov?[]:[2,3]);g.stroke();g.setLineDash([]);
+      const c=ws(roomLabelPt(e));txt(e.name||'',{x:c.x,y:c.y-8},{size:13,w:'600',c:ov?C['sel']:C['ink']});{const zf0=zoneAt('flr',e.level,centroid(e.pts)),lvz=elevOf(e.level)+(zf0?(+zf0.dz||0):0);if(!isRCP()&&DISC!=='struct'){const ty=c.y+37;g.beginPath();g.moveTo(c.x-34,ty-4);g.lineTo(c.x-28,ty-4);g.lineTo(c.x-31,ty+1);g.closePath();g.strokeStyle=C['muted'];g.lineWidth=0.8;g.stroke();txt('FFL '+lvTxt(lvz),{x:c.x-25,y:ty-1},{size:10,w:'500',c:C['muted'],al:'left'})}}txt(f2(polyArea(e.pts))+' ตร.ม.',{x:c.x,y:c.y+9},{size:11,w:'400',c:C['muted']});{const cc=centroid(e.pts),zc=zoneAt('clg',e.level,cc),zf=zoneAt('flr',e.level,cc);if(rcp&&zc)txt((CEIL[zc.ct||'gyp']||{}).n+(zc.ct==='none'?'':' สูง +'+f2(ceilH(zc))),{x:c.x,y:c.y+23},{size:10,w:'400',c:C['muted']});else if(!rcp&&zf&&DISC!=='struct')txt((FIN[zf.fin]||{}).n||'',{x:c.x,y:c.y+23},{size:10,w:'400',c:C['muted']})}break}
     case 'beam':{const u=nrm(sub(e.b,e.a)),n=perp(u),h=e.w/2;g.setLineDash(ov?[]:e.at==='floor'?[2,3]:[7,4]);g.strokeStyle=col('cv-beam');g.lineWidth=ov?2.5:1.2;
       polyPath([add(e.a,mul(n,h)),add(e.b,mul(n,h)),add(e.b,mul(n,-h)),add(e.a,mul(n,-h))]);g.stroke();g.setLineDash([]);break}
     case 'column':{g.beginPath();if(e.shape==='circle'){const c=ws(e.p);g.arc(c.x,c.y,e.w/2*view.s,0,Math.PI*2)}else polyPath(rectPts(e.p,e.w,e.d,e.rot));
@@ -791,7 +839,7 @@ function drawEl(e,mode){const ov=mode==='s',ul=mode==='u';const col=k=>ov?C['sel
       if(S_.spiral){const c=ws(S_.spiral.c);g.beginPath();g.arc(c.x,c.y,Math.max(2,0.08*view.s),0,7);g.stroke()}
       if(!ul&&S_.path.length>1){g.lineWidth=1.1;g.beginPath();S_.path.forEach((p2,i)=>{const q=ws(p2);i?g.lineTo(q.x,q.y):g.moveTo(q.x,q.y)});g.stroke();const pe=S_.path[S_.path.length-1],pb=S_.path[S_.path.length-2];arrow(lerp(pb,pe,0.5),pe,col('cv-line'));
         const s0=ws(S_.path[0]);g.beginPath();g.arc(s0.x,s0.y,3,0,7);g.fillStyle=col('cv-line');g.fill();txt('ขึ้น',{x:s0.x,y:s0.y+14},{size:11,w:'600',c:col('cv-line')})}break}
-    case 'roof':{const O=roofOuter(e),RM=ROOFMAT[e.mat]||ROOFMAT.metal,fr=PRINT==='roofs'||(!PRINT&&DISC==='struct'),rcp=PRINT==='rcp'||(!PRINT&&DISC==='mep');
+    case 'roof':{const O=roofOuter(e),RM=ROOFMAT[e.mat]||ROOFMAT.metal,fr=PRINT==='roofs'||(!PRINT&&DISC==='struct'),rcp=isRCP();
       if(rcp){if(!e.sof||e.sof==='none'||e.kind==='flat')break;g.strokeStyle=C['muted'];g.lineWidth=0.8;g.setLineDash([6,3]);polyPath(O);g.stroke();g.setLineDash([]);const c=ws(lerp(O[0],e.pts[0],.5));txt('ฝ้าชายคา '+(CEIL[e.sof]||{}).n,{x:c.x,y:c.y},{size:9.5,c:C['muted'],al:'left'});break}
       g.strokeStyle=col('cv-roof');g.lineWidth=ov?2.5:1.2;g.setLineDash(ov?[]:[9,4]);polyPath(O);g.stroke();g.setLineDash([]);
       if(!ul){if(fr&&!ov)drawRoofFrame(e);else{g.lineWidth=ov?2:0.9;roofPlanLines(e).forEach(([a,b])=>seg(a,b))}
@@ -861,13 +909,14 @@ function drawGridBg(){const steps=[0.05,0.1,0.25,0.5,1,2,5,10,25,50,100];let st=
   const o=ws({x:0,y:0});g.strokeStyle=C['muted'];g.lineWidth=1.2;g.beginPath();g.moveTo(o.x,o.y);g.lineTo(o.x+26,o.y);g.moveTo(o.x,o.y);g.lineTo(o.x,o.y-26);g.stroke();
   txt('X',{x:o.x+32,y:o.y},{c:C['muted'],size:10});txt('Y',{x:o.x,y:o.y-32},{c:C['muted'],size:10})}
 
-const ORDER=['roof','slab','porch','steps','flr','room','clg','rail','furn','footing','grid','beam','wall','stair','column','door','window','pline','line','circle','arc','pipe','plumb','wire','elec','rmem','dim','text','section'];
+const ORDER=['callout','roof','slab','porch','steps','flr','room','clg','rail','furn','footing','grid','beam','wall','stair','column','door','window','pline','line','circle','arc','pipe','plumb','wire','elec','rmem','dim','text','section'];
 function draw2(){WOFF.clear();g.setTransform(DPR,0,0,DPR,0,0);g.fillStyle=C['cv-bg'];g.fillRect(0,0,W2,H2);if(!PRINT)drawGridBg();
   const ii=lvIdx(cur),below=ii>0?S.levels[ii-1].id:null;
   if(below&&!PRINT){const bl=S.els.filter(e=>e.level===below);drawWalls(bl.filter(e=>e.type==='wall'),'u');bl.filter(e=>e.type==='column').forEach(e=>drawEl(e,'u'))}
-  const L=PRINT?planList(cur,PRINT):S.els.filter(onLevel);
-  const drawT=t=>{const list=L.filter(e=>e.type===t),lk=list.filter(discLocked),un=list.filter(e=>!discLocked(e)),dr=ls=>t==='wall'?drawWalls(ls,'n'):ls.forEach(e=>drawEl(e,'n'));if(lk.length){g.globalAlpha=t==='column'?0.8:0.28;dr(lk);g.globalAlpha=1}dr(un)};
+  const L=(PRINT?planList(cur,PRINT):S.els.filter(onLevel)).filter(e=>!hiddenInDisc(e)&&!(ENLV&&e.type==='callout'));
+  const drawT=t=>{const list=L.filter(e=>e.type===t),lk=list.filter(discLocked),un=list.filter(e=>!discLocked(e)),dr=ls=>t==='wall'?drawWalls(ls,'n'):t==='beam'?drawBeamsMerged(ls):ls.forEach(e=>drawEl(e,'n'));if(lk.length){g.globalAlpha=t==='column'?0.8:(DISC==='struct'&&t==='wall')?0.16:0.28;dr(lk);g.globalAlpha=1}dr(un)};
   ORDER.forEach(t=>{if(t!=='roof')drawT(t)});drawT('roof');
+  if((PRINT&&PRINT!=='roofs'&&!ENLV)||(!PRINT&&!(S.viewopt&&S.viewopt.adim===false)))drawGridDims(L);
   if(PRINT){drawTags(L);return}
   L.filter(e=>sel.has(e.id)).forEach(e=>drawAny(e,'s'));
   if(T.name==='select'&&sel.size&&sel.size<=80){g.fillStyle=C['accfill'];g.strokeStyle=C['ink'];g.lineWidth=1;gripsAll().forEach(gp=>{const s=ws(gp.p);g.fillRect(s.x-4,s.y-4,8,8);g.strokeRect(s.x-4,s.y-4,8,8)})}
@@ -889,6 +938,7 @@ function curX(){const t=T.name,P=T.pts,m=mouse;if(!m||!P.length)return null;
   if(t==='mirror'){const a=P[0];if(dist(a,m)<1e-6)return null;return{kind:'mir',th:deg(Math.atan2(m.y-a.y,m.x-a.x)),fn:p=>mirP(p,a,m)}}return null}
 function drawPreview(){if(!mouse)return;const t=T.name,P=T.pts,m=mouse;
   const lab=(a)=>{const L=dist(a,m),ang=deg(Math.atan2(m.y-a.y,m.x-a.x));const s=ws(m);txt(f2(L)+' ม.  ∠'+(Math.round(ang*10)/10)+'°',{x:s.x+14,y:s.y+18},{al:'left',size:12,c:C['sel'],w:'600'})};
+  if(t==='callout'&&P.length===1){const a=ws(P[0]),b=ws(m);g.setLineDash([8,4]);g.strokeStyle=C['sel'];g.lineWidth=1.5;g.strokeRect(Math.min(a.x,b.x),Math.min(a.y,b.y),Math.abs(b.x-a.x),Math.abs(b.y-a.y));g.setLineDash([])}
   if(t==='steps'&&P.length===2){const sd=crs(sub(P[1],P[0]),sub(m,P[0]))>=0?1:-1;g.globalAlpha=.65;drawEl({type:'steps',level:cur,a:P[0],b:P[1],sd,...D.steps},'s');g.globalAlpha=1}
   if(t==='steps'&&P.length===1){g.strokeStyle=C['sel'];g.lineWidth=2;seg(P[0],m)}
   if(t==='stair'&&P.length&&dist(P[0],m)>0.05){g.globalAlpha=.6;drawEl({type:'stair',level:cur,a:P[0],b:m,...D.stair},'s');g.globalAlpha=1}
@@ -942,6 +992,7 @@ function hitTest(p,tolPx=7,filter){const tol=tolPx/view.s;let best=null,bd=1e9,p
       case 'room':d=inPoly(p,e.pts)?0:1e9;pr=5;break;
       case 'flr':d=inPoly(p,e.pts)?0:1e9;pr=5.4;break;
       case 'porch':d=inPoly(p,e.pts)?0:1e9;pr=4.5;break;
+      case 'callout':{const B=calloutBox(e),P4=[{x:B.x0,y:B.y0},{x:B.x1,y:B.y0},{x:B.x1,y:B.y1},{x:B.x0,y:B.y1}];for(let i=0;i<4;i++)d=Math.min(d,segDist(p,P4[i],P4[(i+1)%4]).d);pr=1.5;break}
       case 'steps':d=stepsPieces(e).some(q=>inPoly(p,q.poly))?0:1e9;pr=3;break;
       case 'rail':{for(let i=0;i<e.pts.length-1;i++)d=Math.min(d,segDist(p,e.pts[i],e.pts[i+1]).d);pr=1.8;break}
       case 'clg':d=inPoly(p,e.pts)?0:1e9;pr=5.3;break;
@@ -956,6 +1007,7 @@ function placeOpening(w,p,ghost){const L=dist(w.a,w.b),dd=D[T.name];if(!dd||L<dd
 function keyPts(e){if(e.a)return[e.a,e.b];if(e.p)return[e.p];if(e.pts)return e.pts;if(e.c)return[e.c];const F=openingFrame(e);return F?[F.c]:[]}
 function gripsOf(e){const G=[];const mv=(p)=>({p,set:(el,q)=>{const d=sub(q,p);xformEl(el,XT(d))}});
   if(e.host){const F=openingFrame(e);if(F)G.push({p:F.c,set:(el,q)=>{const w=hostOf(el),L=dist(w.a,w.b);el.pos=r3(Math.max(el.w/2,Math.min(L-el.w/2,segDist(q,w.a,w.b).t*L)))}});return G}
+  if(e.type==='room'){G.push({p:roomLabelPt(e),set:(el,q)=>{const c=centroid(el.pts);el.lo={x:r3(q.x-c.x),y:r3(q.y-c.y)}}})}
   if(e.type==='dim'){const dg=dimGeom(e);G.push({p:e.a,set:(el,q)=>{el.a=cp(q)}});G.push({p:e.b,set:(el,q)=>{el.b=cp(q)}});G.push({p:lerp(dg.p1,dg.p2,.5),set:(el,q)=>{const n=perp(nrm(sub(el.b,el.a)));el.off=r3(dot(sub(q,el.a),n))}});return G}
   if(e.a){G.push({p:e.a,set:(el,q)=>el.type==='wall'?setSegEnds(el,q,el.b):(el.a=cp(q))});G.push({p:e.b,set:(el,q)=>el.type==='wall'?setSegEnds(el,el.a,q):(el.b=cp(q))});G.push(mv(lerp(e.a,e.b,.5)));return G}
   if(e.type==='roof'){const[p0,p1,,p3]=e.pts;G.push(mv(p0));G.push({p:e.pts[2],set:(el,q)=>{const nU=nrm(sub(p1,p0)),nV=nrm(sub(p3,p0)),Lu=dot(sub(q,p0),nU),Lv=dot(sub(q,p0),nV);if(Math.abs(Lu)<0.1||Math.abs(Lv)<0.1)return;const a=add(p0,mul(nU,Lu)),b=add(p0,mul(nV,Lv));el.pts=[cp(p0),a,add(a,mul(nV,Lv)),b]}});return G}
@@ -999,6 +1051,7 @@ const TOOLS=[
  ['arc','เส้นโค้ง','a','<path d="M4 18a9 9 0 0 1 16 0"/>','เขียนแบบ'],
  ['dim','บอกระยะ','dm','<path d="M4 7v10M20 7v10M4 12h16M6 14l-2-2 2-2M18 10l2 2-2 2"/>','เขียนแบบ'],
  ['text','ข้อความ','t','<path d="M5 6V4h14v2M12 4v16M9 20h6"/>','เขียนแบบ'],
+ ['callout','แบบขยาย','cx','<rect x="4" y="5" width="12" height="10" rx="2" stroke-dasharray="3 2"/><circle cx="18" cy="17" r="3.5"/><path d="M16 15l-1.5-1.5"/>','เขียนแบบ'],
  ['section','รูปตัด','sec','<path d="M3 12h18" stroke-dasharray="4 2 1 2"/><path d="M5 4v8M19 4v8M3 7l2-3 2 3M17 7l2-3 2 3"/>','เขียนแบบ'],
  ['move','ย้าย','m','<path d="M12 3v18M3 12h18M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/>','แก้ไข'],
  ['copy','คัดลอก','co','<rect x="8" y="8" width="12" height="12"/><path d="M4 16V4h12"/>','แก้ไข'],
@@ -1031,6 +1084,7 @@ function updatePrompt(){const t=T.name,n=T.pts.length;let s='';
     case 'grid':s=n?'คลิกปลายเส้นกริด':'กริด: คลิกจุดเริ่ม';break;case 'dim':s=n?'คลิกจุดที่สอง':'บอกระยะ: คลิกจุดแรก';break;
     case 'column':s='เสา: คลิกตำแหน่ง หรือพิมพ์ x,y';break;case 'footing':s='ฐานราก: คลิกที่ศูนย์กลางเสา หรือพิมพ์ x,y';break;
     case 'stair':s=D.stair.stk==='spiral'?(n?'คลิกกำหนดรัศมีและจุดเริ่มขั้นแรก':'บันไดวน: คลิกจุดศูนย์กลาง'):(n?(D.stair.stk==='straight'||!D.stair.stk?'คลิกปลายทางขึ้น หรือพิมพ์ความยาว':'คลิกทิศทางขึ้นของช่วงแรก (ความยาวคำนวณจากลูกนอน)'):'บันได'+((STK.find(x=>x[0]===D.stair.stk)||STK[0])[1])+': คลิกตีนบันได (กึ่งกลางความกว้าง)');break;
+    case 'callout':s=n?'คลิกมุมตรงข้ามของขอบเขตแบบขยาย':'แบบขยาย: คลิกมุมแรกของพื้นที่ที่ต้องการขยาย (เช่น ห้องน้ำ)';break;
     case 'steps':s=n===0?'บันไดหน้าบ้าน: คลิกจุดเริ่มของขอบบน (เช่น ขอบระเบียงหรือหน้าประตู)':n===1?'คลิกจุดปลายของขอบบน':'คลิกด้านที่ต้องการให้ขั้นบันไดลงไป';break;
     case 'rail':s=n?'คลิกจุดถัดไปของแนวราว • ตกลง หรือดับเบิลคลิกเพื่อจบ':'ราวกันตก: คลิกจุดเริ่มแนวราว';break;
     case 'porch':if(D.porch.mode==='poly'){s=n?'คลิกจุดถัดไป • คลิกจุดแรกหรือ ตกลง เพื่อปิดรูป':'ระเบียงหลายเหลี่ยม: คลิกจุดแรก';break}s=n?'คลิกมุมตรงข้าม หรือพิมพ์ กว้าง,ยาว':'ระเบียง: คลิกมุมแรก';break;
@@ -1083,6 +1137,7 @@ function click2(p){const t=T.name,P=T.pts;
   else if(t==='door'||t==='window'){const w=nearestWall(raw||p);if(!w){toast('คลิกให้ใกล้ผนัง');return}const o=placeOpening(w,raw||p,false);if(!o){toast('ผนังสั้นกว่าความกว้าง'+TNAME[t]);return}addEl(o)}
   else if(t==='rmem'){const k=D.rmem.k;if(k==='post'){const z=rmemZ('post',p);addEl({id:nid(),type:'rmem',level:cur,k,sec:D.rmem.sec||DEFSEC.steel[k],a:cp(p),b:cp(p),za:z[0],zb:z[1]})}
     else if(!P.length)P.push(p);else{const a=P[P.length-1];if(dist(a,p)<1e-6)return;const za=rmemZ(k,a,true),zb=rmemZ(k,p,false);addEl({id:nid(),type:'rmem',level:cur,k,sec:D.rmem.sec||DEFSEC.steel[k],a:cp(a),b:cp(p),za:za,zb:zb});T.pts=k==='strut'?[]:[p]}}
+  else if(t==='callout'){if(!P.length)P.push(p);else{if(Math.abs(P[0].x-p.x)<0.3||Math.abs(P[0].y-p.y)<0.3)return;const n=S.els.filter(e=>e.type==='callout').length+1;addEl({id:nid(),type:'callout',level:cur,a:cp(P[0]),b:cp(p),name:(D.callout.name&&D.callout.name!=='แบบขยาย'?D.callout.name:'แบบขยาย '+n),scale:+D.callout.scale||25});T.pts=[]}}
   else if(t==='steps'){if(P.length<2){if(P.length&&dist(P[0],p)<0.1)return;P.push(p)}else{const a=P[0],b=P[1],sd=crs(sub(b,a),sub(raw||p,a))>=0?1:-1;addEl({id:nid(),type:'steps',level:cur,a:cp(a),b:cp(b),sd,...clone(D.steps)});T.pts=[]}}
   else if(t==='elec'||t==='plumb'){const L=(t==='elec'?ELIB:PLIB)[D[t].kind];if(!L)return;const fp=(T.fp&&dist(T.fp.p,p)<1e-9)?T.fp:{p,rot:0};addEl({id:nid(),type:t,level:cur,kind:D[t].kind,p:cp(fp.p),rot:fp.rot,...(t==='elec'?{ckt:D.elec.ckt||'',va:L.va,h:''}:{})})}
   else if(t==='furn'){const k=LIB[D.furn.kind];if(!k)return;const fp=(T.fp&&dist(T.fp.p,p)<1e-9)?T.fp:{p,rot:+D.furn.rot||0};addEl({id:nid(),type:'furn',level:cur,kind:D.furn.kind,p:cp(fp.p),rot:fp.rot,w:k.w,d:k.d,h:k.h})}
@@ -1283,12 +1338,13 @@ const FIELDS={
     ['ขนาดเข็ม (ม.)','pd'],['ความยาวเข็ม (ม.)','pl'],['หน้าตัดเข็ม','pshape','sel',[['sq','สี่เหลี่ยม'],['ci','กลม']]],['มุมหมุน (°)','rot']],
   stair:[['รูปแบบบันได','stk','sel',STK],['โครงสร้าง','smat','sel',[['rc','คอนกรีตเสริมเหล็ก'],['steel','โครงเหล็ก ลูกนอนไม้'],['wood','ไม้ทั้งหมด']]],['ราวกันตก','rail','sel',[['steel','ราวเหล็ก'],['glass','ราวกระจก'],['wood','ราวไม้'],['none','ไม่มี']]],['ลูกนอน (ม.)','tr'],['ความลึกชานพัก (ม.)','ld','text','เท่าความกว้าง'],['ทิศเลี้ยว / ทิศวน','turn','sel',[['l','ซ้าย (ทวนเข็ม)'],['r','ขวา (ตามเข็ม)']]],['จำนวนขั้นช่วงแรก','split','text','อัตโนมัติ'],['ช่องว่างระหว่างช่วง U (ม.)','gap'],['มุมกวาดบันไดวน (°)','ang','text','อัตโนมัติ'],['กว้าง (ม.)','w'],['ความสูงรวม (ม.)','h','text','เท่าความสูงชั้น'],['ความยาวช่วงบันได','_len']],
   roof:[['รูปแบบการวาด','mode','sel',[['rect','สี่เหลี่ยม 2 คลิก'],['poly','หลายเหลี่ยม (รูปตัว L, T, U ฯลฯ)']]],['ทรงหลังคา','kind','sel',Object.entries(ROOFK)],['ความชัน (°)','pitch'],['ชายคายื่น (ม.)','over'],['แนวสันหลังคา','ridge','sel',[['u','ตามด้านแรก'],['v','ตามด้านที่สอง']]],['ยก/ลดระดับหลังคา (ม.)','dz'],['ระดับฐานกำหนดเอง (ม. จากพื้นชั้น)','base','text','บนสุดของชั้น'],['วัสดุมุง','mat','sel',Object.entries(ROOFMAT).map(([k,v])=>[k,v.n])],['สีหลังคา','color','col'],['ด้านสูงของหลังคาเพิง','hi','sel',[['auto','อัตโนมัติ (ด้านชิดอาคาร)'],['a','ด้านแนวสันแรก'],['b','ด้านตรงข้าม']]],['ฝ้าชายคา','sof','sel',CEILOPT],['เชิงชาย / ปั้นลม','fas','sel',Object.entries(FASM).map(([k,v])=>[k,v.n])],['สีเชิงชาย','fasc','col'],['ปิดหน้าจั่ว','gab','sel',Object.entries(GABM).map(([k,v])=>[k,v.n])],['สีไม้ฝา','gabc','col'],['ครอบสัน / ครอบข้าง','cap','sel',[['auto','แสดง'],['none','ไม่แสดง']]],['โครงหลังคา','frame','sel',[['steel','โครงเหล็ก (อัตโนมัติ)'],['wood','โครงไม้ (อัตโนมัติ)'],['manual','ชิ้นที่แก้ไขเอง'],['none','ไม่แสดง']]],['ระยะจันทัน (ม.)','rs'],['ระยะแป/ระแนง (ม.)','ps','text','ตามวัสดุมุง']],
+  callout:[['ชื่อแบบขยาย','name','text'],['มาตราส่วน','scale','sel',[[20,'1:20'],[25,'1:25'],[50,'1:50']]]],
   porch:[['ระดับหลังพื้นระเบียง (ม.)','zt','text','ต่ำกว่าพื้นชั้น 0.15'],['วัสดุปูพื้น','fin','sel',FINOPT],['สีวัสดุ','fc','col'],['ขั้นบันไดลงดิน','steps','sel',[['auto','ด้านที่ไม่ติดผนัง'],['none','ไม่มี']]],['กันสาด / หลังคาคลุม','canopy','sel',[['none','ไม่มี'],['metal','เมทัลชีทลาด + เสา'],['flat','พื้นคอนกรีต + เสา'],['pergola','ระแนงเพอร์โกลา + เสา']]],['ความสูงกันสาด (ม.)','chh'],['สีกันสาด','cc2','col'],['รูปแบบการวาด','mode','sel',[['rect','สี่เหลี่ยม 2 คลิก'],['poly','หลายเหลี่ยม']]]],
   steps:[['ระดับบนสุด (ม.)','z1','text','พื้นชั้น / ระเบียง'],['ระดับล่างสุด (ม.)','z0','text','ระดับดิน'],['ลูกนอน (ม.)','tr'],['รูปแบบ','sides','sel',[['1','ขึ้นด้านเดียว'],['3','ขึ้นได้ 3 ด้าน']]],['วัสดุผิว','fin','sel',FINOPT],['สีวัสดุ','fc','col']],
   rail:[['แบบราว','kind','sel',[['steel','ราวเหล็กโมเดิร์น'],['glass','ราวกระจก'],['wood','ราวไม้ลูกกรง'],['baluster','ลูกกรงปูนปั้น'],['wall','ผนังเตี้ยก่ออิฐ']]],['ความสูง (ม.)','h'],['ระดับฐานราว (ม.)','zb','text','อัตโนมัติ'],['สีราว','rc','col']],
   flr:[['วัสดุปูพื้น','fin','sel',FINOPT],['ยก/ลดระดับผิวพื้น (ม.)','dz'],['สีวัสดุ','fc','col'],['รูปแบบการวาด','mode','sel',[['rect','สี่เหลี่ยม 2 คลิก'],['poly','หลายเหลี่ยม'],['room','คลิกในห้อง (เต็มห้อง)']]]],
   clg:[['ชนิดฝ้า','ct','sel',CEILOPT],['ระดับฝ้าจากพื้น (ม.)','ch','text','อัตโนมัติ'],['สีฝ้า','cc','col'],['รูปแบบการวาด','mode','sel',[['rect','สี่เหลี่ยม 2 คลิก'],['poly','หลายเหลี่ยม'],['room','คลิกในห้อง (เต็มห้อง)']]]],
-  room:[['ชื่อห้อง','name','text'],['น้ำหนักบรรทุกจร (กก./ตร.ม.)','ll','text','ตามการใช้งาน'],['สร้างพื้นผิวและฝ้าให้ด้วย','zones','sel',[['1','ใช่'],['0','ไม่']]],['รูปแบบการวาด','mode','sel',[['rect','สี่เหลี่ยม 2 คลิก'],['poly','หลายเหลี่ยม']]]],
+  room:[['ชื่อห้อง','name','text'],['ชนิดพื้น','rfin','sel',FINOPT],['ยก/ลดระดับพื้นห้อง (ม.)','rdz'],['ชนิดฝ้า','rct','sel',CEILOPT],['ความสูงฝ้า (ม.)','rch','text','อัตโนมัติ'],['น้ำหนักบรรทุกจร (กก./ตร.ม.)','ll','text','ตามการใช้งาน'],['สร้างพื้นผิวและฝ้าให้ด้วย','zones','sel',[['1','ใช่'],['0','ไม่']]],['รูปแบบการวาด','mode','sel',[['rect','สี่เหลี่ยม 2 คลิก'],['poly','หลายเหลี่ยม']]]],
   door:[['แบบประตู','st','sel',OPOPT('door')],['กว้าง (ม.)','w'],['สูง (ม.)','h'],['ระยะจากต้นผนัง','pos'],['ด้านบานพับ','flip','sel',[['0','ซ้าย'],['1','ขวา']]],['ทิศเปิด','side','sel',[['0','ด้าน A'],['1','ด้าน B']]],['วัสดุวงกบ','fm','sel',FMAT],['สีวงกบ / บาน','fc','col'],['กระจก','gl','sel',GLASS]],
   window:[['แบบหน้าต่าง','st','sel',OPOPT('window')],['กว้าง (ม.)','w'],['สูง (ม.)','h'],['ความสูงขอบล่าง','sill'],['ระยะจากต้นผนัง','pos'],['ทิศเปิดออก','side','sel',[['0','ด้าน A'],['1','ด้าน B']]],['วัสดุวงกบ','fm','sel',FMAT],['สีวงกบ','fc','col'],['กระจก','gl','sel',GLASS]],
   text:[['ข้อความ','s','text'],['ความสูงตัวอักษร (ม.)','size'],['มุมหมุน (°)','rot']],
@@ -1302,9 +1358,9 @@ const FIELDS={
   wire:[['วงจร','ckt','text','เช่น C1']],pipe:[['ระบบท่อ','sys','sel',PSYSOPT],['ขนาดท่อ','dia','text','ตามระบบ'],['ระดับท่อจากพื้น (ม.)','z','text','ตามระบบ']],
   rmem:[['ชนิดชิ้นส่วน','k','sel',RMK],['หน้าตัด','sec','sel',SECOPT],['ระดับปลายเริ่ม (ม.)','za'],['ระดับปลายสุด (ม.)','zb'],['ความยาวในแปลน (ม.)','_len']],
   offset:[['ระยะขนาน (ม.)','d']],mirror:[['เก็บต้นฉบับไว้','keep','sel',YN]]};
-const TEXTK=['hi','toRoof','bm','bk','zt','z0','z1','zb','steps','canopy','sides','rc','cc2','aux','wm','wco','wci','ll','zones','mode2','stk','smat','rail','ld','turn','split','ang','fas','fasc','gab','gabc','cap','k','sec','zmode','ct','ch','cc','sof','ckt','sys','dia','j','sk','sdir','st','fm','fc','gl','fin','mat','color','frame','ps','bub','snapw','tag','label','shape','mode','flip','side','name','kind','ridge','piles','pshape','at','s','keep','base','h'];
-function getF(e,k){if(k==='_len')return r3(dist(e.a,e.b));if(k==='_px')return r3(e.p.x);if(k==='_py')return r3(e.p.y);if(k==='closed')return String(!!e.closed);return e[k]??''}
-function setF(e,k,v){if(k==='_len'){const L=parseFloat(v);if(!(L>0))return;const nb=add(e.a,mul(nrm(sub(e.b,e.a)),L));e.type==='wall'?setSegEnds(e,e.a,nb):(e.b=nb);return}
+const TEXTK=['rfin','rct','rch','hi','toRoof','bm','bk','zt','z0','z1','zb','steps','canopy','sides','rc','cc2','aux','wm','wco','wci','ll','zones','mode2','stk','smat','rail','ld','turn','split','ang','fas','fasc','gab','gabc','cap','k','sec','zmode','ct','ch','cc','sof','ckt','sys','dia','j','sk','sdir','st','fm','fc','gl','fin','mat','color','frame','ps','bub','snapw','tag','label','shape','mode','flip','side','name','kind','ridge','piles','pshape','at','s','keep','base','h'];
+function getF(e,k){if(e.type==='room'&&RPROX.includes(k))return roomZoneGet(e,k);if(k==='_len')return r3(dist(e.a,e.b));if(k==='_px')return r3(e.p.x);if(k==='_py')return r3(e.p.y);if(k==='closed')return String(!!e.closed);return e[k]??''}
+function setF(e,k,v){if(e.type==='room'&&RPROX.includes(k)){roomZoneSet(e,k,v);return}if(k==='_len'){const L=parseFloat(v);if(!(L>0))return;const nb=add(e.a,mul(nrm(sub(e.b,e.a)),L));e.type==='wall'?setSegEnds(e,e.a,nb):(e.b=nb);return}
   if(k==='_px'){e.p.x=+v;return}if(k==='_py'){e.p.y=+v;return}if(k==='closed'){e.closed=v==='true';return}
   if(k==='st'&&(e.type==='door'||e.type==='window')){const L=OPLIB[v];if(L){Object.assign(e,{st:v,w:L.w,h:L.h,fm:L.fm,fc:L.fc,gl:L.gl||'clear'});if(e.type==='window')e.sill=L.sill;const w=hostOf(e);if(w){const Lw=dist(w.a,w.b);e.w=Math.min(e.w,Lw);e.pos=r3(Math.max(e.w/2,Math.min(Lw-e.w/2,e.pos)))}}return}
   if(k==='mat'&&e.type==='roof'){const o=ROOFMAT[e.mat],n=ROOFMAT[v];if(n&&(!e.color||(o&&e.color===o.c)))e.color=n.c;e.mat=v;return}
@@ -1373,10 +1429,11 @@ function renderSide(){const P=$('#pane');if(isSheet()&&tab==='props'){renderShee
   else if(T.name==='door'||T.name==='window'){h=opLibHTML(T.name)}
   else if(T.name!=='select'&&FIELDS[T.name]){h=`<h3>${TNAME[T.name]} — ค่าตั้งต้น</h3><p class="hint">ใช้กับชิ้นถัดไปที่สร้าง</p>`+FIELDS[T.name].filter(f=>!f[1].startsWith('_')&&f[1]!=='pos').map(f=>fieldHTML(f,D[T.name][f[1]]??'','def')).join('')}
   else if(T.name!=='select'){h=`<h3>${TNAME[T.name]}</h3><p class="hint">${esc($('#prompt').textContent)}</p>`}
-  else if(DISC==='mep'){h=mepPanelHTML()}
+  else if(isMEP()){h=DISC==='plumb'?plumbPanelHTML():mepPanelHTML()}
   else{h=`<h3>คุณสมบัติ</h3><p class="hint">เลือกชิ้นงานเพื่อแก้ขนาด หรือเลือกเครื่องมือเพื่อตั้งค่าตั้งต้น</p>
     <div class="ro"><span>ชั้นปัจจุบัน</span><b>${esc(lvl(cur).name)}</b></div><div class="ro"><span>ระดับพื้น</span><b>+${f2(elevOf(cur))} ม.</b></div><div class="ro"><span>ความสูงชั้น</span><b>${f2(+lvl(cur).height)} ม.</b></div>
-    <div class="f" style="margin-top:12px"><label for="hatchIn">ลาย Hatch ผนังในแปลน</label><select id="hatchIn"><option value="1"${!(S.viewopt&&S.viewopt.hatch===false)?' selected':''}>แสดง</option><option value="0"${S.viewopt&&S.viewopt.hatch===false?' selected':''}>ทึบ (ไม่แสดงลาย)</option></select></div>
+    <div class="f" style="margin-top:12px"><label for="adimIn">บอกระยะกริดอัตโนมัติ</label><select id="adimIn"><option value="1"${!(S.viewopt&&S.viewopt.adim===false)?' selected':''}>แสดง</option><option value="0"${S.viewopt&&S.viewopt.adim===false?' selected':''}>ซ่อน</option></select></div>
+    <div class="f"><label for="hatchIn">ลาย Hatch ผนังในแปลน</label><select id="hatchIn"><option value="1"${!(S.viewopt&&S.viewopt.hatch===false)?' selected':''}>แสดง</option><option value="0"${S.viewopt&&S.viewopt.hatch===false?' selected':''}>ทึบ (ไม่แสดงลาย)</option></select></div>
     <div class="f"><label for="stepIn">ระยะปัดเศษ (ม.)</label><input id="stepIn" type="number" step="0.01" value="${SN.step}"></div>
     <p class="hint" style="margin-top:12px">พิมพ์ชื่อย่อแล้ว Enter เพื่อเรียกคำสั่ง • F8 ตั้งฉาก • Ctrl+Z ย้อน • Delete ลบ • Space+ลาก เลื่อนจอ</p>${aliasHelp()}`}
   P.innerHTML=h;
@@ -1390,8 +1447,10 @@ function renderSide(){const P=$('#pane');if(isSheet()&&tab==='props'){renderShee
   P.querySelectorAll('[data-rsec]').forEach(sl=>sl.onchange=()=>{const e=byId(ids[0]);if(!e)return;mutate(()=>{e.secs={...(e.secs||{}),[sl.dataset.rsec]:sl.value}})});
   P.querySelectorAll('[data-sym]').forEach(b=>b.onclick=()=>{D[T.name].kind=b.dataset.sym;renderSide();updatePrompt();draw2()});
   P.querySelectorAll('[data-mep]').forEach(b=>b.onclick=()=>{const a=b.dataset.mep;if(a==='auto')autoElec(cur);if(a==='ckt')autoCircuits(true)});
+  {const lo=P.querySelector('#libOpen');if(lo)lo.onclick=()=>openLib()}P.querySelectorAll('[data-fcat]').forEach(b=>b.onclick=()=>openLib(b.dataset.fcat));
   P.querySelectorAll('[data-lib]').forEach(b=>b.onclick=()=>{D.furn.kind=b.dataset.lib;renderSide();updatePrompt();draw2()});
   P.querySelectorAll('[data-tool2]').forEach(b=>b.onclick=()=>setTool(b.dataset.tool2));
+  const ad=$('#adimIn');if(ad)ad.onchange=()=>{mutate(()=>{S.viewopt={...(S.viewopt||{}),adim:ad.value==='1'}})};
   const hi=$('#hatchIn');if(hi)hi.onchange=()=>{mutate(()=>{S.viewopt={...(S.viewopt||{}),hatch:hi.value==='1'}})};
   const st=$('#stepIn');if(st)st.onchange=()=>{const v=parseFloat(st.value);if(v>0)SN.step=v};
   P.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const a=b.dataset.a;
@@ -1402,7 +1461,7 @@ function renderSide(){const P=$('#pane');if(isSheet()&&tab==='props'){renderShee
     if(a==='cplv'){const tl=$('#cpLv').value;mutate(()=>copyEls(new Set(ids),tl,null));toast('คัดลอกไป '+lvl(tl).name+' แล้ว')}
     if(a==='foot'){mutate(()=>ids.map(byId).filter(e=>e.type==='column').forEach(c=>S.els.push({id:nid(),type:'footing',level:c.level,p:cp(c.p),...clone(D.footing),sw:Math.max(c.w,c.d)})));toast('สร้างฐานรากแล้ว')}
     if(a==='gaux'||a==='gauxm'){const g0=byId(ids[0]),d=(parseFloat($('#auxD').value)||1)*(a==='gauxm'?-1:1);let nw;mutate(()=>{nw=auxGrid(g0,d);S.els.push(nw)});toast('สร้างกริดเสริม '+nw.label+' แล้ว')}
-    if(a==='selflr'||a==='selclg'){const r=byId(ids[0]),t=a==='selflr'?'flr':'clg',z=zoneAt(t,r.level,centroid(r.pts));if(!z){toast('ห้องนี้ยังไม่มี'+(t==='flr'?'พื้นผิว':'ฝ้า')+' ใช้เครื่องมือ '+TNAME[t]+' คลิกในห้อง');return}if(t==='clg'&&DISC!=='mep')setDisc('mep');if(t==='flr'&&DISC==='mep')setDisc('all');sel.clear();sel.add(z.id);onSel()}
+    if(a==='selflr'||a==='selclg'){const r=byId(ids[0]),t=a==='selflr'?'flr':'clg',z=zoneAt(t,r.level,centroid(r.pts));if(!z){toast('ห้องนี้ยังไม่มี'+(t==='flr'?'พื้นผิว':'ฝ้า')+' ใช้เครื่องมือ '+TNAME[t]+' คลิกในห้อง');return}if(t==='clg'&&!isMEP())setDisc('elec');if(t==='flr'&&isMEP())setDisc('all');sel.clear();sel.add(z.id);onSel()}
     if(a==='gext')extendGrids(ids,0.5);if(a==='gshr')extendGrids(ids,-0.5);if(a==='gfit')fitGrids(1.2);
     if(a==='opensec'){secCur=ids[0];setView('msec')}
     if(a==='rwall'){const r=byId(ids[0]),O=roofOuter(r),zb=roofBase(r);let n=0;mutate(()=>S.els.forEach(w=>{if(w.type!=='wall')return;const top=elevOf(w.level)+elH(w);if(top<zb-0.8||top>zb+0.3)return;if(!inPoly(lerp(wA(w),wB(w),.5),O))return;w.toRoof='1';n++}));toast(n?'ต่อผนัง '+n+' ช่วงขึ้นชนหลังคาแล้ว':'ไม่พบผนังใต้หลังคานี้')}
@@ -1505,7 +1564,7 @@ function labelSprite(t){const c=document.createElement('canvas');c.width=c.heigh
   const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),depthTest:false}));s.scale.set(.9,.9,.9);return s}
 function polysGeo(polys){const pos=[];polys.forEach(f=>{for(let i=1;i<f.length-1;i++)[f[0],f[i],f[i+1]].forEach(p=>pos.push(p[0],p[2],-p[1]))});
   const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geo.computeVertexNormals();return geo}
-function build3(){WOFF.clear();if(MAT.gnd)MAT.gnd.position.y=GROUND-0.01;while(root.children.length){const c=root.children.pop();c.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isSprite&&o.material&&o.material.map)o.material.map.dispose()})}
+function build3(){WOFF.clear();modernMats();if(MAT.gnd)MAT.gnd.position.y=GROUND-0.01;while(root.children.length){const c=root.children.pop();c.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.isSprite&&o.material&&o.material.map)o.material.map.dispose()})}
   const ci=lvIdx(cur);const ok=e=>{if(e.type==='grid')return true;if(e.type==='section')return false;const i=lvIdx(e.level);return lv3==='all'||(lv3==='upto'?i<=ci:i===ci)};
   for(const e of S.els){if(!ok(e))continue;if(DISC==='struct'&&['wall','door','window','furn','room','elec','plumb','pipe'].includes(e.type))continue;const el=e.level?elevOf(e.level):0,LH=e.level?+lvl(e.level).height:0;
     switch(e.type){
@@ -1529,7 +1588,7 @@ function build3(){WOFF.clear();if(MAT.gnd)MAT.gnd.position.y=GROUND-0.01;while(r
       case 'rmem':{if(!(show3.roof==='frame'||DISC==='struct'||show3.roof===false))break;const m=rmemM(e),sp=SECLIB[e.sec]||SECLIB.C150;addBeam3(m.a,m.b,sp,sp.wood?MAT.rf_wood:MAT.rf_steel,el,e.id);break}
       case 'pipe':{const Y=PSYS[e.sys]||PSYS.cw,rr=Math.max(0.012,inchMM(e.dia||Y.dia)/2000),zz=el+(isFinite(parseFloat(e.z))?parseFloat(e.z):Y.z),mt=MAT['p_'+(e.sys||'cw')]||MAT.f_white;
         for(let i=0;i<e.pts.length-1;i++)addBeam3([e.pts[i].x,e.pts[i].y,0],[e.pts[i+1].x,e.pts[i+1].y,0],{b:rr*2,h:rr*2},sel.has(e.id)?MAT.sel:mt,zz,e.id);break}
-      case 'furn':furnBoxes(e).forEach(bx=>{if(bx.z1-bx.z0<1e-4)return;const geo=new THREE.ExtrudeGeometry(new THREE.Shape(bx.poly.map(q=>new THREE.Vector2(q.x,q.y))),{depth:bx.z1-bx.z0,bevelEnabled:false});
+      case 'furn':furnSpheres(e,el);furnBoxes(e).forEach(bx=>{if(bx.z1-bx.z0<1e-4)return;const geo=new THREE.ExtrudeGeometry(new THREE.Shape(bx.poly.map(q=>new THREE.Vector2(q.x,q.y))),{depth:bx.z1-bx.z0,bevelEnabled:false});
         const m=addMesh(geo,bx.m==='glass'?MAT.glass:(MAT['f_'+bx.m]||MAT.f_wood),e.id,new THREE.Vector3(0,furnBase(e,el)+bx.z0,0));m.rotation.x=-Math.PI/2});break;
       case 'roof':{const PP=roofParts(e);PP._seen=new Set();PP._caps=[];PP.forEach(q=>buildRoofPart(q));if(PP.length>1&&e.cap!=='none'&&show3.roof===true&&DISC!=='struct'){const tile=!!(ROOFMAT[e.mat]||ROOFMAT.metal).tile,cm=capMat(e),base=roofBase(e);creaseCaps(e,PP,tile,cm,base);finalizeCaps(PP._caps,tile,cm,base,e.id)}if(!isRectPts(e.pts)&&show3.roof===true&&DISC!=='struct'){polySoffit3(e);if(PP.length>1&&(e.fas||'smart')!=='none'){const fm=fasMat(e),base=roofBase(e);fasciaGeos({...e,_outer:roofOuter(e)},roofTrim(e)).forEach(geo=>{const m=new THREE.Mesh(geo,fm);m.position.y=base;m.castShadow=true;m.userData.id=e.id;root.add(m)})}}break}
       case 'clg':{if(DISC==='struct'||!show3.ceil||e.ct==='none')break;const geo=new THREE.ShapeGeometry(new THREE.Shape(e.pts.map(q=>new THREE.Vector2(q.x,q.y))));const m=new THREE.Mesh(geo,sel.has(e.id)?MAT.sel:texFloor(e.ct||'gyp',e.cc,CEIL,THREE.BackSide).mat);m.rotation.x=-Math.PI/2;m.position.y=el+ceilH(e);m.receiveShadow=true;m.userData.id=e.id;root.add(m);break}
@@ -1546,6 +1605,7 @@ function camView(k){if(!R)return;if(dirty3){build3();dirty3=false}const b=bounds
   if(k==='iso'){orb.th=-0.75;orb.ph=0.5}if(k==='top'){orb.ph=1.55;orb.th=0}if(k==='front'){orb.th=0;orb.ph=0.03}if(k==='side'){orb.th=Math.PI/2;orb.ph=0.03}req3()}
 document.querySelectorAll('[data-cam]').forEach(b=>b.onclick=()=>camView(b.dataset.cam));
 $('#tgRoof3').onclick=e=>{show3.roof=show3.roof===true?'frame':show3.roof==='frame'?false:true;e.target.textContent='หลังคา: '+(show3.roof===true?'แสดง':show3.roof==='frame'?'โครงหลังคา':'ซ่อน');dirty3=true;req3()};
+$('#rpBtn').onclick=openRenderPrompt;
 $('#tgGrid3').onclick=e=>{show3.grid=!show3.grid;e.target.textContent='กริด: '+(show3.grid?'แสดง':'ซ่อน');dirty3=true;req3()};
 $('#tgCeil3').onclick=e=>{show3.ceil=!show3.ceil;e.target.textContent='ฝ้า: '+(show3.ceil?'แสดง':'ซ่อน');dirty3=true;req3()};
 $('#tgUnder3').onclick=e=>{show3.under=!show3.under;e.target.textContent='ใต้ดิน: '+(show3.under?'แสดง':'ซ่อน');dirty3=true;req3()};
@@ -1888,7 +1948,7 @@ $('#lvClose').onclick=()=>$('#lvDlg').close();
 // ================= Sheets (drawing set)
 const PAPER={A1:[841,594],A2:[594,420],A3:[420,297],A4:[297,210]};
 const SCALES=[20,25,50,75,100,125,150,200,250,300,400,500,750,1000];
-const DRAWK=['plan','struct','roofs','sec','rcp','plumb'];
+const DRAWK=['plan','struct','roofs','sec','rcp','plumb','enl'];
 const KMM=0.2;
 const PC={'bg':'#ffffff','cv-bg':'#ffffff','cv-grid':'#ffffff','cv-grid2':'#ffffff','cv-wall':'#262b30','cv-col':'#7c858c','cv-beam':'#2b4f6e','cv-slab':'rgba(0,0,0,.05)','cv-slabline':'#6b747c','cv-gridline':'#a3302a','cv-dim':'#1b2a22','cv-line':'#1d2329','cv-door':'#3a2a1c','cv-win':'#244e66','cv-under':'rgba(0,0,0,0)','cv-room':'rgba(0,0,0,0)','cv-roof':'#6b3a2a','cv-foot':'#3e3460','sel':'#e0560f','accfill':'#f3be2c','ink':'#111417','muted':'#5a636b','panel':'#f4f4f2','v3-bg':'#ffffff'};
 let PRINT=null,modelVer=0,lastSig='',shCur=null,hSel=null,snap3={ver:-1,img:null};const VPC=new Map(),SECC=new Map();
@@ -1917,7 +1977,8 @@ function drawTags(L){const M=markMaps();const tg=(p,t,round)=>{if(!t)return;cons
     else{if(e.type==='column')tg(add(e.p,{x:e.w/2+0.32,y:e.d/2+0.26}),markOf(M,e),false);
       if(e.type==='beam'){const u=nrm(sub(e.b,e.a));tg(add(lerp(e.a,e.b,.5),mul(perp(u),e.w/2+0.26)),markOf(M,e),false)}
       if(e.type==='slab')tg(centroid(e.pts),markOf(M,e)+' '+SLABKN[e.sk||'cast']+' หนา '+f2(e.t),false)}})}
-function vpExt(vp){if(vp.kind==='sec'){const sec=byId(vp.ref);if(!sec||sec.type!=='section')return null;const R=genSecCached(sec),e=R.ext;return{R,x0:e.s0-3,x1:e.s1+3.6,y0:Math.min(e.z0,GROUND)-2.2,y1:e.z1+1.6}}
+function vpExt(vp){if(vp.kind==='enl'){const c=byId(vp.ref);if(!c||c.type!=='callout')return null;const B=calloutBox(c),m=0.15;return{x0:B.x0-m,x1:B.x1+m,y0:B.y0-m,y1:B.y1+m}}
+  if(vp.kind==='sec'){const sec=byId(vp.ref);if(!sec||sec.type!=='section')return null;const R=genSecCached(sec),e=R.ext;return{R,x0:e.s0-3,x1:e.s1+3.6,y0:Math.min(e.z0,GROUND)-2.2,y1:e.z1+1.6}}
   if(DRAWK.includes(vp.kind)){if(!S.levels.some(l=>l.id===vp.ref))return null;let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
     planList(vp.ref,vp.kind==='plan'?'arch':vp.kind).forEach(e=>{if(e.type==='section')return;let pts=keyPts(e);if(e.type==='roof')pts=roofOuter(e);if(e.type==='dim'){const d=dimGeom(e);pts=[d.p1,d.p2]}
       pts.forEach(q=>{x0=Math.min(x0,q.x);y0=Math.min(y0,q.y);x1=Math.max(x1,q.x);y1=Math.max(y1,q.y)})});
@@ -1927,8 +1988,8 @@ function vpImage(vp,ppm){const E=vpExt(vp);if(!E)return null;const den=vp.scale|
   const off=document.createElement('canvas');off.width=Math.max(1,Math.round(wmm*k));off.height=Math.max(1,Math.round(hmm*k));const sPx=(1000/den)/KMM,saveC=C;C=PC;
   try{if(vp.kind==='sec'){const x=off.getContext('2d');x.setTransform(k*KMM,0,0,k*KMM,0,0);x.fillStyle='#fff';x.fillRect(0,0,wmm/KMM,hmm/KMM);renderSec(x,E.R,p=>({x:(p.x-E.x0)*sPx,y:(E.y1-p.y)*sPx}),sPx,true)}
     else{const sv={g,W2,H2,DPR,cur,view:{...view},T,sel:new Set(sel),mouse,boxSel};
-      try{g=off.getContext('2d');W2=wmm/KMM;H2=hmm/KMM;DPR=k*KMM;cur=vp.ref;view.x=(E.x0+E.x1)/2;view.y=(E.y0+E.y1)/2;view.s=sPx;T={name:'select',pts:[],phase:null};sel.clear();mouse=null;boxSel=null;SNAPS=null;PRINT=vp.kind==='plan'?'arch':vp.kind;draw2()}
-      finally{PRINT=null;g=sv.g;W2=sv.W2;H2=sv.H2;DPR=sv.DPR;cur=sv.cur;Object.assign(view,sv.view);T=sv.T;sv.sel.forEach(i=>sel.add(i));mouse=sv.mouse;boxSel=sv.boxSel;SNAPS=null}}}
+      try{g=off.getContext('2d');W2=wmm/KMM;H2=hmm/KMM;DPR=k*KMM;cur=vp.kind==='enl'?byId(vp.ref).level:vp.ref;ENLV=vp.kind==='enl';view.x=(E.x0+E.x1)/2;view.y=(E.y0+E.y1)/2;view.s=sPx;T={name:'select',pts:[],phase:null};sel.clear();mouse=null;boxSel=null;SNAPS=null;PRINT=vp.kind==='plan'||vp.kind==='enl'?'arch':vp.kind;draw2()}
+      finally{PRINT=null;ENLV=false;g=sv.g;W2=sv.W2;H2=sv.H2;DPR=sv.DPR;cur=sv.cur;Object.assign(view,sv.view);T=sv.T;sv.sel.forEach(i=>sel.add(i));mouse=sv.mouse;boxSel=sv.boxSel;SNAPS=null}}}
   finally{C=saveC}const res={img:off,wmm,hmm};VPC.set(key,res);return res}
 function placeCam(){const cx=Math.cos(orb.ph)*Math.sin(orb.th),cy=Math.sin(orb.ph),cz=Math.cos(orb.ph)*Math.cos(orb.th);cam.position.set(orb.tx+orb.d*cx,orb.ty+orb.d*cy,orb.tz+orb.d*cz);cam.lookAt(orb.tx,orb.ty,orb.tz);
   MAT.light.target.position.set(orb.tx,0,orb.tz);MAT.light.position.set(orb.tx+20,35,orb.tz+15)}
@@ -2008,6 +2069,7 @@ function renderSheet(x,sh,ppm,screen){const A=drawArea(sh),{W,H}=A,M=10;x.fillSt
     else if(vp.kind==='notes')drawNotes(x,vp.x-w/2,vp.y-h/2);
     else if(vp.kind==='legend')drawLegend(x,vp.ref,vp.x-w/2,vp.y-h/2);
     else if(vp.kind==='cover')drawCover(x,vp,vp.x-w/2,vp.y-h/2,w,h);
+    else if(vp.kind==='opel')drawOpElev(x,vp.x-w/2,vp.y-h/2);
     else if(vp.kind==='3d'){const im=snap3D(vp);if(im){const k=Math.min(w/im.width,h/im.height),iw=im.width*k,ih=im.height*k;x.drawImage(im,vp.x-iw/2,vp.y-ih/2,iw,ih)}else{x.lineWidth=0.2;x.strokeRect(vp.x-w/2,vp.y-h/2,w,h)}}
     else{const r=vpImage(vp,ppm);if(r){w=r.wmm;h=r.hmm;x.drawImage(r.img,vp.x-w/2,vp.y-h/2,w,h)}else{x.lineWidth=0.2;x.strokeRect(vp.x-w/2,vp.y-h/2,w,h);x.font=FONT('400',3);x.fillStyle='#a33';x.textAlign='center';x.fillText('ไม่พบข้อมูลของมุมมองนี้',vp.x,vp.y)}}
     vp._w=w;vp._h=h;const ty=vp.y+h/2+3.5,lx=vp.x-w/2;x.strokeStyle='#111';x.fillStyle='#111';x.lineWidth=0.35;x.beginPath();x.arc(lx+4.5,ty+4.5,4.5,0,7);x.stroke();
@@ -2046,6 +2108,8 @@ const PCN={};function autoSheets(){Object.keys(PCN).forEach(k=>delete PCN[k]);SE
   if(hasE)mk('E','สัญลักษณ์และตารางโหลดไฟฟ้า',[{kind:'legend',ref:'elec',title:'สัญลักษณ์ไฟฟ้า'},{kind:'sched',ref:'load',title:'ตารางโหลดไฟฟ้า'}]);
   if(S.els.some(e=>e.type==='pipe'||e.type==='plumb')){S.levels.forEach(l=>{if(S.els.some(e=>e.level===l.id&&(e.type==='pipe'||e.type==='plumb')))mk('P','แปลนระบบสุขาภิบาล'+l.name,[{kind:'plumb',ref:l.id,title:'แปลนระบบสุขาภิบาล'+l.name}])});
     mk('P','สัญลักษณ์และสรุปงานระบบ',[{kind:'legend',ref:'plumb',title:'สัญลักษณ์งานสุขาภิบาล'},{kind:'sched',ref:'mepq',title:'สรุปท่อและอุปกรณ์งานระบบ'}])}
+  const CO=S.els.filter(e=>e.type==='callout');if(CO.length)mk('A','แบบขยาย',CO.map(c=>({kind:'enl',ref:c.id,title:c.name,scale:+c.scale||25})));
+  if(S.els.some(e=>e.type==='door'||e.type==='window'))mk('A','แบบขยายประตู-หน้าต่าง',[{kind:'opel',title:'แบบขยายประตู-หน้าต่าง'}]);
   S.sheets=out;out.forEach(layoutSheet);return out}
 // ----- sheet view UI
 const cvH=$('#cvH'),gH=cvH.getContext('2d');let WH=1,HH=1;const vH={x:210,y:148,s:2};
@@ -2072,19 +2136,20 @@ new ResizeObserver(()=>{if(isSheet())resizeH()}).observe($('#vHwrap'));
 function renderSheetSide(P){const sh=curSheet();if(!sh){P.innerHTML='<h3>แผ่นงาน</h3><p class="hint">ยังไม่มีแผ่นงาน กด สร้างชุดแบบอัตโนมัติ ที่แถบด้านบน</p>';return}
   const vp=sh.vps.find(v=>v.id===hSel);let h='';
   const F=(lab,k,val,type,opts)=>type==='sel'?`<div class="f"><label>${lab}</label><select data-hk="${k}">${opts.map(o=>`<option value="${o[0]}"${String(val)===String(o[0])?' selected':''}>${esc(o[1])}</option>`).join('')}</select></div>`:`<div class="f"><label>${lab}</label><input type="${type||'text'}" data-hk="${k}" value="${esc(val??'')}"></div>`;
-  const KN={cover:'หัวเรื่องหน้าปก',rcp:'แปลนฝ้าและไฟฟ้า',plumb:'แปลนสุขาภิบาล',legend:'สัญลักษณ์',plan:'แปลนสถาปัตย์',struct:'แปลนโครงสร้าง',roofs:'ผังคานหลังคา',sec:'รูปตัด / รูปด้าน','3d':'ภาพ 3D',sched:'ตาราง',detail:'แบบขยาย',notes:'หมายเหตุทั่วไป'};
+  const KN={enl:'แบบขยาย (ขอบเขต)',opel:'แบบขยายประตู-หน้าต่าง',cover:'หัวเรื่องหน้าปก',rcp:'แปลนฝ้าและไฟฟ้า',plumb:'แปลนสุขาภิบาล',legend:'สัญลักษณ์',plan:'แปลนสถาปัตย์',struct:'แปลนโครงสร้าง',roofs:'ผังคานหลังคา',sec:'รูปตัด / รูปด้าน','3d':'ภาพ 3D',sched:'ตาราง',detail:'แบบขยาย',notes:'หมายเหตุทั่วไป'};
   if(vp){h=`<h3>${KN[vp.kind]}</h3>`+F('ชื่อมุมมอง','title',vp.title);
     if(['plan','struct','roofs','rcp','plumb'].includes(vp.kind))h+=F('ชั้น','ref',vp.ref,'sel',S.levels.map(l=>[l.id,l.name]));
     if(vp.kind==='sec')h+=F('รูปตัด / รูปด้าน','ref',vp.ref,'sel',sections().map(e=>[e.id,e.name]));
     if(vp.kind==='sched')h+=F('ตาราง','ref',vp.ref,'sel',SCHEDS);
     if(vp.kind==='detail')h+=F('แบบขยาย','ref',vp.ref,'sel',DETAILS);
+    if(vp.kind==='enl')h+=F('ขอบเขตแบบขยาย','ref',vp.ref,'sel',S.els.filter(e=>e.type==='callout').map(e=>[e.id,e.name]));
     if(vp.kind==='legend')h+=F('สัญลักษณ์','ref',vp.ref,'sel',[['elec','งานไฟฟ้า'],['plumb','งานสุขาภิบาล']]);
     if(DRAWK.includes(vp.kind))h+=F('มาตราส่วน','scale',vp.scale,'sel',SCALES.map(d=>[d,'1:'+d]));
     if(vp.kind==='3d'){h+=F('ความกว้างภาพ (มม.)','w',vp.w,'number')+F('ความสูงภาพ (มม.)','hh',vp.h,'number')+F('พื้นหลัง','bg',vp.bg||'white','sel',[['white','ขาว'],['sky','ฟ้าอ่อน'],['dark','เข้ม']]);h+=`<div class="acts"><button class="btn pri" data-ha="cam">ใช้มุมกล้อง 3D ปัจจุบัน</button><button class="btn" data-ha="camiso">กลับเป็นมุมไอโซอัตโนมัติ</button></div>`}
     if(vp.kind==='cover')h+=F('หัวเรื่อง','ctitle',vp.ctitle??(S.proj.name||''))+F('คำบรรยายใต้หัวเรื่อง','csub',vp.csub??'')+F('ข้อความเพิ่มเติม (บรรทัดละข้อ คั่นด้วย | )','cnote',vp.cnote??'')+F('สีแถบ','accent',vp.accent||'#c8a227','color')+F('ความกว้าง (มม.)','cw',vp.cw||170,'number')+F('ความสูง (มม.)','ch',vp.ch||64,'number')+F('ขนาดตัวอักษรหัวเรื่อง (มม.)','cts',vp.cts||9,'number');
     h+=`<div class="acts"><button class="btn" data-ha="delvp">ลบมุมมอง</button><button class="btn" data-ha="layout">จัดวางแผ่นใหม่</button></div><p class="hint" style="margin-top:10px">ลากมุมมองบนแผ่นเพื่อย้าย (ขยับทีละ 2.5 มม.) • ภาพ 3D ใช้มุมมองไอโซเมตริกอัตโนมัติ</p>`}
   else{h=`<h3>แผ่น ${esc(sh.no)}</h3>`+F('เลขที่แผ่น','no',sh.no)+F('ชื่อแผ่นงาน','stitle',sh.title)+F('ขนาดกระดาษ','size',sh.size,'sel',Object.keys(PAPER).map(k=>[k,k+' แนวนอน']))+
-    `<div class="acts" style="margin-top:10px"><button class="btn pri" data-ha="coverhero">จัดเป็นหน้าปก: ภาพเต็ม</button><button class="btn" data-ha="coversplit">หน้าปก: ภาพ + สารบัญ</button></div><p class="hint" style="margin-top:12px">เพิ่มมุมมองลงแผ่นนี้</p><div class="acts">${[['cover','หัวเรื่องปก'],['plan','แปลนสถาปัตย์'],['struct','แปลนโครงสร้าง'],['rcp','แปลนฝ้าและไฟฟ้า'],['plumb','แปลนสุขาภิบาล'],['sec','รูปตัด/รูปด้าน'],['3d','ภาพ 3D'],['sched','ตาราง'],['detail','แบบขยาย'],['legend','สัญลักษณ์'],['notes','หมายเหตุ']].map(([k,n])=>`<button class="btn" data-addvp="${k}">+ ${n}</button>`).join('')}</div>
+    `<div class="acts" style="margin-top:10px"><button class="btn pri" data-ha="coverhero">จัดเป็นหน้าปก: ภาพเต็ม</button><button class="btn" data-ha="coversplit">หน้าปก: ภาพ + สารบัญ</button></div><p class="hint" style="margin-top:12px">เพิ่มมุมมองลงแผ่นนี้</p><div class="acts">${[['cover','หัวเรื่องปก'],['plan','แปลนสถาปัตย์'],['struct','แปลนโครงสร้าง'],['rcp','แปลนฝ้าและไฟฟ้า'],['plumb','แปลนสุขาภิบาล'],['sec','รูปตัด/รูปด้าน'],['3d','ภาพ 3D'],['sched','ตาราง'],['detail','แบบขยายโครงสร้าง'],['enl','แบบขยายพื้นที่'],['opel','แบบขยายประตู-หน้าต่าง'],['legend','สัญลักษณ์'],['notes','หมายเหตุ']].map(([k,n])=>`<button class="btn" data-addvp="${k}">+ ${n}</button>`).join('')}</div>
     <div class="acts"><button class="btn" data-ha="layout">จัดวางอัตโนมัติ</button><button class="btn" data-ha="up">เลื่อนลำดับขึ้น</button><button class="btn" data-ha="down">เลื่อนลำดับลง</button><button class="btn" data-ha="delsh">ลบแผ่นนี้</button></div>
     <p class="hint" style="margin-top:12px">คลิกมุมมองบนแผ่นเพื่อแก้มาตราส่วน ชั้น หรือชื่อ • แก้แบบที่แปลนแล้วแผ่นงานจะอัปเดตตามเอง</p>`}
   P.innerHTML=h;
@@ -2092,7 +2157,7 @@ function renderSheetSide(P){const sh=curSheet();if(!sh){P.innerHTML='<h3>แผ�
       if(k==='ref'&&vp.kind==='sec'){const s=byId(v);if(s)vp.title=s.name}if(k==='ref'&&vp.kind==='sched'){const o=SCHEDS.find(x=>x[0]===v);if(o)vp.title=o[1]}if(k==='ref'&&vp.kind==='detail'){const o=DETAILS.find(x=>x[0]===v);if(o)vp.title=o[1]}if(k==='ref'&&vp.kind==='plan')vp.title='แปลนพื้น'+lvl(v).name;if(k==='ref'&&vp.kind==='struct')vp.title=structTitle(v)}
       else{if(k==='stitle')sh.title=v;else if(k==='no')sh.no=v;else if(k==='size'){sh.size=v;layoutSheet(sh)}}});if(k==='size')fitH()});
   P.querySelectorAll('[data-addvp]').forEach(b=>b.onclick=()=>{const k=b.dataset.addvp;const sid=secCur||(sections()[0]||{}).id;if(k==='sec'&&!sid){toast('ยังไม่มีรูปตัด สร้างได้ที่มุมมองรูปตัด');return}
-    const d={plan:{ref:cur,title:'แปลนพื้น'+lvl(cur).name},struct:{ref:cur,title:structTitle(cur)},sec:{ref:sid,title:(byId(sid)||{}).name},'3d':{title:'ทัศนียภาพ'},sched:{ref:'openings',title:'ตารางประตูและหน้าต่าง'},cover:{title:'',ctitle:S.proj.name||'',csub:'แบบก่อสร้าง'},detail:{ref:'col',title:'หน้าตัดเสา'},notes:{title:'หมายเหตุทั่วไป'},rcp:{ref:cur,title:'แปลนฝ้าและไฟฟ้า'+lvl(cur).name},plumb:{ref:cur,title:'แปลนระบบสุขาภิบาล'+lvl(cur).name},legend:{ref:'elec',title:'สัญลักษณ์ไฟฟ้า'}}[k];
+    const d={plan:{ref:cur,title:'แปลนพื้น'+lvl(cur).name},struct:{ref:cur,title:structTitle(cur)},sec:{ref:sid,title:(byId(sid)||{}).name},'3d':{title:'ทัศนียภาพ'},sched:{ref:'openings',title:'ตารางประตูและหน้าต่าง'},enl:(()=>{const c=S.els.find(e=>e.type==='callout');return{ref:c?c.id:'',title:c?c.name:'แบบขยาย',scale:c?(+c.scale||25):25}})(),opel:{title:'แบบขยายประตู-หน้าต่าง'},cover:{title:'',ctitle:S.proj.name||'',csub:'แบบก่อสร้าง'},detail:{ref:'col',title:'หน้าตัดเสา'},notes:{title:'หมายเหตุทั่วไป'},rcp:{ref:cur,title:'แปลนฝ้าและไฟฟ้า'+lvl(cur).name},plumb:{ref:cur,title:'แปลนระบบสุขาภิบาล'+lvl(cur).name},legend:{ref:'elec',title:'สัญลักษณ์ไฟฟ้า'}}[k];
     const id='vp'+Math.random().toString(36).slice(2,8);mutate(()=>{sh.vps.push({id,kind:k,scale:100,...d});layoutSheet(sh)});hSel=id;renderSide()});
   P.querySelectorAll('[data-ha]').forEach(b=>b.onclick=()=>{const a=b.dataset.ha,i=S.sheets.indexOf(sh);
     if(a==='delvp'){mutate(()=>{sh.vps=sh.vps.filter(v=>v.id!==hSel)});hSel=null;renderSide()}
@@ -2132,7 +2197,7 @@ $('#hPng').onclick=async()=>{const sh=curSheet();if(!sh)return;const{cv}=sheetCa
 // ================= Rebar, details, Civil Toolkit exchange
 const BARW={RB6:0.222,RB9:0.499,DB10:0.617,DB12:0.888,DB16:1.578,DB20:2.466,DB25:3.853,DB28:4.834};const BARS=Object.keys(BARW);
 const barDia=b=>(parseInt(String(b).replace(/\D/g,''))||12)/1000;
-const FIXK=['sched','detail','notes','legend','cover'];
+const FIXK=['sched','detail','notes','legend','cover','opel'];
 const DSC={col:10,beam:10,fdn:25,slab:20,stair:50};
 const DETAILS=[['col','หน้าตัดเสา'],['beam','หน้าตัดคาน'],['fdn','แบบขยายฐานราก'],['slab','แบบขยายพื้น'],['stair','แบบขยายบันได']];
 const DEFNOTES=['คอนกรีตโครงสร้างมีกำลังอัดประลัยไม่น้อยกว่า 240 กก./ตร.ซม. (ทรงกระบอก) ที่อายุ 28 วัน','เหล็กเส้นกลม (RB) ชั้นคุณภาพ SR24 และเหล็กข้ออ้อย (DB) ชั้นคุณภาพ SD40 ตาม มอก.','ระยะหุ้มคอนกรีต: ฐานราก 7.5 ซม. เสาและคาน 3 ซม. พื้นและบันได 2 ซม.','ระยะทาบเหล็กไม่น้อยกว่า 40 เท่าของขนาดเหล็กข้ออ้อย และ 48 เท่าของเหล็กเส้นกลมพร้อมงอขอ','ปลอกคานช่วง L/4 จากปลายคานทั้งสองด้าน ให้ใช้ระยะเรียงครึ่งหนึ่งของระยะที่ระบุ','ขนาดชิ้นส่วนและการเสริมเหล็กต้องผ่านการคำนวณและรับรองโดยวิศวกรผู้มีใบอนุญาตก่อนก่อสร้าง'];
@@ -2210,7 +2275,7 @@ const detailPack=ref=>packCells(detailCells(ref),285);
 function drawDetail(x,ref,x0,y0){const P=detailPack(ref);if(!P.place.length){x.font=FONT('400',3);x.fillStyle='#777';x.textAlign='left';x.fillText('ไม่มีชิ้นส่วนสำหรับแบบขยายนี้',x0,y0+6);return}P.place.forEach(p=>p.c.draw(x,x0+p.x+p.c.w/2,y0+p.y))}
 function notesLines(x){const L=String((S.proj&&S.proj.notes)||DEFNOTES.join('\n')).split('\n').filter(t=>t.trim());x.font=FONT('400',2.6);const out=[];L.forEach((t,i)=>{wrapLines(x,(i+1)+'. '+t.trim(),146).forEach((ln,j)=>out.push(j?'    '+ln:ln))});return out}
 let _mc=null;const measureCtx=()=>_mc||(_mc=document.createElement('canvas').getContext('2d'));
-function fixedSize(vp){if(vp.kind==='cover')return{w:+vp.cw||170,h:+vp.ch||64};if(vp.kind==='sched')return schedSize(vp.ref);if(vp.kind==='legend')return legendSize(vp.ref);if(vp.kind==='detail'){const P=detailPack(vp.ref);return{w:P.w,h:P.h}}const x=measureCtx();x.setTransform(1,0,0,1,0,0);return{w:150,h:notesLines(x).length*4.2+2}}
+function fixedSize(vp){if(vp.kind==='opel'){const Z=opelSize();return{w:Z.w,h:Z.h}}if(vp.kind==='cover')return{w:+vp.cw||170,h:+vp.ch||64};if(vp.kind==='sched')return schedSize(vp.ref);if(vp.kind==='legend')return legendSize(vp.ref);if(vp.kind==='detail'){const P=detailPack(vp.ref);return{w:P.w,h:P.h}}const x=measureCtx();x.setTransform(1,0,0,1,0,0);return{w:150,h:notesLines(x).length*4.2+2}}
 function drawNotes(x,x0,y0){x.save();const L=notesLines(x);x.fillStyle='#111';x.textAlign='left';x.textBaseline='alphabetic';x.font=FONT('400',2.6);L.forEach((t,i)=>x.fillText(t,x0,y0+3.4+i*4.2));x.restore()}
 // ----- Civil Toolkit exchange
 const CT_URL='https://patarakorn-bas.github.io/civil-toolkit/';
@@ -2276,7 +2341,7 @@ $('#rbIn').onchange=async()=>{const f=$('#rbIn').files[0];if(!f)return;try{const
       v.src=d.app||d.source||'Civil Toolkit';S.rebar[k]={...(S.rebar[k]||{}),...v};n++})});toast('นำเข้าเหล็กเสริม '+n+' รายการ');}catch(e){toast('ไฟล์นี้ไม่ใช่ผลออกแบบเหล็กเสริม')}$('#rbIn').value=''};
 
 // ================= App shell: version, sync, manual, install, service worker
-const APP_VER='v7.7';$('#verL').textContent=APP_VER;
+const APP_VER='v7.9';$('#verL').textContent=APP_VER;
 const isEmbedded=/claude\.ai|claudeusercontent|anthropic/.test(location.host)||location.protocol==='blob:';
 const LSK={sync:'yothacad-sync',saved:'yothacad-savedAt',last:'yothacad-lastSync',dev:'yothacad-device'};
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -2322,7 +2387,7 @@ $('#syncB').onclick=()=>{renderSync();const d=$('#syncDlg');d.showModal?d.showMo
 // ----- manual
 function helpHTML(){const T=(t,b,open)=>`<details${open?' open':''}><summary>${t}</summary>${b}</details>`;
   return T('1. เริ่มต้นใช้งาน',`<p>หน้าจอแบ่งเป็นแถบเครื่องมือซ้าย (บน iPad อยู่ด้านล่าง) พื้นที่เขียนแบบ และแผงข้างขวา ปุ่มด้านบนสลับมุมมอง 2D, 2D + 3D, 3D, รูปตัด และแผ่นงาน ช่องเลือกชั้นอยู่ซ้ายบน</p>
-    <ul><li>เริ่มเร็วที่สุด: กด <b>สร้างกริดและโครงสร้าง</b> ใส่ระยะช่วงเสา แล้วแอปจะวางกริด ฐานราก เสา คาน พื้น และผนังรอบนอกให้</li><li>ดูตัวอย่างงานครบชุด: ไฟล์ → เปิดบ้านตัวอย่าง (จะแทนที่แบบปัจจุบัน ควรสำรองก่อน)</li><li>หน่วยทั้งหมดเป็นเมตร ยกเว้นขนาดบนแผ่นงานเป็นมิลลิเมตร</li><li><b>ระเบียง</b> วาดเป็นสี่เหลี่ยมหรือหลายเหลี่ยม กำหนดระดับเอง (เช่น +0.25) ขั้นบันไดลงดินสร้างให้ด้านที่ไม่ติดผนัง เลือกกันสาดเมทัลชีท พื้นคอนกรีต หรือเพอร์โกลาพร้อมเสา • <b>บันไดหน้าบ้าน</b> คลิกขอบบน 2 จุดแล้วคลิกด้านที่ลง คำนวณขั้นจากระดับพื้นถึงดินให้เอง ขึ้นได้ 1 หรือ 3 ด้าน • <b>ราวกันตก</b> ลากเป็นแนว เลือกราวเหล็ก กระจก ไม้ ลูกกรงปูนปั้น หรือผนังเตี้ย วางบนระเบียงจะยกตามระดับระเบียงให้เอง</li><li><b>ระดับพื้นและคาน:</b> แท็บ ชั้น กำหนดความหนาวัสดุปูพื้น (เช่น 0.05 ม.) หลังพื้นโครงสร้างและหลังคานจะอยู่ต่ำกว่าผิวพื้นสำเร็จตามค่านี้ • พื้น คาน และพื้นผิว ยก/ลดระดับได้ทีละชิ้น (เช่น ห้องน้ำลด −0.10) • คานเลือกเป็นเหล็กรูปพรรณ (อะเส) ได้ จะไม่ส่งไปออกแบบเป็นคาน คสล.</li><li><b>หลังคาหลายเหลี่ยม:</b> เครื่องมือหลังคา → รูปแบบ "หลายเหลี่ยม" วาดตามแนวผนังเป็นรูปตัว L, T, U หรือหลายเหลี่ยมนูน แอปสร้างปีกหลังคา ตะเฆ่ราง ครอบ เชิงชาย ฝ้าชายคา และโครงหลังคาให้ • ยก/ลดระดับหลังคาที่แผงคุณสมบัติ หรือกดปุ่ม ▲ ▼</li><li><b>สร้างโมเดลแก้ไขได้ใน Revit:</b> ไฟล์ → ส่งออกสคริปต์สร้างโมเดลใน Revit (.py) แล้วรันด้วย pyRevit, RevitPythonShell หรือ Dynamo ในโปรเจกต์ Revit ที่มีแม่แบบ ได้ระดับชั้น กริด ผนัง พื้น เสา คาน ประตู หน้าต่าง หลังคา และห้องเป็นชิ้นงานของ Revit จริง แก้ไขได้ทุกชิ้น</li><li><b>ส่งต่อ Revit:</b> ไฟล์ → ส่งออก IFC ได้ไฟล์ .ifc (IFC4) มีชั้น ผนัง พื้น เสา คาน ฐานราก บันได หลังคา โครงหลังคา ประตูหน้าต่าง ฝ้า พื้นผิว และเฟอร์นิเจอร์ พร้อมชื่อวัสดุ เปิดใน Revit ด้วย File → Open → IFC หรือ Insert → Link IFC</li><li><b>หน้าปก:</b> แผ่น A-00 กด "จัดเป็นหน้าปก" เลือกมุมกล้อง 3D เอง แก้หัวเรื่อง คำบรรยาย สีแถบ และพื้นหลังภาพได้ • <b>ผนังต่อชนหลังคา:</b> เลือกผนังหรือกดปุ่มที่หลังคา ผนังจะสูงขึ้นไปชนใต้หลังคาตามความลาด</li><li><b>ชั้นหลังคา:</b> แท็บ ชั้น → "+ เพิ่มชั้นหลังคา" หลังคาจะวางที่ระดับนั้นพอดี และแยกจากชั้นบนสุดชัดเจน</li><li><b>ระดับอ้างอิง:</b> แท็บ ชั้น → กำหนดระดับดินเดิมและระดับพื้นชั้น 1 (เช่น ดินเดิม ±0.00 พื้นชั้น 1 +0.40) ทุกชั้น รูปตัด รูปด้าน และ 3D เลื่อนตาม</li><li><b>โครงการ:</b> ปุ่มชื่อโครงการด้านบน สร้าง เปิด ทำสำเนา เปลี่ยนชื่อ ส่งออก และลบโครงการ แต่ละโครงการเก็บแยกกัน</li><li><b>ทั้งหมด / สถาปัตย์ / โครงสร้าง:</b> เลือกงานที่จะเขียน งานอีกฝั่งจะล็อกไว้เป็นพื้นหลังจาง ๆ คลิกโดนไม่ได้ ในโหมดโครงสร้าง 3D จะซ่อนผนังและแสดงโครงหลังคา</li></ul>`,1)+
+    <ul><li>เริ่มเร็วที่สุด: กด <b>สร้างกริดและโครงสร้าง</b> ใส่ระยะช่วงเสา แล้วแอปจะวางกริด ฐานราก เสา คาน พื้น และผนังรอบนอกให้</li><li>ดูตัวอย่างงานครบชุด: ไฟล์ → เปิดบ้านตัวอย่าง (จะแทนที่แบบปัจจุบัน ควรสำรองก่อน)</li><li>หน่วยทั้งหมดเป็นเมตร ยกเว้นขนาดบนแผ่นงานเป็นมิลลิเมตร</li><li><b>ระเบียง</b> วาดเป็นสี่เหลี่ยมหรือหลายเหลี่ยม กำหนดระดับเอง (เช่น +0.25) ขั้นบันไดลงดินสร้างให้ด้านที่ไม่ติดผนัง เลือกกันสาดเมทัลชีท พื้นคอนกรีต หรือเพอร์โกลาพร้อมเสา • <b>บันไดหน้าบ้าน</b> คลิกขอบบน 2 จุดแล้วคลิกด้านที่ลง คำนวณขั้นจากระดับพื้นถึงดินให้เอง ขึ้นได้ 1 หรือ 3 ด้าน • <b>ราวกันตก</b> ลากเป็นแนว เลือกราวเหล็ก กระจก ไม้ ลูกกรงปูนปั้น หรือผนังเตี้ย วางบนระเบียงจะยกตามระดับระเบียงให้เอง</li><li><b>ระดับพื้นและคาน:</b> แท็บ ชั้น กำหนดความหนาวัสดุปูพื้น (เช่น 0.05 ม.) หลังพื้นโครงสร้างและหลังคานจะอยู่ต่ำกว่าผิวพื้นสำเร็จตามค่านี้ • พื้น คาน และพื้นผิว ยก/ลดระดับได้ทีละชิ้น (เช่น ห้องน้ำลด −0.10) • คานเลือกเป็นเหล็กรูปพรรณ (อะเส) ได้ จะไม่ส่งไปออกแบบเป็นคาน คสล.</li><li><b>หลังคาหลายเหลี่ยม:</b> เครื่องมือหลังคา → รูปแบบ "หลายเหลี่ยม" วาดตามแนวผนังเป็นรูปตัว L, T, U หรือหลายเหลี่ยมนูน แอปสร้างปีกหลังคา ตะเฆ่ราง ครอบ เชิงชาย ฝ้าชายคา และโครงหลังคาให้ • ยก/ลดระดับหลังคาที่แผงคุณสมบัติ หรือกดปุ่ม ▲ ▼</li><li><b>Prompt เรนเดอร์ AI:</b> ปุ่ม ✨ ในมุมมอง 3D เลือกสไตล์ (12 แบบ) เวลา แสง สภาพแวดล้อม มุมกล้อง และโปรแกรม AI ที่ใช้ แอปเขียน Prompt พร้อมคำอธิบายอาคารจากแบบให้ คัดลอกไปใช้กับ ChatGPT, Gemini, Midjourney หรือ Stable Diffusion พร้อมแนบภาพ 3D</li><li><b>โหมดงาน:</b> ทั้งหมด / สถาปัตย์ (ซ่อนคานและฐานราก) / โครงสร้าง (ซ่อนเฟอร์นิเจอร์ ห้อง ประตูหน้าต่าง) / ไฟฟ้า (แปลนฝ้าและไฟฟ้า) / ประปา (ท่อและสุขภัณฑ์) • <b>ห้อง:</b> กำหนดชนิดพื้น ระดับพื้นห้อง ชนิดฝ้า ความสูงฝ้าได้ที่ห้อง และลากจุดกลางชื่อห้องเพื่อย้ายตำแหน่งป้าย • <b>เฟอร์นิเจอร์:</b> กดเปิดคลังเพื่อค้นหาตามหมวด • <b>แบบขยาย:</b> เครื่องมือแบบขยายลากกรอบพื้นที่ (เช่น ห้องน้ำ) ชุดแบบจะมีแผ่นแบบขยายมาตราส่วน 1:25 และแผ่นแบบขยายประตู-หน้าต่างให้อัตโนมัติ</li><li><b>สร้างโมเดลแก้ไขได้ใน Revit:</b> ไฟล์ → ส่งออกสคริปต์สร้างโมเดลใน Revit (.py) แล้วรันด้วย pyRevit, RevitPythonShell หรือ Dynamo ในโปรเจกต์ Revit ที่มีแม่แบบ ได้ระดับชั้น กริด ผนัง พื้น เสา คาน ประตู หน้าต่าง หลังคา และห้องเป็นชิ้นงานของ Revit จริง แก้ไขได้ทุกชิ้น</li><li><b>ส่งต่อ Revit:</b> ไฟล์ → ส่งออก IFC ได้ไฟล์ .ifc (IFC4) มีชั้น ผนัง พื้น เสา คาน ฐานราก บันได หลังคา โครงหลังคา ประตูหน้าต่าง ฝ้า พื้นผิว และเฟอร์นิเจอร์ พร้อมชื่อวัสดุ เปิดใน Revit ด้วย File → Open → IFC หรือ Insert → Link IFC</li><li><b>หน้าปก:</b> แผ่น A-00 กด "จัดเป็นหน้าปก" เลือกมุมกล้อง 3D เอง แก้หัวเรื่อง คำบรรยาย สีแถบ และพื้นหลังภาพได้ • <b>ผนังต่อชนหลังคา:</b> เลือกผนังหรือกดปุ่มที่หลังคา ผนังจะสูงขึ้นไปชนใต้หลังคาตามความลาด</li><li><b>ชั้นหลังคา:</b> แท็บ ชั้น → "+ เพิ่มชั้นหลังคา" หลังคาจะวางที่ระดับนั้นพอดี และแยกจากชั้นบนสุดชัดเจน</li><li><b>ระดับอ้างอิง:</b> แท็บ ชั้น → กำหนดระดับดินเดิมและระดับพื้นชั้น 1 (เช่น ดินเดิม ±0.00 พื้นชั้น 1 +0.40) ทุกชั้น รูปตัด รูปด้าน และ 3D เลื่อนตาม</li><li><b>โครงการ:</b> ปุ่มชื่อโครงการด้านบน สร้าง เปิด ทำสำเนา เปลี่ยนชื่อ ส่งออก และลบโครงการ แต่ละโครงการเก็บแยกกัน</li><li><b>ทั้งหมด / สถาปัตย์ / โครงสร้าง:</b> เลือกงานที่จะเขียน งานอีกฝั่งจะล็อกไว้เป็นพื้นหลังจาง ๆ คลิกโดนไม่ได้ ในโหมดโครงสร้าง 3D จะซ่อนผนังและแสดงโครงหลังคา</li></ul>`,1)+
   T('2. โครงสร้าง: กริด ฐานราก เสา คาน พื้น บันได',`<ul><li><b>กริด</b> คลิก 2 จุด ชื่อแกนตั้งให้อัตโนมัติ (แนวตั้ง 1, 2, 3 / แนวนอน A, B, C)</li><li><b>ฐานราก</b> คลิกที่ศูนย์กลางเสา กำหนดขนาด ความลึก ตอม่อ และเสาเข็ม 0–6 ต้น หรือเลือกเสาแล้วกด "สร้างฐานรากใต้เสา"</li>
     <li><b>เสา</b> คลิกวาง ปรับขนาด รูปทรง มุมหมุน และความสูงที่แผงข้าง (เว้นว่าง = สูงเท่าชั้น)</li><li><b>คาน</b> คลิกต่อเนื่องเป็นแนว ตั้ง "ระดับคาน" เป็นคานคอดินได้</li><li><b>พื้น</b> สี่เหลี่ยม 2 คลิก หรือหลายเหลี่ยม (เว้นช่องบันไดโดยวาดเป็นรูปหลายเหลี่ยม)</li>
     <li><b>บันได</b> 7 รูปแบบ: ทางเดียว ทางเดียวมีชานพัก รูปตัว L (ชานพักหรือขั้นเวียน) รูปตัว U (พับผ้า) รูปตัว U สามช่วง และบันไดวน เลือกโครงสร้างคอนกรีต เหล็ก หรือไม้ ราวเหล็ก กระจก หรือไม้ ทิศเลี้ยว ลูกนอน ความลึกชานพัก และจำนวนขั้นช่วงแรกได้ แอปคำนวณลูกตั้งให้ไม่เกิน 18 ซม.</li></ul>`)+
@@ -2376,7 +2441,7 @@ else{const c=syncCfg();if(c.url&&c.secret){setDot('ok','ตั้งค่าซ
 // ================= v6: drawing helpers, textures, roof framing, openings, discipline, grids, projects
 function arcPts(hf,leaf,of,r){const H=ws(hf);const a1=Math.atan2(-(leaf.y-hf.y),leaf.x-hf.x),a2=Math.atan2(-(of.y-hf.y),of.x-hf.x);let da=a2-a1;while(da>Math.PI)da-=2*Math.PI;while(da<-Math.PI)da+=2*Math.PI;g.beginPath();g.arc(H.x,H.y,r*view.s,a1,a1+da,da<0);g.stroke()}
 function bbox(pts){let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;pts.forEach(q=>{x0=Math.min(x0,q.x);y0=Math.min(y0,q.y);x1=Math.max(x1,q.x);y1=Math.max(y1,q.y)});return{x0,y0,x1,y1}}
-function drawPatternX(e,F){const B=bbox(e.pts);g.save();polyPath(e.pts);g.clip();g.strokeStyle=PRINT?'rgba(0,0,0,.16)':C['cv-grid2'];g.fillStyle=g.strokeStyle;g.lineWidth=0.6;g.beginPath();
+function drawPatternX(e,F){const B=bbox(e.pts);g.save();polyPath(e.pts);g.clip();g.strokeStyle=PRINT?'rgba(0,0,0,.11)':'rgba(120,115,105,.20)';g.fillStyle=g.strokeStyle;g.lineWidth=0.6;g.beginPath();
   if(F.pat==='hex'){const r=F.hex;if(r*view.s>=4){const dx=1.5*r,dy=Math.sqrt(3)*r;for(let i=Math.floor(B.x0/dx)-1;i*dx<=B.x1+dx;i++)for(let j=Math.floor(B.y0/dy)-1;j*dy<=B.y1+dy;j++){const cx=i*dx,cy=j*dy+(i%2?dy/2:0);for(let k=0;k<=6;k++){const a=rad(60*k),q=ws({x:cx+r*Math.cos(a),y:cy+r*Math.sin(a)});k?g.lineTo(q.x,q.y):g.moveTo(q.x,q.y)}}}}
   else if(F.pat==='herring'){const L=F.plank[0]*0.85,sp=F.plank[1]*1.41;if(sp*view.s>=3)for(let x=Math.floor(B.x0/L)*L,k=0;x<=B.x1;x+=L,k++){const d=k%2?1:-1;for(let c=B.y0-L-2;c<=B.y1+L;c+=sp){const a=ws({x,y:c}),b=ws({x:x+L,y:c+d*L});g.moveTo(a.x,a.y);g.lineTo(b.x,b.y)}}}
   else if(F.pat==='terrazzo'){const sp=0.12;if(sp*view.s>=6)for(let x=B.x0;x<=B.x1;x+=sp)for(let y=B.y0;y<=B.y1;y+=sp){const q=ws({x:x+((Math.sin(x*91+y*37)+1)*sp/2),y:y+((Math.cos(x*53+y*17)+1)*sp/2)});g.rect(q.x,q.y,1.2,1.2)}g.fill();g.restore();return}
@@ -2534,11 +2599,11 @@ function opLibHTML(kind){const d=D[kind];return`<h3>${kind==='door'?'ประ�
   `</div><h3 style="margin-top:14px">ค่าตั้งต้นของแบบที่เลือก</h3>`+FIELDS[kind].filter(f=>!['pos','st'].includes(f[1])).map(f=>fieldHTML(f,d[f[1]]??'','def')).join('')}
 // ----- discipline
 let DISC='all';const CAT={porch:'arch',steps:'arch',rail:'arch',flr:'arch',clg:'arch',rmem:'struct',elec:'mep',wire:'mep',pipe:'mep',plumb:'mep',wall:'arch',door:'arch',window:'arch',room:'arch',furn:'arch',roof:'arch',column:'struct',beam:'struct',footing:'struct',slab:'struct',stair:'struct'};
-function discLocked(e){if((e.type==='room'||e.type==='clg')&&DISC==='mep')return false;if(e.type==='clg'&&DISC!=='mep'&&!PRINT)return true;if(e.type==='flr'&&DISC==='mep')return true;return !PRINT&&DISC!=='all'&&!!CAT[e.type]&&CAT[e.type]!==DISC}
-function setDisc(d){DISC=d;document.querySelectorAll('#discSeg button').forEach(b=>b.classList.toggle('on',b.dataset.d===d));const hide=d==='arch'?['โครงสร้าง','งานระบบ']:d==='struct'?['สถาปัตย์','ตกแต่ง','งานระบบ']:d==='mep'?['โครงสร้าง','สถาปัตย์','ตกแต่ง']:[];
-  document.querySelectorAll('#tools [data-grp]').forEach(el=>{el.style.display=hide.includes(el.dataset.grp)&&el.dataset.tool!=='grid'?'none':''});
-  const tl=TOOLS.find(t=>t[0]===T.name);if(tl&&hide.includes(tl[4])&&tl[0]!=='grid')setTool('select');[...sel].forEach(id=>{const e=byId(id);if(e&&discLocked(e))sel.delete(id)});
-  SNAPS=null;renderSide();draw2();dirty3=true;req3();toast(d==='all'?'แสดงและแก้ไขได้ทุกงาน':d==='arch'?'งานสถาปัตย์: งานโครงสร้างล็อกไว้เป็นพื้นหลัง':'งานโครงสร้าง: งานสถาปัตย์ล็อกไว้เป็นพื้นหลัง')}
+function discLocked(e){if((e.type==='room'||e.type==='clg')&&isMEP())return false;if(e.type==='clg'&&!isMEP()&&!PRINT)return true;if(e.type==='flr'&&isMEP())return true;return !PRINT&&DISC!=='all'&&!!CAT[e.type]&&CAT[e.type]!==DISC}
+function setDisc(d){DISC=d;document.querySelectorAll('#discSeg button').forEach(b=>b.classList.toggle('on',b.dataset.d===d));const hide=d==='arch'?['โครงสร้าง','งานระบบ']:d==='struct'?['สถาปัตย์','ตกแต่ง','งานระบบ']:isMEP()?['โครงสร้าง','สถาปัตย์','ตกแต่ง']:[],hideT=d==='elec'?['plumb','pipe']:d==='plumb'?['elec','wire']:[];
+  document.querySelectorAll('#tools [data-grp]').forEach(el=>{el.style.display=(hide.includes(el.dataset.grp)&&el.dataset.tool!=='grid')||hideT.includes(el.dataset.tool)?'none':''});
+  const tl=TOOLS.find(t=>t[0]===T.name);if(tl&&((hide.includes(tl[4])&&tl[0]!=='grid')||hideT.includes(tl[0])))setTool('select');[...sel].forEach(id=>{const e=byId(id);if(e&&discLocked(e))sel.delete(id)});
+  SNAPS=null;renderSide();draw2();dirty3=true;req3();toast({all:'แสดงและแก้ไขได้ทุกงาน',arch:'งานสถาปัตย์: ซ่อนคานและฐานราก',struct:'งานโครงสร้าง: ซ่อนเฟอร์นิเจอร์ ห้อง ประตูหน้าต่าง',elec:'งานไฟฟ้า: แปลนฝ้าและไฟฟ้า',plumb:'งานประปาสุขาภิบาล: ท่อและสุขภัณฑ์'}[d]||'')}
 $('#discSeg').onclick=e=>{const b=e.target.closest('button');if(b)setDisc(b.dataset.d)};
 // ----- grids
 function modelExt(){const pts=[];S.els.forEach(e=>{if(['grid','section','text'].includes(e.type))return;let q=keyPts(e);if(e.type==='dim'){const d=dimGeom(e);q=[d.p1,d.p2,e.a,e.b]}if(e.type==='roof')q=roofOuter(e);if(e.type==='furn')q=rectPts(e.p,e.w,e.d,e.rot);pts.push(...q)});return pts.length?bbox(pts):null}
@@ -3331,6 +3396,141 @@ for m in log:
 OUT = [summary] + log
 `.replace('@@JSON@@',json);
   saveFile(((S.proj&&S.proj.name)||'yothacad').replace(/[\\/:*?"<>|]+/g,'_')+' Revit.py',new Blob([py],{type:'text/x-python'}));toast('ส่งออกสคริปต์ Revit แล้ว • รันด้วย pyRevit, RevitPythonShell หรือ Dynamo');return py}
+
+// ================= v7.8: discipline views, merged beams, room labels, furniture library, auto dims, callouts, opening details
+const HIDE={arch:['beam','footing','rmem'],struct:['furn','room','flr','clg','door','window','elec','wire','pipe','plumb','porch','steps','rail'],elec:['beam','footing','rmem','pipe','plumb'],plumb:['beam','footing','rmem','elec','wire','clg']};
+function hiddenInDisc(e){return !PRINT&&(HIDE[DISC]||[]).includes(e.type)}
+function isMEP(){return DISC==='elec'||DISC==='plumb'||DISC==='mep'}
+function isRCP(){return PRINT==='rcp'||(!PRINT&&(DISC==='elec'||DISC==='mep'))}
+function plumbPanelHTML(){const Q=mepQty();return`<h3>งานประปาสุขาภิบาล — ${esc(lvl(cur).name)}</h3><p class="hint">โหมดนี้แสดงเฉพาะงานประปา ท่อ และสุขภัณฑ์ งานไฟฟ้าและโครงสร้างซ่อนไว้ ใช้เครื่องมือ สุขาภิบาล และ ท่อ ทางซ้าย</p>`+
+  (Q.pipes.length?Q.pipes.map(p=>`<div class="ro"><span>${esc(p.n)} Ø${esc(p.dia)}</span><b>${f2(p.len)} ม.</b></div>`).join(''):'<p class="hint">ยังไม่มีท่อ</p>')}
+// ----- merged beam outlines (clean joints)
+function beamRect(e){const st=e.bm==='steel',w=st?(SECLIB[e.sec]||SECLIB.C150).b:e.w,u=nrm(sub(e.b,e.a)),n=perp(u),h=w/2;return[add(e.a,mul(n,h)),add(e.b,mul(n,h)),add(e.b,mul(n,-h)),add(e.a,mul(n,-h))]}
+function segOutside(a,b,polys){const d=sub(b,a),L=Math.hypot(d.x,d.y);if(L<1e-9)return[];const u={x:d.x/L,y:d.y/L};let iv=[[0,1]];
+  polys.forEach(P=>{let t0=1e9,t1=-1e9;const n=P.length,cc=centroid(P);let lo=-1e9,hi=1e9,ok=true;for(let i=0;i<n;i++){const p=P[i],q=P[(i+1)%n];let N=perp(nrm(sub(q,p)));if(dot(N,sub(cc,p))<0)N=mul(N,-1);const den=dot(N,u),num=dot(N,sub(a,p));
+      if(Math.abs(den)<1e-12){if(num<1e-6){ok=false;break}continue}const t=-num/den;if(den>0)lo=Math.max(lo,t);else hi=Math.min(hi,t)}
+    if(!ok||hi-lo<1e-6)return;t0=Math.max(0,lo/L);t1=Math.min(1,hi/L);if(t1<=t0)return;const nv=[];iv.forEach(([s0,s1])=>{if(t1<=s0||t0>=s1){nv.push([s0,s1]);return}if(t0>s0)nv.push([s0,t0]);if(t1<s1)nv.push([t1,s1])});iv=nv});
+  return iv.filter(([s0,s1])=>(s1-s0)*L>1e-3).map(([s0,s1])=>[lerp(a,b,s0),lerp(a,b,s1)])}
+function drawBeamsMerged(ls){const R_=ls.map(e=>({e,P:beamRect(e),B:bbox(beamRect(e)),g:(e.at==='floor'?'f':'t')+(e.bm==='steel'?'s':'')}));
+  R_.forEach(o=>{const others=R_.filter(q=>q!==o&&q.g===o.g&&q.B.x0<=o.B.x1+0.01&&q.B.x1>=o.B.x0-0.01&&q.B.y0<=o.B.y1+0.01&&q.B.y1>=o.B.y0-0.01).map(q=>q.P);
+    g.setLineDash(o.e.at==='floor'?[2,3]:[7,4]);g.strokeStyle=C['cv-beam'];g.lineWidth=o.e.bm==='steel'?1.6:1.2;
+    for(let i=0;i<4;i++)segOutside(o.P[i],o.P[(i+1)%4],others).forEach(([a,b])=>seg(a,b))});g.setLineDash([])}
+// ----- room helpers: proxied floor/ceiling props & label
+const RPROX=['rfin','rdz','rct','rch'];
+function roomZoneGet(e,k){const c=centroid(e.pts),f=zoneAt('flr',e.level,c),z=zoneAt('clg',e.level,c);if(k==='rfin')return f?f.fin:'none';if(k==='rdz')return f?(+f.dz||0):0;if(k==='rct')return z?z.ct:'none';if(k==='rch')return z?(z.ch||''):''}
+function roomZoneSet(e,k,v){const c=centroid(e.pts);let f=zoneAt('flr',e.level,c),z=zoneAt('clg',e.level,c);
+  if(k==='rfin'||k==='rdz'){if(!f){f={id:nid(),type:'flr',level:e.level,pts:clone(e.pts),fin:'tile60',fc:FIN.tile60.c};S.els.push(f)}if(k==='rfin'){f.fin=v;f.fc=(FIN[v]||{}).c||f.fc}else f.dz=r3(parseFloat(v)||0)}
+  else{if(!z){z={id:nid(),type:'clg',level:e.level,pts:clone(e.pts),ct:'gyp',ch:'',cc:CEIL.gyp.c};S.els.push(z)}if(k==='rct'){z.ct=v;z.cc=(CEIL[v]||{}).c||z.cc}else z.ch=String(v).trim()===''?'':r3(parseFloat(v)||0)}}
+function roomLabelPt(e){return add(centroid(e.pts),e.lo||{x:0,y:0})}
+// ----- modern 3D materials
+function modernMats(){if(MAT._mod)return;MAT._mod=1;const M_=(c,o)=>new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:.75},o||{}));
+  Object.assign(MAT,{f_wood:M_(0xc8b69a,{roughness:.6}),f_fabric:M_(0x9c9b97,{roughness:.95}),f_white:M_(0xf3f2ef,{roughness:.5}),f_stone:M_(0xdcd8d0,{roughness:.35}),f_metal:M_(0x45484c,{metalness:.5,roughness:.35}),
+    f_black:M_(0x2b2c2f,{roughness:.45}),f_cer:M_(0xf5f5f3,{roughness:.25}),f_plant:M_(0x5d7c54,{roughness:.9}),f_plant2:M_(0x47663f,{roughness:.9}),f_pot:M_(0xcdc7bd,{roughness:.8}),f_water:M_(0x7fb4c9,{roughness:.1,transparent:true,opacity:.8}),
+    f_car:M_(0x8d9399,{metalness:.6,roughness:.3}),f_tire:M_(0x1d1e20,{roughness:.9}),m_tank:M_(0xbdb7ab,{roughness:.6}),m_wood:M_(0xb59e80,{roughness:.6})})}
+function furnSpheres(e,el){const L=LIB[e.kind];if(!L||!L.sph)return;const X=furnXf(e),sx=(+e.w||L.w)/L.w,sz=(+e.h||L.h)/L.h;
+  L.sph.forEach(([x,y,z,r,m])=>{const p=X(x,y),geo=new THREE.SphereGeometry(r*sx,14,10),mm=new THREE.Mesh(geo,sel.has(e.id)?MAT.sel:(MAT['f_'+(m||'plant')]||MAT.f_plant));mm.scale.y=0.85;mm.position.set(p.x,furnBase(e,el)+z*sz,-p.y);mm.castShadow=true;mm.receiveShadow=true;mm.userData.id=e.id;root.add(mm)})}
+// ----- furniture library (categories, search, recent)
+const FCATS=['ห้องนั่งเล่น','ห้องนอน','ห้องทานอาหาร','ครัว','ห้องน้ำ','ซักล้าง','ห้องทำงาน','ต้นไม้และสวน','ภายนอก','ยานพาหนะ','ของตกแต่งและอื่น ๆ'];
+function furnCat(k){const v=LIB[k]||{},n=v.n||'';if(v.sc)return v.sc;if(v.c==='สุขภัณฑ์')return'ห้องน้ำ';
+  if(v.c==='ครัว')return /โต๊ะอาหาร|เก้าอี้/.test(n)?'ห้องทานอาหาร':'ครัว';if(v.c==='ภายนอก')return /รถ|จอดรถ|จักรยาน/.test(n)?'ยานพาหนะ':/ต้น|พุ่ม|ปาล์ม|กระถาง|สวน/.test(n)?'ต้นไม้และสวน':'ภายนอก';
+  if(/เตียง|ตู้เสื้อผ้า|เครื่องแป้ง|ข้างเตียง|ลิ้นชัก/.test(n))return'ห้องนอน';if(/ทำงาน|หนังสือ|เอกสาร|ประชุม/.test(n))return'ห้องทำงาน';if(/ซัก|อบผ้า|รีด/.test(n))return'ซักล้าง';
+  if(/โซฟา|อาร์มแชร์|เลานจ์|โต๊ะกลาง|ทีวี|พรม|โคม|เปียโน|คอนโซล|สตูล|ไซด์บอร์ด/.test(n))return'ห้องนั่งเล่น';if(/โต๊ะอาหาร|บาร์/.test(n))return'ห้องทานอาหาร';if(/ต้นไม้/.test(n))return'ต้นไม้และสวน';return'ของตกแต่งและอื่น ๆ'}
+function recentFurn(){try{return JSON.parse(localStorage.getItem('yothacad-recentFurn')||'[]').filter(k=>LIB[k])}catch(_){return[]}}
+function pushRecent(k){try{const r=[k,...recentFurn().filter(x=>x!==k)].slice(0,8);localStorage.setItem('yothacad-recentFurn',JSON.stringify(r))}catch(_){}}
+function libHTML(){const k=D.furn.kind,v=LIB[k]||{},rc=recentFurn();return`<h3>เฟอร์นิเจอร์</h3><button class="libcur" id="libOpen">${LIB[k]?svgOf(k):''}<span><b>${esc(v.n||'เลือกเฟอร์นิเจอร์')}</b><small>${LIB[k]?f2(v.w)+' × '+f2(v.d)+' ม. • '+esc(furnCat(k)):''}</small><em>เปิดคลังเฟอร์นิเจอร์ (${Object.keys(LIB).length} รายการ)</em></span></button>
+  <div class="chips">${FCATS.map(c=>`<button class="tg" data-fcat="${esc(c)}">${esc(c)}</button>`).join('')}</div>`+
+  (rc.length?'<h4 style="margin:12px 0 4px">ใช้ล่าสุด</h4><div class="libg">'+rc.map(r=>`<button class="libi${k===r?' on':''}" data-lib="${r}">${svgOf(r)}${esc(LIB[r].n)}</button>`).join('')+'</div>':'')+
+  '<p class="hint" style="margin-top:10px">คลิกวางในแปลน เมื่อเข้าใกล้ผนังจะหันหลังชิดผนังให้เอง วางแล้วปรับขนาดได้ที่แผงคุณสมบัติ</p>'+fieldHTML(['ชิดผนังอัตโนมัติ','snapw','sel',[['1','เปิด'],['0','ปิด']]],D.furn.snapw,'def')+fieldHTML(['มุมหมุนเมื่อไม่ชิดผนัง (°)','rot'],D.furn.rot,'def')}
+function openLib(cat){const d=$('#libDlg');let curCat=cat||furnCat(D.furn.kind)||FCATS[0],q='';
+  const render=()=>{const items=Object.keys(LIB).filter(k=>q?(LIB[k].n+' '+furnCat(k)).toLowerCase().includes(q.toLowerCase()):furnCat(k)===curCat);
+    $('#libNav').innerHTML=FCATS.map(c=>`<button class="${c===curCat&&!q?'on':''}" data-c="${esc(c)}">${esc(c)}<small>${Object.keys(LIB).filter(k=>furnCat(k)===c).length}</small></button>`).join('');
+    $('#libGrid').innerHTML=items.length?items.map(k=>`<button class="libcard${D.furn.kind===k?' on':''}" data-k="${k}">${svgOf(k)}<b>${esc(LIB[k].n)}</b><small>${f2(LIB[k].w)} × ${f2(LIB[k].d)} ม.</small></button>`).join(''):'<p class="hint">ไม่พบรายการ</p>';
+    $('#libNav').querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{curCat=b.dataset.c;q='';$('#libQ').value='';render()});
+    $('#libGrid').querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{D.furn.kind=b.dataset.k;pushRecent(b.dataset.k);d.close();if(T.name!=='furn')setTool('furn');renderSide();updatePrompt();draw2()})};
+  $('#libQ').value='';$('#libQ').oninput=()=>{q=$('#libQ').value.trim();render()};$('#libX').onclick=()=>d.close();render();d.showModal?d.showModal():d.setAttribute('open','');setTimeout(()=>$('#libQ').focus(),50)}
+// ----- automatic grid dimensions in plans
+function drawGridDims(L){const gs=L.filter(e=>e.type==='grid'&&!e.aux);if(gs.length<2)return;const xs=[...new Set(gs.filter(e=>Math.abs(e.a.x-e.b.x)<1e-6).map(e=>r3(e.a.x)))].sort((a,b)=>a-b),ys=[...new Set(gs.filter(e=>Math.abs(e.a.y-e.b.y)<1e-6).map(e=>r3(e.a.y)))].sort((a,b)=>a-b);
+  const bp=[];L.forEach(e=>{if(['wall','column','slab','porch'].includes(e.type))keyPts(e).forEach(p=>bp.push(p))});if(!bp.length)return;const B=bbox(bp);g.save();g.strokeStyle=C['cv-dim'];g.fillStyle=C['cv-dim'];g.lineWidth=0.8;
+  const tick=p=>{g.beginPath();g.moveTo(p.x-4,p.y+4);g.lineTo(p.x+4,p.y-4);g.stroke()};
+  const chain=(vals,horiz,off)=>{if(vals.length<2)return;[[vals,off],[[vals[0],vals[vals.length-1]],off-0.6]].forEach(([vv,o])=>{const P=v=>ws(horiz?{x:v,y:B.y0-o}:{x:B.x0-o,y:v});const a=P(vv[0]),b=P(vv[vv.length-1]);g.beginPath();g.moveTo(a.x,a.y);g.lineTo(b.x,b.y);g.stroke();
+      vv.forEach(v=>{const p=P(v);tick(p);g.beginPath();if(horiz){g.moveTo(p.x,p.y-5);g.lineTo(p.x,p.y+5)}else{g.moveTo(p.x-5,p.y);g.lineTo(p.x+5,p.y)}g.stroke()});
+      for(let i=0;i<vv.length-1;i++){const m=P((vv[i]+vv[i+1])/2);txt(f2(vv[i+1]-vv[i]),horiz?{x:m.x,y:m.y-9}:{x:m.x-9,y:m.y},{size:11,c:C['cv-dim'],rot:horiz?0:-Math.PI/2})}})};
+  chain(xs,true,1.0);chain(ys,false,1.0);g.restore()}
+// ----- opening elevations (door & window enlarged details)
+function opTypes(){const M=markMaps(),m=new Map();S.els.filter(e=>e.type==='door'||e.type==='window').forEach(e=>{const k=markOf(M,e);const o=m.get(k)||{mark:k,e,n:0};o.n++;m.set(k,o)});return[...m.values()].sort((a,b)=>a.mark.localeCompare(b.mark,undefined,{numeric:true}))}
+function opelSize(){const T_=opTypes(),k=20,cw=Math.max(46,...T_.map(t=>t.e.w*k+22)),ch=Math.max(...T_.map(t=>(t.e.h+(t.e.type==='window'?+t.e.sill||0:0))*k+34),40),cols=Math.max(1,Math.min(5,Math.floor(260/cw)));return{w:cols*cw,h:Math.ceil(T_.length/cols)*ch,cw,ch,cols,T:T_}}
+function drawOpElev(x,x0,y0){const Z=opelSize(),k=20;x.save();x.strokeStyle='#111';x.fillStyle='#111';x.textAlign='center';x.textBaseline='alphabetic';
+  Z.T.forEach((t,i)=>{const e=t.e,L=OPL(e)||{},col=i%Z.cols,row=Math.floor(i/Z.cols),cx=x0+col*Z.cw+Z.cw/2,base=y0+(row+1)*Z.ch-12,W=e.w*k,H=e.h*k,sill=e.type==='window'?(+e.sill||0)*k:0,X0=cx-W/2,Y1=base-sill,Y0=Y1-H;
+    x.lineWidth=0.2;x.setLineDash([1.2,0.8]);x.beginPath();x.moveTo(cx-W/2-6,base);x.lineTo(cx+W/2+6,base);x.stroke();x.setLineDash([]);
+    x.lineWidth=0.45;x.strokeRect(X0,Y0,W,H);x.lineWidth=0.18;x.strokeRect(X0+1.2,Y0+1.2,W-2.4,H-(e.type==='door'?1.2:2.4));
+    const nl=Math.max(1,L.leaves||1),lw=(W-2.4)/nl;for(let j=1;j<nl;j++){x.beginPath();x.moveTo(X0+1.2+j*lw,Y0+1.2);x.lineTo(X0+1.2+j*lw,Y1-(e.type==='door'?0:1.2));x.stroke()}
+    x.setLineDash([1.5,1]);for(let j=0;j<nl;j++){const a=X0+1.2+j*lw,b=a+lw,top=Y0+1.2,bot=Y1-(e.type==='door'?0:1.2);x.beginPath();
+      if(L.op==='swing'||L.op==='casement'||L.op==='pivot'){const hingeL=(j%2===0)!==(e.flip==='1');x.moveTo(hingeL?b:a,top);x.lineTo(hingeL?a:b,(top+bot)/2);x.lineTo(hingeL?b:a,bot)}
+      else if(L.op==='awning'){x.moveTo(a,bot);x.lineTo((a+b)/2,top);x.lineTo(b,bot)}
+      else if(L.op==='slide'||L.op==='pocket'||L.op==='barn'){const m=(top+bot)/2;x.moveTo(a+lw*0.25,m);x.lineTo(b-lw*0.25,m)}
+      x.stroke()}x.setLineDash([]);
+    if(L.op==='louver')for(let yy=Y0+3;yy<Y1-2;yy+=1.6){x.beginPath();x.moveTo(X0+1.4,yy);x.lineTo(X0+W-1.4,yy);x.stroke()}
+    if(L.panel==='raised'||L.panel==='glasstop'){x.lineWidth=0.15;for(let j=0;j<nl;j++){const a=X0+1.2+j*lw,rows=L.panel==='glasstop'?1:(L.rows||3),cols=L.cols||2,top=L.panel==='glasstop'?Y0+H*0.52:Y0+3,pw=(lw-4)/cols,ph=(Y1-top-3)/rows;for(let c=0;c<cols;c++)for(let r=0;r<rows;r++)x.strokeRect(a+2+c*pw+0.6,top+r*ph+0.6,pw-1.2,ph-1.2)}}
+    x.lineWidth=0.2;const dimY=base+5;x.beginPath();x.moveTo(X0,dimY);x.lineTo(X0+W,dimY);x.moveTo(X0-1,dimY+1);x.lineTo(X0+1,dimY-1);x.moveTo(X0+W-1,dimY+1);x.lineTo(X0+W+1,dimY-1);x.stroke();x.font=FONT('400',2.4);x.fillText(f2(e.w),cx,dimY-0.8);
+    const dX=X0+W+4;x.beginPath();x.moveTo(dX,Y0);x.lineTo(dX,Y1);x.moveTo(dX-1,Y0+1);x.lineTo(dX+1,Y0-1);x.moveTo(dX-1,Y1+1);x.lineTo(dX+1,Y1-1);x.stroke();x.save();x.translate(dX+2.6,(Y0+Y1)/2);x.rotate(-Math.PI/2);x.fillText(f2(e.h),0,0);x.restore();
+    if(sill){x.save();x.translate(dX+2.6,(Y1+base)/2);x.rotate(-Math.PI/2);x.fillText(f2(+e.sill),0,0);x.restore()}
+    const ty=Y0-9;x.beginPath();x.arc(cx,ty,3,0,7);x.stroke();x.font=FONT('700',2.6);x.fillText(t.mark,cx,ty+0.9);x.font=FONT('400',2.2);x.fillText((L.n||'')+' • '+t.n+' ชุด',cx,ty+6.2)});x.restore()}
+function calloutBox(c){return{x0:Math.min(c.a.x,c.b.x),x1:Math.max(c.a.x,c.b.x),y0:Math.min(c.a.y,c.b.y),y1:Math.max(c.a.y,c.b.y)}}
+let ENLV=false;
+
+// ================= v7.9: AI render prompt builder
+const RP_STYLES={modern:['โมเดิร์นมินิมอล','modern minimalist architecture, clean geometric lines, monochrome neutral palette, large frameless glass openings, flat or low-profile details'],
+  tropical:['ทรอปิคอลโมเดิร์น','tropical modern architecture, deep roof overhangs, natural teak wood accents, shaded terraces, lush tropical planting with palms and monstera'],
+  thai:['ไทยร่วมสมัย','Thai contemporary architecture, elegant pitched roof, teak wood screens and details, lotus pond, frangipani trees, warm natural materials'],
+  japandi:['เจแปนดิ','Japandi style, warm light oak, muted earth tones, minimal zen garden with raked gravel, stepping stones and maple tree'],
+  nordic:['สแกนดิเนเวียน','Scandinavian style, light timber cladding, crisp white walls, cozy simple details, soft natural daylight'],
+  luxury:['ลักชัวรีร่วมสมัย','luxury contemporary villa, natural stone cladding, bronze details, warm interior glow through floor-to-ceiling glass, manicured landscape, reflecting pool'],
+  loft:['ลอฟท์อินดัสเทรียล','industrial loft style, exposed fair-faced concrete, black steel frames, red brick accents, raw textures'],
+  farm:['โมเดิร์นฟาร์มเฮาส์','modern farmhouse style, white board-and-batten siding, black window frames, metal roof, wooden porch'],
+  medi:['เมดิเตอร์เรเนียน','Mediterranean style, warm white stucco walls, terracotta details, arched accents, olive trees and lavender'],
+  colonial:['โคโลเนียล','colonial style, symmetrical facade, white columns and trims, louvered shutters, classic mouldings'],
+  clay:['โมเดลขาว (Clay render)','white clay architectural model render, all surfaces matte white, soft ambient occlusion, studio lighting, minimal context'],
+  sketch:['สเก็ตช์สีน้ำ','architectural watercolor sketch, loose hand-drawn ink lines, soft watercolor washes, white paper background, artistic presentation']};
+const RP_TIME={morning:['เช้าแดดอ่อน','soft morning sunlight, gentle long shadows, fresh atmosphere'],noon:['กลางวันแดดจัด','bright midday sun, crisp shadows, clear blue sky'],golden:['แสงเย็น (Golden hour)','warm golden hour sunlight, long soft shadows, glowing sky'],dusk:['พลบค่ำ (Blue hour)','blue hour dusk, warm interior lights glowing, exterior lighting on, deep blue sky'],night:['กลางคืน','night scene, dramatic architectural lighting, warm interior glow, starry dark sky']};
+const RP_WEATHER={clear:['ท้องฟ้าโปร่ง','clear sky with a few soft clouds'],cloudy:['เมฆครึ้มแสงนุ่ม','overcast soft diffused light, no harsh shadows'],rain:['หลังฝนตก','after rain, wet reflective pavement, moody sky']};
+const RP_VIEW={eye:['มุมสายตาคน (หน้าบ้าน)','eye-level street view, camera height 1.6 m, 24 mm lens, two-point perspective with vertical lines corrected'],corner:['มุมเฉียง 45°','three-quarter corner view at eye level, 28 mm lens, vertical lines corrected'],aerial:['มุมสูง (โดรน)','aerial drone view at 45 degrees, showing the roof and surrounding garden'],same:['ตามภาพ 3D ที่แนบ','exactly the same camera angle and framing as the attached image']};
+const RP_LAND={tropical:['สวนทรอปิคอล','tropical garden with palms, heliconia and lush shrubs, green lawn'],minimal:['สนามหญ้ามินิมอล','minimal landscape, neat green lawn, a few sculptural trees, concrete pathway'],thai:['สวนไทย','Thai garden with frangipani, bougainvillea, lotus pots and natural stone path'],zen:['สวนเซน','zen garden with white gravel, stepping stones, bamboo and moss'],urban:['บริบทหมู่บ้าน','housing estate context, neighbouring houses softly blurred, asphalt road, street trees']};
+const RP_COL=c=>{if(!c)return'';const n=parseInt(String(c).replace('#',''),16),r=n>>16&255,gg=n>>8&255,b=n&255,mx=Math.max(r,gg,b),mn=Math.min(r,gg,b),L=(mx+mn)/510,S_=mx===mn?0:(mx-mn)/(255-Math.abs(mx+mn-255));
+  if(S_<0.15)return L>0.85?'white':L>0.7?'off-white':L>0.5?'light grey':L>0.3?'grey':L>0.15?'charcoal':'black';let h=0;const d=mx-mn;h=mx===r?((gg-b)/d)%6:mx===gg?(b-r)/d+2:(r-gg)/d+4;h*=60;if(h<0)h+=360;
+  const base=h<15||h>=345?'red':h<40?(L<0.45?'brown':'orange'):h<65?(L>0.6?'beige':'ochre'):h<160?'green':h<200?'teal':h<260?'blue':h<300?'purple':'pink';return(L<0.35?'dark ':L>0.7?'light ':'')+base}
+const RP_MAT={metal:'metal sheet roofing',cpac:'concrete roof tiles',clay:'clay roof tiles',shingle:'asphalt shingles',upvc:'uPVC roof sheets',slab:'flat concrete roof deck'};
+const RP_WALL={brick:'rendered masonry walls',aac:'smooth rendered walls',block:'rendered block walls',rc:'exposed concrete walls',dry:'smooth panel walls',glass:'glass curtain walls'};
+function describeModel(){const lv=S.levels.filter(l=>l.kind!=='roof'),ro=S.els.filter(e=>e.type==='roof').sort((a,b)=>roofArea(b)-roofArea(a)),r=ro[0],ws_=S.els.filter(e=>e.type==='wall'),out=[];
+  out.push((lv.length===1?'single-storey':lv.length+'-storey')+' detached house');const ffl=+((S.site||{}).ffl||0)-+((S.site||{}).gl||0);if(ffl>=1.2)out.push('raised on columns '+f2(ffl)+' m above ground (Thai stilt house)');else if(ffl>0.2)out.push('ground floor raised '+f2(ffl)+' m with entrance steps');
+  if(r)out.push(({hip:'hip roof',gable:'gable roof',shed:'mono-pitch shed roof',butterfly:'butterfly roof',dutch:'Dutch gable roof',gambrel:'gambrel roof',mansard:'mansard roof',pyramid:'pyramid roof',saltbox:'saltbox roof',split:'split-level shed roof',flat:'flat roof'}[r.kind]||'pitched roof')+(r.kind!=='flat'?' at '+r.pitch+' degrees':'')+' with '+(RP_COL(r.color)?RP_COL(r.color)+' ':'')+(RP_MAT[r.mat]||'roofing')+(r.over?', '+f2(+r.over)+' m eave overhang':'')+((r.fas||'smart')!=='none'?', '+(r.fas==='wood'?'timber':r.fas==='metal'?'metal':'smooth')+' fascia boards':'')+(r.sof&&r.sof!=='none'?', soffit ceiling under the eaves':''));
+  if(ro.length>1)out.push(ro.length+' roof sections at different heights including lower lean-to roofs');
+  if(ws_.length){const wc=modeOf(ws_.map(w=>w.wco||'#ece6da')),wm=modeOf(ws_.map(w=>w.wm||'brick'));out.push((RP_COL(wc)||'light')+' '+(RP_WALL[wm]||'rendered walls'))}
+  const ops=S.els.filter(e=>e.type==='door'||e.type==='window');if(ops.length){const fr=modeOf(ops.map(o=>o.fm||(OPL(o)||{}).fm||'alu')),fc=modeOf(ops.map(o=>o.fc||(OPL(o)||{}).fc||''));const big=ops.filter(o=>o.w>=1.5).length;
+    out.push((big?'large ':'')+(fr==='wood'?'timber':fr==='upvc'?'uPVC':'aluminium')+' framed windows and doors'+(RP_COL(fc)?' in '+RP_COL(fc):'')+' with clear glass')}
+  const pc=S.els.filter(e=>e.type==='porch');if(pc.length)out.push('front porch / terrace'+(pc.some(p=>p.canopy&&p.canopy!=='none')?' with canopy':''));
+  const rl=S.els.filter(e=>e.type==='rail');if(rl.length)out.push(({steel:'slim black steel railings',glass:'frameless glass balustrades',wood:'timber balustrades',baluster:'classic baluster railings',wall:'low parapet walls'})[modeOf(rl.map(x=>x.kind||'steel'))]);
+  const fn=S.els.filter(e=>e.type==='furn'&&(LIB[e.kind]||{}).c==='ภายนอก').map(e=>e.kind);if(fn.some(k=>/sedan|pickup|carport/.test(k)))out.push('car parked in the carport');if(fn.includes('pool'))out.push('swimming pool');
+  return out}
+function buildRenderPrompt(o){const st=RP_STYLES[o.style]||RP_STYLES.modern,tm=RP_TIME[o.time]||RP_TIME.golden,we=RP_WEATHER[o.weather]||RP_WEATHER.clear,vw=RP_VIEW[o.view]||RP_VIEW.eye,ld=RP_LAND[o.land]||RP_LAND.tropical,D_=describeModel();
+  const photo=o.style!=='sketch'&&o.style!=='clay';const keep='Use the attached 3D model image as the exact base: keep the building massing, roof shape, number of floors, window and door positions and proportions unchanged; only enhance materials, lighting and surroundings.';
+  const neg='distorted geometry, extra floors, changed roof shape, wrong window positions, warped or curved walls, cartoon, CGI look, low quality, blurry, oversaturated, text, watermark, logo, deformed people';
+  if(o.lang==='th'){const t=`ช่วยเรนเดอร์ภาพทัศนียภาพสถาปัตยกรรม${photo?'แบบสมจริงระดับภาพถ่าย':''} จากภาพโมเดล 3 มิติที่แนบมา ให้คงรูปทรงอาคาร ทรงหลังคา จำนวนชั้น ตำแหน่งประตูหน้าต่าง และสัดส่วนเดิมทุกอย่าง ปรับเฉพาะวัสดุ แสง และสภาพแวดล้อม\n\nอาคาร: ${D_.join(' • ')}\nสไตล์: ${st[0]} (${st[1]})\nแสงและเวลา: ${tm[0]} • ${we[0]}\nสภาพแวดล้อม: ${ld[0]}\nมุมกล้อง: ${vw[0]}\nคุณภาพ: วัสดุสมจริง รายละเอียดคมชัด สไตล์ภาพถ่ายนิตยสารสถาปัตยกรรม เส้นแนวดิ่งตรง${o.note?'\nเพิ่มเติม: '+o.note:''}\n\nสิ่งที่ไม่ต้องการ: รูปทรงอาคารผิดเพี้ยน ชั้นเพิ่ม หลังคาเปลี่ยนทรง ผนังโค้งงอ ภาพการ์ตูน ภาพเบลอ ตัวหนังสือ ลายน้ำ`;return t}
+  const body=`${photo?'Photorealistic architectural exterior rendering':'Architectural presentation image'} of a ${D_.join(', ')}. Style: ${st[1]}. Lighting: ${tm[1]}, ${we[1]}. Surroundings: ${ld[1]}. Camera: ${vw[1]}.${photo?' Realistic PBR materials, high detail, sharp focus, award-winning architectural photography, magazine quality, 8K.':''}${o.note?' '+o.note+'.':''}`;
+  if(o.tool==='mj')return`${body} ${keep.replace('Use the attached 3D model image','Use the image reference')} --ar ${o.ar||'16:9'} --style raw --no ${neg.split(', ').slice(0,8).join(', ')}`;
+  if(o.tool==='sd')return`${body}\n\nNegative prompt: ${neg}\n\nSettings tip: use the attached 3D image with ControlNet (Canny or Depth, weight 0.8–1.0) to lock the geometry, denoising 0.45–0.6, aspect ratio ${o.ar||'16:9'}.`;
+  return`${keep}\n\n${body}\n\nAspect ratio ${o.ar||'16:9'}. Avoid: ${neg}.`}
+let RPO={style:'tropical',time:'golden',weather:'clear',view:'same',land:'tropical',tool:'chat',lang:'en',ar:'16:9',note:''};
+function openRenderPrompt(){const d=$('#rpDlg');const sel=(id,obj,v)=>`<select data-rp="${id}">${Object.entries(obj).map(([k,x])=>`<option value="${k}"${k===v?' selected':''}>${esc(x[0]||x)}</option>`).join('')}</select>`;
+  const upd=()=>{$('#rpOut').value=buildRenderPrompt(RPO)};
+  $('#rpBody').innerHTML=`<div class="rpg"><label>สไตล์${sel('style',RP_STYLES,RPO.style)}</label><label>เวลา / แสง${sel('time',RP_TIME,RPO.time)}</label><label>สภาพอากาศ${sel('weather',RP_WEATHER,RPO.weather)}</label><label>สภาพแวดล้อม${sel('land',RP_LAND,RPO.land)}</label><label>มุมกล้อง${sel('view',RP_VIEW,RPO.view)}</label>
+    <label>ใช้กับ${sel('tool',{chat:['ChatGPT / Gemini / Copilot (แนบภาพ)'],mj:['Midjourney'],sd:['Stable Diffusion / ComfyUI']},RPO.tool)}</label><label>ภาษา${sel('lang',{en:['อังกฤษ (แนะนำ ผลดีกว่า)'],th:['ไทย']},RPO.lang)}</label><label>สัดส่วนภาพ${sel('ar',{'16:9':['16:9 กว้าง'],'4:3':['4:3'],'3:2':['3:2'],'1:1':['1:1 จัตุรัส'],'9:16':['9:16 แนวตั้ง']},RPO.ar)}</label></div>
+    <label class="rpn">รายละเอียดเพิ่มเติม (ถ้ามี)<input data-rp="note" value="${esc(RPO.note)}" placeholder="เช่น มีสระว่ายน้ำ ไฟสวนส่องต้นไม้ ผนังหินอ่อนสีเทา"></label>
+    <textarea id="rpOut" readonly aria-label="Prompt สำหรับเรนเดอร์"></textarea>
+    <div class="row"><button class="btn pri" id="rpCopy">คัดลอก Prompt</button><button class="btn" id="rpImg">บันทึกภาพ 3D ปัจจุบัน (แนบไปกับ Prompt)</button><button class="btn" id="rpClose">ปิด</button></div>
+    <p class="hint">วิธีใช้: หมุนมุมมอง 3D ให้ได้มุมที่ต้องการ → กด บันทึกภาพ 3D → คัดลอก Prompt → เปิด ChatGPT, Gemini หรือโปรแกรม AI ที่ใช้ แนบภาพแล้ววาง Prompt • ภาพ 3D ที่บันทึกจะซ่อนเส้นกริดให้อัตโนมัติ • คำอธิบายอาคาร (จำนวนชั้น ทรงหลังคา วัสดุ สีผนัง หน้าต่าง) ดึงจากแบบให้เอง</p>`;
+  $('#rpBody').querySelectorAll('[data-rp]').forEach(el=>{const h=()=>{RPO[el.dataset.rp]=el.value;upd()};el.onchange=h;if(el.tagName==='INPUT')el.oninput=h});
+  $('#rpCopy').onclick=async()=>{const t=$('#rpOut').value;try{await navigator.clipboard.writeText(t);toast('คัดลอก Prompt แล้ว')}catch(_){const ta=$('#rpOut');ta.removeAttribute('readonly');ta.select();try{document.execCommand('copy');toast('คัดลอก Prompt แล้ว')}catch(__){toast('เลือกข้อความแล้วกดคัดลอกเอง')}ta.setAttribute('readonly','')}};
+  $('#rpImg').onclick=()=>exportPNG3();$('#rpClose').onclick=()=>d.close();upd();d.showModal?d.showModal():d.setAttribute('open','')}
 
 // ================= Boot
 readColors();buildTools();
