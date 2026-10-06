@@ -245,7 +245,7 @@ dialog .f{grid-template-columns:1fr 150px}
       <canvas id="cv3"></canvas>
       <div class="vlabel">3D — ลากเพื่อหมุน • ลากขวาหรือสองนิ้วเพื่อเลื่อน</div>
       <div class="v3bar">
-        <button class="btn" data-cam="iso">ไอโซ</button><button class="btn" data-cam="top">บน</button><button class="btn" data-cam="front">หน้า</button><button class="btn" data-cam="side">ข้าง</button><button class="btn" data-cam="fit">พอดีจอ</button>
+        <button class="btn" data-cam="iso">ไอโซ</button><button class="btn" data-cam="top">บน</button><button class="btn" data-cam="front">หน้า</button><button class="btn" data-cam="side">ขวา</button><button class="btn" data-cam="left">ซ้าย</button><button class="btn" data-cam="back">หลัง</button><button class="btn" data-cam="fit">พอดีจอ</button>
         <button class="btn" id="tgLv3">ชั้น: ทั้งหมด</button><button class="btn" id="tgRoof3">หลังคา: แสดง</button><button class="btn pri" id="rpBtn">✨ Prompt เรนเดอร์ AI</button><button class="btn" id="tgGrid3">กริด: แสดง</button><button class="btn" id="tgCeil3">ฝ้า: แสดง</button><button class="btn" id="tgUnder3">ใต้ดิน: แสดง</button>
       </div>
     </div>
@@ -1631,7 +1631,7 @@ function bounds3(){const b=new THREE.Box3();root.children.forEach(c=>{if(c.isMes
 function camView(k){if(!R)return;if(dirty3){build3();dirty3=false}const b=bounds3();let c=new THREE.Vector3(6,1.5,-4),sz=14;
   if(!b.isEmpty()){b.getCenter(c);const s=new THREE.Vector3();b.getSize(s);sz=Math.max(s.x,s.y,s.z)}
   orb.tx=c.x;orb.ty=c.y;orb.tz=c.z;orb.d=Math.max(6,sz*1.7);
-  if(k==='iso'){orb.th=-0.75;orb.ph=0.5}if(k==='top'){orb.ph=1.55;orb.th=0}if(k==='front'){orb.th=0;orb.ph=0.03}if(k==='side'){orb.th=Math.PI/2;orb.ph=0.03}req3()}
+  if(k==='iso'){orb.th=-0.75;orb.ph=0.5}if(k==='top'){orb.ph=1.55;orb.th=0}if(k==='front'){orb.th=0;orb.ph=0.03}if(k==='side'){orb.th=Math.PI/2;orb.ph=0.03}if(k==='left'){orb.th=-Math.PI/2;orb.ph=0.03}if(k==='back'){orb.th=Math.PI;orb.ph=0.03}req3()}
 document.querySelectorAll('[data-cam]').forEach(b=>b.onclick=()=>camView(b.dataset.cam));
 $('#tgRoof3').onclick=e=>{show3.roof=show3.roof===true?'frame':show3.roof==='frame'?false:true;e.target.textContent='หลังคา: '+(show3.roof===true?'แสดง':show3.roof==='frame'?'โครงหลังคา':'ซ่อน');dirty3=true;req3()};
 $('#rpBtn').onclick=openRenderPrompt;
@@ -1877,11 +1877,16 @@ function gridDims(x,R,tf,GS,zb){if(GS.length<2)return;GS.sort((a,b)=>a.s-b.s);co
   const m=tf({x:(GS[0].s+GS[GS.length-1].s)/2,y:y2});x.fillText(f2(GS[GS.length-1].s-GS[0].s),m.x,m.y-3);x.restore()}
 function renderSec(x,R,tf,sc,noTitle){const{ext}=R,elev=R.sec.kind==='elev';const path=(pts,close=true)=>{x.beginPath();pts.forEach((p,i)=>{const q=tf(p);i?x.lineTo(q.x,q.y):x.moveTo(q.x,q.y)});if(close)x.closePath()};
   const T_=(s,p,o={})=>{x.save();x.font=(o.w||'500')+' '+(o.size||12)+'px "IBM Plex Sans Thai",system-ui,sans-serif';x.fillStyle=o.c||C['ink'];x.textAlign=o.al||'center';x.textBaseline=o.bl||'middle';if(o.rot){x.translate(p.x,p.y);x.rotate(o.rot);x.fillText(s,0,0)}else x.fillText(s,p.x,p.y);x.restore()};
-  const s0=ext.s0-2,s1=ext.s1+2,zb=Math.min(ext.z0,GROUND)-0.8;
+  const s0=ext.s0-2,s1=ext.s1+2,zb=elev?GROUND-0.8:Math.min(ext.z0,GROUND)-0.8;
   const earth=()=>{path([{x:s0,y:GROUND},{x:s1,y:GROUND},{x:s1,y:zb},{x:s0,y:zb}]);x.fillStyle=C['cv-bg'];x.fill();x.fillStyle=C['cv-slab'];x.fill();x.save();x.clip();
     const a=tf({x:s0,y:GROUND}),b=tf({x:s1,y:zb});x.strokeStyle=C['muted'];x.globalAlpha=.3;x.lineWidth=0.7;x.beginPath();for(let X=a.x-(b.y-a.y);X<b.x;X+=10){x.moveTo(X,a.y);x.lineTo(X+(b.y-a.y),b.y)}x.stroke();x.restore()};
   if(!elev)earth();
-  R.beyond.forEach(b=>{path(b.pts);x.fillStyle=secFill(b.m,false);x.fill();x.strokeStyle=b.m==='furn'?C['muted']:C['cv-line'];x.lineWidth=b.m==='furn'?0.6:0.9;x.stroke()});
+  if(elev){x.save();path([{x:s0-5,y:GROUND},{x:s1+5,y:GROUND},{x:s1+5,y:ext.z1+20},{x:s0-5,y:ext.z1+20}]);x.clip()}
+  R.beyond.forEach(b=>{if(elev&&(b.m==='frame'||b.m==='furn'))return;path(b.pts);x.fillStyle=secFill(b.m,false);x.fill();
+    if(elev&&b.m==='roof'){x.save();path(b.pts);x.clip();const zs_=b.pts.map(q=>q.y),z0=Math.min(...zs_),z1=Math.max(...zs_),xs_=b.pts.map(q=>q.x),a0=Math.min(...xs_),a1=Math.max(...xs_);x.strokeStyle='rgba(60,40,30,.45)';x.lineWidth=0.5;x.beginPath();for(let zz=z0+0.06;zz<z1;zz+=0.1){const pa=tf({x:a0,y:zz}),pb=tf({x:a1,y:zz});x.moveTo(pa.x,pa.y);x.lineTo(pb.x,pb.y)}x.stroke();x.restore()}
+    if(elev&&b.m==='glass'){x.save();path(b.pts);x.clip();const xs_=b.pts.map(q=>q.x),zs_=b.pts.map(q=>q.y),a=tf({x:Math.min(...xs_),y:Math.max(...zs_)}),c=tf({x:Math.max(...xs_),y:Math.min(...zs_)});x.strokeStyle='rgba(255,255,255,.75)';x.lineWidth=0.9;x.beginPath();const ww=c.x-a.x,hh=c.y-a.y;x.moveTo(a.x+ww*0.15,a.y+hh*0.55);x.lineTo(a.x+ww*0.45,a.y+hh*0.15);x.moveTo(a.x+ww*0.3,a.y+hh*0.75);x.lineTo(a.x+ww*0.65,a.y+hh*0.25);x.stroke();x.restore()}
+    x.strokeStyle=b.m==='furn'?C['muted']:C['cv-line'];x.lineWidth=b.m==='furn'?0.6:b.m==='roof'?1.1:0.9;x.stroke()});
+  if(elev)x.restore();
   if(elev)earth();
   R.cut.forEach(c=>{if(c.seg){path(c.seg,false);x.strokeStyle=C['cv-roof'];x.lineWidth=Math.max(2.5,0.12*sc);x.lineCap='round';x.stroke();x.lineCap='butt';return}
     path(c.pts);x.fillStyle=secFill(c.m,true);x.fill();x.strokeStyle=C['ink'];x.lineWidth=c.m==='furn'?0.7:1.3;x.stroke()});
@@ -1990,7 +1995,7 @@ let DFF='"IBM Plex Sans Thai",system-ui,sans-serif',FSZ=1,TSC=1;function FONT(w,
 const pad2=n=>String(n).padStart(2,'0');
 function isSheet(){return $('#views').classList.contains('msheet')}
 const curSheet=()=>(S.sheets||[]).find(s=>s.id===shCur)||(S.sheets||[])[0]||null;
-function drawArea(sh){const[W,H]=PAPER[sh.size]||PAPER.A3;const tb=Math.max(60,W*0.165);return{W,H,tb,x0:31,y0:15,x1:W-10-tb-6,y1:H-15}}
+function drawArea(sh){const[W,H]=PAPER[sh.size]||PAPER.A3;const tb=(S.viewopt||{}).tbw==='wide'?Math.max(60,W*0.165):Math.max(46,W*0.118);return{W,H,tb,x0:31,y0:15,x1:W-10-tb-6,y1:H-15}}
 function genSecCached(sec){const k=sec.id+'|'+modelVer+'|'+JSON.stringify([sec.a,sec.b,sec.flip,sec.depth]);if(!SECC.has(k)){if(SECC.size>40)SECC.clear();SECC.set(k,genSection(sec))}return SECC.get(k)}
 function structEls(lid,roofs){const i=lvIdx(lid),below=i>0?S.levels[i-1].id:null;return S.els.filter(e=>{if(e.type==='grid')return true;
   if(roofs)return e.level===lid&&(e.type==='column'||e.type==='roof'||e.type==='rmem'||(e.type==='beam'&&e.bm!=='steel'&&e.at!=='floor'));
@@ -2016,7 +2021,7 @@ function drawTags(L){const M=markMaps();const tg=(p,t,round)=>{if(!t)return;cons
       if(e.type==='slab'){const mk=e.sk==='pc'?'PS':e.sk==='ground'?'GS':markOf(M,e);tg(centroid(e.pts),mk,true)}
       if(e.type==='footing'&&PRINT==='fdnplan'){const fw=e.w/2,fd=e.d/2;tx(add(e.p,{x:fw+0.05,y:-fd+0.02}),e.name||'F',{al:'left'})}}})}
 function vpExt(vp){if(vp.kind==='enl'){const c=byId(vp.ref);if(!c||c.type!=='callout')return null;const B=calloutBox(c),m=0.15;return{x0:B.x0-m,x1:B.x1+m,y0:B.y0-m,y1:B.y1+m}}
-  if(vp.kind==='sec'){const sec=byId(vp.ref);if(!sec||sec.type!=='section')return null;const R=genSecCached(sec),e=R.ext;return{R,x0:e.s0-3,x1:e.s1+3.6,y0:Math.min(e.z0,GROUND)-2.2,y1:e.z1+1.6}}
+  if(vp.kind==='sec'){const sec=byId(vp.ref);if(!sec||sec.type!=='section')return null;const R=genSecCached(sec),e=R.ext;return{R,x0:e.s0-3,x1:e.s1+3.6,y0:(sec.kind==='elev'?GROUND:Math.min(e.z0,GROUND))-2.2,y1:e.z1+1.6}}
   if(DRAWK.includes(vp.kind)){if(!S.levels.some(l=>l.id===vp.ref))return null;let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
     planList(vp.ref,vp.kind==='plan'?'arch':vp.kind).forEach(e=>{if(e.type==='section')return;let pts=keyPts(e);if(e.type==='roof')pts=roofOuter(e);if(e.type==='dim'){const d=dimGeom(e);pts=[d.p1,d.p2]}
       pts.forEach(q=>{x0=Math.min(x0,q.x);y0=Math.min(y0,q.y);x1=Math.max(x1,q.x);y1=Math.max(y1,q.y)})});
@@ -2033,7 +2038,7 @@ function placeCam(){const cx=Math.cos(orb.ph)*Math.sin(orb.th),cy=Math.sin(orb.p
   MAT.light.target.position.set(orb.tx,0,orb.tz);MAT.light.position.set(orb.tx+20,35,orb.tz+15)}
 function snap3D(vp){if(!R)return null;vp=vp||{};const ar=vp.w&&vp.h?vp.w/vp.h:1.636,ck=JSON.stringify([vp.cam||null,vp.bg||'',ar.toFixed(3)]);if(SN3.has(ck))return SN3.get(ck);
   const svO={...orb},svL=lv3,svR=show3.roof,svU=show3.under,svG=show3.grid,svSel=new Set(sel);sel.clear();lv3='all';show3.roof=true;show3.under=false;show3.grid=false;build3();dirty3=false;
-  const w=Math.round(Math.min(3200,ar>=1?3000:3000*ar)),h=Math.round(w/ar);try{R.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();if(vp.cam)Object.assign(orb,vp.cam);else{camView('iso');orb.th=-0.62;orb.ph=0.33;orb.d*=0.8;orb.ty*=0.8}
+  const w=Math.round(Math.min(3200,ar>=1?3000:3000*ar)),h=Math.round(w/ar);try{R.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();if(vp.cam)Object.assign(orb,vp.cam);else{camView('iso');orb.th=-0.62;orb.ph=0.33;fit3D(w/h)}
     scene.background=new THREE.Color(vp.bg==='sky'?'#dfe9f3':vp.bg==='dark'?'#2b2f33':'#ffffff');placeCam();R.render(scene,cam);var off=document.createElement('canvas');off.width=w;off.height=h;off.getContext('2d').drawImage(cv3,0,0)}
   finally{Object.assign(orb,svO);lv3=svL;show3.roof=svR;show3.under=svU;show3.grid=svG;svSel.forEach(i=>sel.add(i));dirty3=true;resize3()}
   if(SN3.size>12)SN3.clear();SN3.set(ck,off);return off}
@@ -2084,24 +2089,24 @@ function northArrow(x,cx,cy){x.lineWidth=0.3;x.strokeStyle='#111';x.beginPath();
 function wrapLines(x,text,maxW){const out=[];String(text||'').split('\n').forEach(par=>{let segs;try{segs=[...new Intl.Segmenter('th',{granularity:'word'}).segment(par)].map(s=>s.segment)}catch(e){segs=[...par]}
   let line='';segs.forEach(sg=>{if(x.measureText(line+sg).width>maxW&&line){out.push(line);line=sg.trimStart()}else line+=sg});out.push(line)});return out}
 function C2(k){return(C===PC?PC:C)[k]||PC[k]}
-function vpBox(vp){if(FIXK.includes(vp.kind))return fixedSize(vp);if(vp.kind==='3d')return{w:vp.w||200,h:vp.h||122};const E=vpExt(vp);if(!E)return{w:60,h:30};const d=vp.scale||100;return{w:(E.x1-E.x0)*1000/d,h:(E.y1-E.y0)*1000/d}}
+function vpBox(vp){if(FIXZ(vp.kind)&&vp.kind!=='cover'){const z=fixedSize(vp),f=+vp.zf||1;return{w:z.w*f,h:z.h*f}}if(vp.kind==='cover'){const z=fixedSize(vp),f=+vp.zf||1;return{w:z.w*f,h:z.h*f}}if(FIXK.includes(vp.kind))return fixedSize(vp);if(vp.kind==='3d')return{w:vp.w||200,h:vp.h||122};const E=vpExt(vp);if(!E)return{w:60,h:30};const d=vp.scale||100;return{w:(E.x1-E.x0)*1000/d,h:(E.y1-E.y0)*1000/d}}
 function renderSheet(x,sh,ppm,screen){applyFont();const A=drawArea(sh),{W,H}=A,M=10;x.fillStyle='#fff';x.fillRect(0,0,W,H);x.strokeStyle='#111';x.lineWidth=0.7;x.strokeRect(25,M,W-25-M,H-2*M);
   x.lineWidth=0.5;x.beginPath();x.moveTo(W-M-A.tb,M);x.lineTo(W-M-A.tb,H-M);x.stroke();
-  let num=0;sh.vps.forEach(vp=>{num++;clampVp(vp,A);const svT=TSC;TSC=svT*((+vp.ts||100)/100);const b=vpBox(vp);let w=b.w,h=b.h;
+  let num=0;sh.vps.forEach(vp=>{num++;clampVp(vp,A);const svT=TSC;TSC=svT*((+vp.ts||100)/100);const b=vpBox(vp);let w=b.w,h=b.h;const Z=FIXZ(vp.kind)?(+vp.zf||1):1;if(Z!==1){x.save();x.translate(vp.x-w/2,vp.y-h/2);x.scale(Z,Z);w/=Z;h/=Z;x.translate(-(vp.x-w/2),-(vp.y-h/2))}
     if(vp.kind==='sched')drawTable(x,vp.x-w/2,vp.y-h/2,schedData(vp.ref));
-    else if(vp.kind==='detail')drawDetail(x,vp.ref,vp.x-w/2,vp.y-h/2);
+    else if(vp.kind==='detail'){DETSC=+vp.scale||0;drawDetail(x,vp.ref,vp.x-w/2,vp.y-h/2);DETSC=0}
     else if(vp.kind==='notes')drawNotes(x,vp.x-w/2,vp.y-h/2);
     else if(vp.kind==='legend')drawLegend(x,vp.ref,vp.x-w/2,vp.y-h/2);
     else if(vp.kind==='cover')drawCover(x,vp,vp.x-w/2,vp.y-h/2,w,h);
     else if(vp.kind==='opel')drawOpElev(x,vp.x-w/2,vp.y-h/2);
     else if(vp.kind==='coltab'){DK=1000/(+vp.scale||20);drawColTab(x,vp.x-w/2,vp.y-h/2)}else if(vp.kind==='beamtab'){DK=1000/(+vp.scale||20);drawBeamTab(x,vp.x-w/2,vp.y-h/2)}else if(vp.kind==='gnotes')drawGNotes(x,vp.x-w/2,vp.y-h/2);else if(vp.kind==='snote')drawSNote(x,vp.ref,vp.x-w/2,vp.y-h/2);
-    else if(vp.kind==='3d'){const im=snap3D(vp);if(im){const k=Math.min(w/im.width,h/im.height),iw=im.width*k,ih=im.height*k;x.drawImage(im,vp.x-iw/2,vp.y-ih/2,iw,ih)}else{x.lineWidth=0.2;x.strokeRect(vp.x-w/2,vp.y-h/2,w,h)}}
+    else if(vp.kind==='3d'){const ui=vp.img?vpImg(vp.img):null,im=vp.img?ui:snap3D(vp);if(im){const crop=vp.img&&vp.fit!=='contain',k=crop?Math.max(w/im.width,h/im.height):Math.min(w/im.width,h/im.height),iw=im.width*k,ih=im.height*k;x.save();x.beginPath();x.rect(vp.x-w/2,vp.y-h/2,w,h);x.clip();x.drawImage(im,vp.x-iw/2,vp.y-ih/2,iw,ih);x.restore()}else{x.lineWidth=0.2;x.strokeRect(vp.x-w/2,vp.y-h/2,w,h)}}
     else{const r=vpImage(vp,ppm);if(r){w=r.wmm;h=r.hmm;x.drawImage(r.img,vp.x-w/2,vp.y-h/2,w,h)}else{x.lineWidth=0.2;x.strokeRect(vp.x-w/2,vp.y-h/2,w,h);x.font=FONT('400',3);x.fillStyle='#a33';x.textAlign='center';x.fillText('ไม่พบข้อมูลของมุมมองนี้',vp.x,vp.y)}}
-    vp._w=w;vp._h=h;const ty=vp.y+h/2+3.5,lx=vp.x-w/2;x.strokeStyle='#111';x.fillStyle='#111';x.lineWidth=0.35;x.beginPath();x.arc(lx+4.5,ty+4.5,4.5,0,7);x.stroke();
+    if(Z!==1){x.restore();w*=Z;h*=Z}vp._w=w;vp._h=h;const ty=vp.y+h/2+3.5,lx=vp.x-w/2;x.strokeStyle='#111';x.fillStyle='#111';x.lineWidth=0.35;x.beginPath();x.arc(lx+4.5,ty+4.5,4.5,0,7);x.stroke();
     x.font=FONT('600',3.6);x.textAlign='center';x.textBaseline='middle';x.fillText(String(num),lx+4.5,ty+4.8);x.textAlign='left';x.textBaseline='alphabetic';x.font=FONT('600',4);x.fillText(vp.title||'',lx+11.5,ty+3.8);
     const tw=x.measureText(vp.title||'').width;x.lineWidth=0.5;x.beginPath();x.moveTo(lx+11.5,ty+5.3);x.lineTo(lx+11.5+Math.max(tw,40),ty+5.3);x.stroke();
     const dr=DRAWK.includes(vp.kind),dd=dr?0:vpScaleOf(vp);x.font=FONT('400',2.7);const sc=dr?'มาตราส่วน 1:'+vp.scale:dd?'มาตราส่วน 1:'+dd:'ไม่ใช้มาตราส่วน';x.fillText(sc,lx+11.5,ty+9.2);if(dr||dd)scaleBar(x,lx+11.5+x.measureText(sc).width+5,ty+6.6,dr?vp.scale:dd);
-    TSC=svT;if(screen&&hSel===vp.id){x.setLineDash([2,1.5]);x.strokeStyle='#e0560f';x.lineWidth=0.5;x.strokeRect(vp.x-w/2-2,vp.y-h/2-2,w+4,h+17);x.setLineDash([])}});
+    TSC=svT;if(screen&&hSel===vp.id){x.setLineDash([2,1.5]);x.strokeStyle='#e0560f';x.lineWidth=0.5;x.strokeRect(vp.x-w/2-2,vp.y-h/2-2,w+4,h+17);x.setLineDash([]);x.fillStyle='#e0560f';x.fillRect(vp.x+w/2-1.6,vp.y+h/2-1.6,3.2,3.2);x.fillStyle='#fff';x.fillRect(vp.x+w/2-0.8,vp.y+h/2-0.8,1.6,1.6)}});
   if(sh.vps.some(v=>['plan','struct','roofs','rcp','plumb','fdnplan'].includes(v.kind)))northArrow(x,A.x1-10,A.y0+14);
   titleBlock(x,sh,A)}
 function layoutSheet(sh){const A=drawArea(sh),n=sh.vps.length;if(!n)return;const AW=A.x1-A.x0,AH=A.y1-A.y0,TT=17,GAP=9;
@@ -2114,7 +2119,7 @@ function layoutSheet(sh){const A=drawArea(sh),n=sh.vps.length;if(!n)return;const
 function pickScale(wm,hm,cw,ch){for(const d of SCALES)if(wm*1000/d<=cw&&hm*1000/d<=ch)return d;return 1000}
 const PCN={};function autoSheets(){Object.keys(PCN).forEach(k=>delete PCN[k]);SECC.clear();VPC.clear();const out=[];let an=0,sn=0;const mk=(pre,title,vps)=>{const no=pre==='A'?'A-'+pad2(an++):pre==='S'?'S-'+pad2(++sn):pre+'-'+pad2(PCN[pre]=(PCN[pre]||0)+1);out.push({id:'sh'+Math.random().toString(36).slice(2,8),no,title,size:'A3',vps:vps.map((v,i)=>({id:'vp'+Math.random().toString(36).slice(2,8),scale:100,...v}))})};
   mk('A','ปก',[{kind:'3d',title:'ทัศนียภาพ',bg:'sky'},{kind:'cover',title:'',ctitle:(S.proj&&S.proj.name)||'',csub:'แบบก่อสร้าง'}]);mk('A','สารบัญแบบ',[{kind:'sched',ref:'index',title:'สารบัญแบบ'}]);
-  S.levels.forEach(l=>mk('A','แปลนพื้น'+l.name,[{kind:'plan',ref:l.id,title:'แปลนพื้น'+l.name}]));
+  S.levels.forEach(l=>mk('A','แปลนพื้น'+l.name,[{kind:'plan',ref:l.id,title:'แปลนพื้น'+l.name}].concat(S.els.some(e=>e.type==='roof'&&e.level===l.id)?[{kind:'snote',ref:'rmat:'+l.id,title:''}]:[])));
   const el=sections().filter(e=>e.kind==='elev'),sc=sections().filter(e=>e.kind!=='elev');
   const jn=L=>L.map(e=>e.name.replace(/\s*\(.*\)/,'')).join(' และ ');
   for(let i=0;i<el.length;i+=2)mk('A',jn(el.slice(i,i+2)),el.slice(i,i+2).map(e=>({kind:'sec',ref:e.id,title:e.name})));
@@ -2152,12 +2157,17 @@ function zoomH(sp,k){const w=(x,y)=>({x:(x-WH/2)/vH.s+vH.x,y:(y-HH/2)/vH.s+vH.y}
 (function(){const P=new Map();let last=null,g2=null,drag=null;const toMM=(cx,cy)=>{const r=cvH.getBoundingClientRect();return{x:(cx-r.left-WH/2)/vH.s+vH.x,y:(cy-r.top-HH/2)/vH.s+vH.y}};
   cvH.addEventListener('pointerdown',e=>{cvH.setPointerCapture(e.pointerId);P.set(e.pointerId,{x:e.clientX,y:e.clientY});if(P.size===2){const[a,b]=[...P.values()];g2={d:dist(a,b),c:mul(add(a,b),.5)};drag=null;last=null;return}
     const m=toMM(e.clientX,e.clientY),sh=curSheet();const hit=sh&&[...sh.vps].reverse().find(v=>v._w!=null&&m.x>=v.x-v._w/2-2&&m.x<=v.x+v._w/2+2&&m.y>=v.y-v._h/2-2&&m.y<=v.y+v._h/2+16);
-    if(hit){if(hSel!==hit.id){hSel=hit.id;renderSide()}drag={vp:hit,m0:m,x0:hit.x,y0:hit.y,snap:snapshot(),moved:false}}else{if(hSel){hSel=null;renderSide()}last={x:e.clientX,y:e.clientY}}drawH()});
+    if(hit){const rz=hSel===hit.id&&Math.hypot(m.x-(hit.x+hit._w/2),m.y-(hit.y+hit._h/2))<4.5;if(hSel!==hit.id){hSel=hit.id;renderSide()}drag={vp:hit,m0:m,x0:hit.x,y0:hit.y,snap:snapshot(),moved:false,rz,w0:hit._w,h0:hit._h,zf0:+hit.zf||1,sc0:hit.scale,w3:hit.w,h3:hit.h}}else{if(hSel){hSel=null;renderSide()}last={x:e.clientX,y:e.clientY}}drawH()});
   cvH.addEventListener('pointermove',e=>{if(!P.has(e.pointerId))return;P.set(e.pointerId,{x:e.clientX,y:e.clientY});
     if(P.size>=2&&g2){const[a,b]=[...P.values()],d=dist(a,b),c=mul(add(a,b),.5),r=cvH.getBoundingClientRect();zoomH({x:c.x-r.left,y:c.y-r.top},d/g2.d);vH.x-=(c.x-g2.c.x)/vH.s;vH.y-=(c.y-g2.c.y)/vH.s;g2={d,c};drawH();return}
-    if(drag){const m=toMM(e.clientX,e.clientY);const dx=m.x-drag.m0.x,dy=m.y-drag.m0.y;if(!drag.moved&&Math.hypot(dx,dy)*vH.s<4)return;drag.moved=true;drag.vp.x=r3(Math.round((drag.x0+dx)/2.5)*2.5);drag.vp.y=r3(Math.round((drag.y0+dy)/2.5)*2.5);drawH();return}
+    if(drag){const m=toMM(e.clientX,e.clientY);const dx=m.x-drag.m0.x,dy=m.y-drag.m0.y;if(!drag.moved&&Math.hypot(dx,dy)*vH.s<4)return;drag.moved=true;const v=drag.vp;if(drag.rz){const L=drag.x0-drag.w0/2,Tp=drag.y0-drag.h0/2,nw=Math.max(15,drag.w0+dx),nh=Math.max(10,drag.h0+dy);
+        if(v.kind==='3d'||v.kind==='img'){v.w=r3(nw);v.h=r3(nh);v.x=r3(L+nw/2);v.y=r3(Tp+nh/2)}
+        else if(FIXZ(v.kind)){const f=Math.max(0.25,Math.min(5,Math.max(nw/drag.w0,nh/drag.h0)));v.zf=r3(drag.zf0*f);v.x=r3(L+drag.w0*f/2);v.y=r3(Tp+drag.h0*f/2)}
+        else if(DRAWK.includes(v.kind)&&drag.sc0){const want=drag.sc0*drag.w0/nw;let best=SCALES[0];SCALES.forEach(q=>{if(Math.abs(Math.log(q/want))<Math.abs(Math.log(best/want)))best=q});v.scale=best;const f=drag.sc0/best;v.x=r3(L+drag.w0*f/2);v.y=r3(Tp+drag.h0*f/2)}
+        drawH();return}
+      v.x=r3(Math.round((drag.x0+dx)/2.5)*2.5);v.y=r3(Math.round((drag.y0+dy)/2.5)*2.5);drawH();return}
     if(!last)return;vH.x-=(e.clientX-last.x)/vH.s;vH.y-=(e.clientY-last.y)/vH.s;last={x:e.clientX,y:e.clientY};drawH()});
-  const up=e=>{P.delete(e.pointerId);if(P.size<2)g2=null;if(drag&&drag.moved){hist.push(drag.snap);if(hist.length>200)hist.shift();fut=[];changed()}drag=null;last=P.size===1?[...P.values()][0]:null};
+  const up=e=>{P.delete(e.pointerId);if(P.size<2)g2=null;if(drag&&drag.moved){hist.push(drag.snap);if(hist.length>200)hist.shift();fut=[];changed();if(drag.rz)renderSide()}drag=null;last=P.size===1?[...P.values()][0]:null};
   cvH.addEventListener('pointerup',up);cvH.addEventListener('pointercancel',up);
   cvH.addEventListener('wheel',e=>{e.preventDefault();const r=cvH.getBoundingClientRect();zoomH({x:e.clientX-r.left,y:e.clientY-r.top},Math.exp(-e.deltaY*0.0015))},{passive:false})})();
 new ResizeObserver(()=>{if(isSheet())resizeH()}).observe($('#vHwrap'));
@@ -2170,21 +2180,23 @@ function renderSheetSide(P){const sh=curSheet();if(!sh){P.innerHTML='<h3>แผ�
     if(vp.kind==='sec')h+=F('รูปตัด / รูปด้าน','ref',vp.ref,'sel',sections().map(e=>[e.id,e.name]));
     if(vp.kind==='sched')h+=F('ตาราง','ref',vp.ref,'sel',SCHEDS);
     if(vp.kind==='detail')h+=F('แบบขยาย','ref',vp.ref,'sel',DETAILS);
+    if(vp.kind==='detail')h+=F('มาตราส่วน','scale',vp.scale||DSC[vp.ref],'sel',[[5,'1:5'],[10,'1:10'],[15,'1:15'],[20,'1:20'],[25,'1:25'],[50,'1:50']]);
+    if(FIXZ(vp.kind))h+=F('ขนาดการแสดงผล (เท่า)','zf',vp.zf||1,'number')+'<p class="hint">ลากจุดสีส้มที่มุมล่างขวาของกรอบเพื่อยืดหรือย่อได้อิสระ</p>';
     if(vp.kind==='coltab'||vp.kind==='beamtab')h+=F('มาตราส่วน','scale',vp.scale||20,'sel',[[10,'1:10'],[15,'1:15'],[20,'1:20'],[25,'1:25'],[50,'1:50']]);
     h+=F('ขนาดตัวอักษรในมุมมองนี้ (%)','ts',vp.ts||100,'sel',[[70,'70%'],[80,'80%'],[90,'90%'],[100,'100%'],[115,'115%'],[130,'130%'],[150,'150%'],[175,'175%'],[200,'200%']]);
     if(vp.kind==='enl')h+=F('ขอบเขตแบบขยาย','ref',vp.ref,'sel',S.els.filter(e=>e.type==='callout').map(e=>[e.id,e.name]));
     if(vp.kind==='legend')h+=F('สัญลักษณ์','ref',vp.ref,'sel',[['elec','งานไฟฟ้า'],['plumb','งานสุขาภิบาล']]);
     if(DRAWK.includes(vp.kind))h+=F('มาตราส่วน','scale',vp.scale,'sel',SCALES.map(d=>[d,'1:'+d]));
-    if(vp.kind==='3d'){h+=F('ความกว้างภาพ (มม.)','w',vp.w,'number')+F('ความสูงภาพ (มม.)','hh',vp.h,'number')+F('พื้นหลัง','bg',vp.bg||'white','sel',[['white','ขาว'],['sky','ฟ้าอ่อน'],['dark','เข้ม']]);h+=`<div class="acts"><button class="btn pri" data-ha="cam">ใช้มุมกล้อง 3D ปัจจุบัน</button><button class="btn" data-ha="camiso">กลับเป็นมุมไอโซอัตโนมัติ</button></div>`}
+    if(vp.kind==='3d'){h+=`<div class="acts"><button class="btn pri" data-ha="imgup">นำเข้าภาพเรนเดอร์</button>${vp.img?'<button class="btn" data-ha="imgdel">ลบภาพ (กลับไปใช้ภาพ 3D)</button>':''}</div>`+(vp.img?F('การจัดภาพ','fit',vp.fit||'cover','sel',[['cover','เต็มกรอบ (ตัดขอบ)'],['contain','พอดีภาพ (ไม่ตัด)']]):'')+F('ความกว้างภาพ (มม.)','w',vp.w,'number')+F('ความสูงภาพ (มม.)','hh',vp.h,'number')+F('พื้นหลัง','bg',vp.bg||'white','sel',[['white','ขาว'],['sky','ฟ้าอ่อน'],['dark','เข้ม']]);h+=`<div class="acts"><button class="btn pri" data-ha="cam">ใช้มุมกล้อง 3D ปัจจุบัน</button><button class="btn" data-ha="camiso">กลับเป็นมุมไอโซอัตโนมัติ</button></div>`}
     if(vp.kind==='cover')h+=F('หัวเรื่อง','ctitle',vp.ctitle??(S.proj.name||''))+F('คำบรรยายใต้หัวเรื่อง','csub',vp.csub??'')+F('ข้อความเพิ่มเติม (บรรทัดละข้อ คั่นด้วย | )','cnote',vp.cnote??'')+F('สีแถบ','accent',vp.accent||'#c8a227','color')+F('ความกว้าง (มม.)','cw',vp.cw||170,'number')+F('ความสูง (มม.)','ch',vp.ch||64,'number')+F('ขนาดตัวอักษรหัวเรื่อง (มม.)','cts',vp.cts||9,'number');
     h+=`<div class="acts"><button class="btn" data-ha="delvp">ลบมุมมอง</button><button class="btn" data-ha="layout">จัดวางแผ่นใหม่</button></div><p class="hint" style="margin-top:10px">ลากมุมมองบนแผ่นเพื่อย้าย (ขยับทีละ 2.5 มม.) • ภาพ 3D ใช้มุมมองไอโซเมตริกอัตโนมัติ</p>`}
   else{h=`<h3>แผ่น ${esc(sh.no)}</h3>`+F('เลขที่แผ่น','no',sh.no)+F('ชื่อแผ่นงาน','stitle',sh.title)+F('ขนาดกระดาษ','size',sh.size,'sel',Object.keys(PAPER).map(k=>[k,k+' แนวนอน']))+
-    `<h4 style="margin:12px 0 4px">ตัวอักษรในแบบ (ทุกแผ่น)</h4><div class="f"><label>ฟอนต์งานเขียนแบบ</label><select data-ho="font">${Object.entries(FONTS).map(([k,v])=>`<option value="${k}"${((S.viewopt||{}).font||'plex')===k?' selected':''}>${esc(v[0])}</option>`).join('')}</select></div>`+((S.viewopt||{}).font==='custom'?`<div class="f"><label>ชื่อฟอนต์ที่ติดตั้งในเครื่อง</label><input data-ho="fontName" value="${esc((S.viewopt||{}).fontName||'')}" placeholder="เช่น TH CAD, TH Sarabun New"></div>`:'')+`<div class="f"><label>ขนาดตัวอักษร (%)</label><select data-ho="tscale">${[70,80,90,100,110,120,135,150,175,200].map(v=>`<option value="${v}"${(+((S.viewopt||{}).tscale)||100)===v?' selected':''}>${v}%</option>`).join('')}</select></div><p class="hint">ฟอนต์ TH ที่ติดตั้งในเครื่องจะถูกใช้ก่อน ถ้าไม่มีจะใช้ Sarabun / Niramit จากอินเทอร์เน็ตแทน</p>`+
+    `<div class="acts" style="margin-top:8px"><button class="btn pri" data-ha="fitsheet">ขยายแบบให้พอดีกระดาษ</button></div><h4 style="margin:12px 0 4px">โลโก้และกรอบชื่อแบบ</h4><div class="acts"><button class="btn" data-ha="logo">${S.proj&&S.proj.logo?'เปลี่ยนโลโก้':'ใส่โลโก้สำนักงาน'}</button>${S.proj&&S.proj.logo?'<button class="btn" data-ha="logodel">ลบโลโก้</button>':''}</div><div class="f"><label>ความกว้างกรอบชื่อแบบ</label><select data-ho="tbw"><option value="narrow"${(S.viewopt||{}).tbw!=='wide'?' selected':''}>แคบ (มาตรฐาน)</option><option value="wide"${(S.viewopt||{}).tbw==='wide'?' selected':''}>กว้าง</option></select></div><h4 style="margin:12px 0 4px">ตัวอักษรในแบบ (ทุกแผ่น)</h4><div class="f"><label>ฟอนต์งานเขียนแบบ</label><select data-ho="font">${Object.entries(FONTS).map(([k,v])=>`<option value="${k}"${((S.viewopt||{}).font||'plex')===k?' selected':''}>${esc(v[0])}</option>`).join('')}</select></div>`+((S.viewopt||{}).font==='custom'?`<div class="f"><label>ชื่อฟอนต์ที่ติดตั้งในเครื่อง</label><input data-ho="fontName" value="${esc((S.viewopt||{}).fontName||'')}" placeholder="เช่น TH CAD, TH Sarabun New"></div>`:'')+`<div class="f"><label>ขนาดตัวอักษร (%)</label><select data-ho="tscale">${[70,80,90,100,110,120,135,150,175,200].map(v=>`<option value="${v}"${(+((S.viewopt||{}).tscale)||100)===v?' selected':''}>${v}%</option>`).join('')}</select></div><p class="hint">ฟอนต์ TH ที่ติดตั้งในเครื่องจะถูกใช้ก่อน ถ้าไม่มีจะใช้ Sarabun / Niramit จากอินเทอร์เน็ตแทน</p>`+
     `<div class="acts" style="margin-top:10px"><button class="btn pri" data-ha="coverhero">จัดเป็นหน้าปก: ภาพเต็ม</button><button class="btn" data-ha="coversplit">หน้าปก: ภาพ + สารบัญ</button></div><p class="hint" style="margin-top:12px">เพิ่มมุมมองลงแผ่นนี้</p><div class="acts">${[['cover','หัวเรื่องปก'],['plan','แปลนสถาปัตย์'],['struct','แปลนโครงสร้าง'],['rcp','แปลนฝ้าและไฟฟ้า'],['plumb','แปลนสุขาภิบาล'],['sec','รูปตัด/รูปด้าน'],['3d','ภาพ 3D'],['sched','ตาราง'],['fdnplan','แปลนฐานรากและตอม่อ'],['coltab','ตารางเสาและตอม่อ'],['beamtab','แบบขยายคาน'],['gnotes','ข้อกำหนดทั่วไปโครงสร้าง'],['detail','แบบขยายโครงสร้าง'],['enl','แบบขยายพื้นที่'],['opel','แบบขยายประตู-หน้าต่าง'],['legend','สัญลักษณ์'],['notes','หมายเหตุ']].map(([k,n])=>`<button class="btn" data-addvp="${k}">+ ${n}</button>`).join('')}</div>
     <div class="acts"><button class="btn" data-ha="layout">จัดวางอัตโนมัติ</button><button class="btn" data-ha="up">เลื่อนลำดับขึ้น</button><button class="btn" data-ha="down">เลื่อนลำดับลง</button><button class="btn" data-ha="delsh">ลบแผ่นนี้</button></div>
     <p class="hint" style="margin-top:12px">คลิกมุมมองบนแผ่นเพื่อแก้มาตราส่วน ชั้น หรือชื่อ • แก้แบบที่แปลนแล้วแผ่นงานจะอัปเดตตามเอง</p>`}
   P.innerHTML=h;
-  P.querySelectorAll('[data-hk]').forEach(i=>i.onchange=()=>{const k=i.dataset.hk,v=i.value;mutate(()=>{if(vp){if(k==='scale'||k==='w'){const n=+v;if(n>0){vp[k]=n;if(k==='w')vp.h=r3(n/1.636)}}else if(k==='hh'){const n=+v;if(n>0)vp.h=n}else vp[k]=v;
+  P.querySelectorAll('[data-hk]').forEach(i=>i.onchange=()=>{const k=i.dataset.hk,v=i.value;mutate(()=>{if(vp){if(k==='scale'||k==='w'||k==='zf'){const n=+v;if(n>0){vp[k]=n;if(k==='w'&&!vp.img)vp.h=r3(n/1.636)}}else if(k==='hh'){const n=+v;if(n>0)vp.h=n}else vp[k]=v;
       if(k==='ref'&&vp.kind==='sec'){const s=byId(v);if(s)vp.title=s.name}if(k==='ref'&&vp.kind==='sched'){const o=SCHEDS.find(x=>x[0]===v);if(o)vp.title=o[1]}if(k==='ref'&&vp.kind==='detail'){const o=DETAILS.find(x=>x[0]===v);if(o)vp.title=o[1]}if(k==='ref'&&vp.kind==='plan')vp.title='แปลนพื้น'+lvl(v).name;if(k==='ref'&&vp.kind==='struct')vp.title=structTitle(v)}
       else{if(k==='stitle')sh.title=v;else if(k==='no')sh.no=v;else if(k==='size'){sh.size=v;layoutSheet(sh)}}});if(k==='size')fitH()});
   P.querySelectorAll('[data-addvp]').forEach(b=>b.onclick=()=>{const k=b.dataset.addvp;const sid=secCur||(sections()[0]||{}).id;if(k==='sec'&&!sid){toast('ยังไม่มีรูปตัด สร้างได้ที่มุมมองรูปตัด');return}
@@ -2194,6 +2206,11 @@ function renderSheetSide(P){const sh=curSheet();if(!sh){P.innerHTML='<h3>แผ�
   P.querySelectorAll('[data-ha]').forEach(b=>b.onclick=()=>{const a=b.dataset.ha,i=S.sheets.indexOf(sh);
     if(a==='delvp'){mutate(()=>{sh.vps=sh.vps.filter(v=>v.id!==hSel)});hSel=null;renderSide()}
     if(a==='layout')mutate(()=>layoutSheet(sh));
+    if(a==='imgup'&&vp){pickImageFile((url,ar)=>{mutate(()=>{vp.img=url;vp.fit='cover'});drawH();renderSide();toast('ใส่ภาพเรนเดอร์แล้ว • ลากมุมกรอบเพื่อปรับขนาดได้')},2400,'jpeg')}
+    if(a==='imgdel'&&vp){mutate(()=>{delete vp.img});drawH();renderSide()}
+    if(a==='fitsheet'){mutate(()=>fitSheet(sh));drawH();renderSide()}
+    if(a==='logo'){pickImageFile(url=>{mutate(()=>{S.proj=S.proj||defProj();S.proj.logo=url});VPC.clear();drawH();renderSide();toast('ใส่โลโก้แล้ว')},480,'png')}
+    if(a==='logodel'){mutate(()=>{if(S.proj)S.proj.logo=''});drawH();renderSide()}
     if(a==='cam'&&vp){mutate(()=>{vp.cam={th:orb.th,ph:orb.ph,d:orb.d,tx:orb.tx,ty:orb.ty,tz:orb.tz}});toast('ใช้มุมกล้องปัจจุบันแล้ว (หมุนมุมมอง 3D ก่อนกดเพื่อเลือกมุม)')}
     if(a==='camiso'&&vp)mutate(()=>{delete vp.cam});
     if(a==='coverhero')coverPreset(sh,'hero');if(a==='coversplit')coverPreset(sh,'split');
@@ -2212,7 +2229,7 @@ $('#projCancel').onclick=()=>$('#projDlg').close();
 $('#projOk').onclick=()=>{mutate(()=>{S.proj=S.proj||defProj();PROJF.forEach(([k])=>{const el=$('#pj_'+k);if(el)S.proj[k]=el.value});S.proj.logo=PJLOGO});VPC.clear();$('#projDlg').close();toast('บันทึกข้อมูลโครงการแล้ว')};
 function sheetCanvas(sh,ppmMax,maxPx){const[W,H]=PAPER[sh.size]||PAPER.A3;const ppm=Math.min(ppmMax,maxPx/W);const cv=document.createElement('canvas');cv.width=Math.round(W*ppm);cv.height=Math.round(H*ppm);
   const x=cv.getContext('2d');x.setTransform(ppm,0,0,ppm,0,0);const sv=hSel;hSel=null;try{renderSheet(x,sh,ppm,false)}finally{hSel=sv}return{cv,W,H}}
-async function exportPDF(list){list=list.filter(Boolean);applyFont();await fontReady();await logoReady();if(!list.length){toast('ยังไม่มีแผ่นงาน');return}toast('กำลังสร้าง PDF '+list.length+' แผ่น…');await new Promise(r=>setTimeout(r,40));
+async function exportPDF(list){list=list.filter(Boolean);applyFont();await fontReady();await logoReady();await imgReady();if(!list.length){toast('ยังไม่มีแผ่นงาน');return}toast('กำลังสร้าง PDF '+list.length+' แผ่น…');await new Promise(r=>setTimeout(r,40));
   const enc=new TextEncoder(),chunks=[],offs=[];let off=0;const push=b=>{if(typeof b==='string')b=enc.encode(b);chunks.push(b);off+=b.length};const N=list.length;
   push('%PDF-1.4\n');push(new Uint8Array([37,226,227,207,211,10]));
   offs[1]=off;push('1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');offs[2]=off;push('2 0 obj\n<< /Type /Pages /Kids ['+list.map((_,i)=>(3+i*3)+' 0 R').join(' ')+'] /Count '+N+' >>\nendobj\n');
@@ -2262,7 +2279,7 @@ function barsOnRect(n,W,D){const C=[[-W/2,-D/2],[W/2,-D/2],[W/2,D/2],[-W/2,D/2]]
 function dot2(x,cx,cy,r){x.beginPath();x.arc(cx,cy,r,0,7);x.fill()}
 function lbl(x,lines,cx,y,al){x.textAlign=al||'center';x.textBaseline='alphabetic';lines.forEach((t,i)=>{x.font=FONT(i?'400':'600',i?2.4:3);x.fillStyle='#111';x.fillText(t,cx,y+i*3.6)})}
 function dimH(x,x1,x2,y,t){x.lineWidth=0.15;x.beginPath();x.moveTo(x1,y);x.lineTo(x2,y);[x1,x2].forEach(v=>{x.moveTo(v-0.8,y+0.8);x.lineTo(v+0.8,y-0.8);x.moveTo(v,y-1.5);x.lineTo(v,y+1.5)});x.stroke();x.font=FONT('400',2.2);x.textAlign='center';x.fillText(t,(x1+x2)/2,y-1)}
-function detailCells(ref){const k=1000/DSC[ref],cells=[];
+let DETSC=0;function detailCells(ref){const k=1000/(DETSC||DSC[ref]),cells=[];
   if(ref==='col')uniqOf('column').forEach(e=>{const R=rebarOf(e),W=e.w*k,D=(e.shape==='circle'?e.w:e.d)*k;cells.push({w:Math.max(46,W+16),h:D+30,draw(x,cx,ty){const cy=ty+5+D/2;x.strokeStyle='#111';x.fillStyle='#f0f0ee';
       const c=R.c*k,tdw=Math.max(0.25,barDia(R.td)*k),rb=Math.max(0.65,barDia(R.d)*k/2);
       if(e.shape==='circle'){x.beginPath();x.arc(cx,cy,W/2,0,7);x.fill();x.lineWidth=0.35;x.stroke();x.lineWidth=tdw;x.beginPath();x.arc(cx,cy,W/2-c,0,7);x.stroke();x.fillStyle='#111';const rr=W/2-c-tdw-rb;for(let i=0;i<R.n;i++){const a=i/R.n*Math.PI*2;dot2(x,cx+rr*Math.cos(a),cy+rr*Math.sin(a),rb)}}
@@ -2309,11 +2326,11 @@ function detailCells(ref){const k=1000/DSC[ref],cells=[];
       lbl(x,['บันได กว้าง '+f2(e.w)+' ม.',I.n+' ลูกตั้ง สูง '+(I.rh*100).toFixed(1)+' ซม.','ลูกนอน '+(I.tr*100).toFixed(1)+' ซม. ท้องหนา 0.15 ม.','เหล็กหลัก '+R.md+' @ '+f2(R.ms),'กันร้าว '+R.dd+' @ '+f2(R.ds)+' ม.'],L+I.L*k+6,ty+10,'left')}})});
   return cells}
 function packCells(cells,maxW){const G=8,place=[];let x=0,y=0,rowH=0,W=0;cells.forEach(c=>{if(x>0&&x+c.w>maxW){x=0;y+=rowH+G;rowH=0}place.push({c,x,y});x+=c.w+G;rowH=Math.max(rowH,c.h);W=Math.max(W,x-G)});return{w:Math.max(30,W),h:Math.max(12,y+rowH),place}}
-const detailPack=ref=>packCells(detailCells(ref),285);
+const detailPack=ref=>packCells(detailCells(ref),285*(DSC[ref]/(DETSC||DSC[ref]))>285?285*(DSC[ref]/(DETSC||DSC[ref])):285);
 function drawDetail(x,ref,x0,y0){const P=detailPack(ref);if(!P.place.length){x.font=FONT('400',3);x.fillStyle='#777';x.textAlign='left';x.fillText('ไม่มีชิ้นส่วนสำหรับแบบขยายนี้',x0,y0+6);return}P.place.forEach(p=>p.c.draw(x,x0+p.x+p.c.w/2,y0+p.y))}
 function notesLines(x){const L=String((S.proj&&S.proj.notes)||DEFNOTES.join('\n')).split('\n').filter(t=>t.trim());x.font=FONT('400',2.6);const out=[];L.forEach((t,i)=>{wrapLines(x,(i+1)+'. '+t.trim(),146).forEach((ln,j)=>out.push(j?'    '+ln:ln))});return out}
 let _mc=null;const measureCtx=()=>_mc||(_mc=document.createElement('canvas').getContext('2d'));
-function fixedSize(vp){if(vp.kind==='coltab'||vp.kind==='beamtab')DK=1000/(+vp.scale||20);if(vp.kind==='coltab')return colTabSize();if(vp.kind==='beamtab'){const Z=beamTabSize();return{w:Z.w,h:Z.h}}if(vp.kind==='gnotes')return gnotesSize();if(vp.kind==='snote')return snoteSize(vp.ref);if(vp.kind==='opel'){const Z=opelSize();return{w:Z.w,h:Z.h}}if(vp.kind==='cover')return{w:+vp.cw||170,h:+vp.ch||64};if(vp.kind==='sched')return schedSize(vp.ref);if(vp.kind==='legend')return legendSize(vp.ref);if(vp.kind==='detail'){const P=detailPack(vp.ref);return{w:P.w,h:P.h}}const x=measureCtx();x.setTransform(1,0,0,1,0,0);return{w:150,h:notesLines(x).length*4.2+2}}
+function fixedSize(vp){if(vp.kind==='detail'){DETSC=+vp.scale||0;const P_=detailPack(vp.ref);DETSC=0;return{w:P_.w,h:P_.h}}if(vp.kind==='coltab'||vp.kind==='beamtab')DK=1000/(+vp.scale||20);if(vp.kind==='coltab')return colTabSize();if(vp.kind==='beamtab'){const Z=beamTabSize();return{w:Z.w,h:Z.h}}if(vp.kind==='gnotes')return gnotesSize();if(vp.kind==='snote')return snoteSize(vp.ref);if(vp.kind==='opel'){const Z=opelSize();return{w:Z.w,h:Z.h}}if(vp.kind==='cover')return{w:+vp.cw||170,h:+vp.ch||64};if(vp.kind==='sched')return schedSize(vp.ref);if(vp.kind==='legend')return legendSize(vp.ref);if(vp.kind==='detail'){const P=detailPack(vp.ref);return{w:P.w,h:P.h}}const x=measureCtx();x.setTransform(1,0,0,1,0,0);return{w:150,h:notesLines(x).length*4.2+2}}
 function drawNotes(x,x0,y0){x.save();const L=notesLines(x);x.fillStyle='#111';x.textAlign='left';x.textBaseline='alphabetic';x.font=FONT('400',2.6);L.forEach((t,i)=>x.fillText(t,x0,y0+3.4+i*4.2));x.restore()}
 // ----- Civil Toolkit exchange
 const CT_URL='https://patarakorn-bas.github.io/civil-toolkit/';
@@ -2381,7 +2398,7 @@ $('#rbIn').onchange=async()=>{const f=$('#rbIn').files[0];if(!f)return;try{const
       v.src=d.app||d.source||'Civil Toolkit';S.rebar[k]={...(S.rebar[k]||{}),...v};n++})});toast('นำเข้าผลออกแบบ '+n+' รายการ'+(nsz?' • ปรับขนาดชิ้นส่วน '+nsz+' กลุ่ม':'')+' • แปลนและตารางโครงสร้างอัปเดตแล้ว');}catch(e){toast('ไฟล์นี้ไม่ใช่ผลออกแบบเหล็กเสริม')}$('#rbIn').value=''};
 
 // ================= App shell: version, sync, manual, install, service worker
-const APP_VER='v8.2';$('#verL').textContent=APP_VER;
+const APP_VER='v8.3';$('#verL').textContent=APP_VER;
 const isEmbedded=/claude\.ai|claudeusercontent|anthropic/.test(location.host)||location.protocol==='blob:';
 const LSK={sync:'yothacad-sync',saved:'yothacad-savedAt',last:'yothacad-lastSync',dev:'yothacad-device'};
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -3601,10 +3618,10 @@ function drawColTab(x,x0,y0){const D_=colTabData(),cw=36*DK/40,rh=36*DK/40,hw=26
   D_.marks.forEach((mk,i)=>{const cx=x0+hw+i*cw;x.beginPath();x.moveTo(cx,y0);x.lineTo(cx,y0+H);x.stroke();x.font=FONT('600',3);x.textAlign='center';x.fillText(mk,cx+cw/2,y0+hh-2.6)});
   D_.rows.forEach((r,j)=>{const ry=y0+hh+j*rh;x.lineWidth=0.3;x.beginPath();x.moveTo(x0,ry);x.lineTo(x0+W,ry);x.stroke();x.lineWidth=0.15;x.beginPath();x.moveTo(x0+hw,ry+rh*0.66);x.lineTo(x0+W,ry+rh*0.66);x.stroke();
     x.font=FONT('500',2.6);x.textAlign='center';x.fillText(r.name,x0+hw/2,ry+rh/2+1);
-    r.cells.forEach((c,i)=>{const cx=x0+hw+i*cw+cw/2;if(!c){x.font=FONT('400',3);x.fillText('—',cx,ry+rh*0.36);return}sectionDraw(x,cx,ry+rh*0.34,c.w,c.d,DK,c.n,c.tie);
+    r.cells.forEach((c,i)=>{const cx=x0+hw+i*cw+cw/2;if(!c){x.font=FONT('400',3);x.fillText('—',cx,ry+rh*0.36);return}sectionDraw(x,cx,ry+rh*0.34,c.w,c.d,DK,c.n,c.tie,c.bar);
       x.font=FONT('400',2.15);x.textAlign='left';x.fillText(c.n+'-'+BTXT(c.bar),x0+hw+i*cw+1.5,ry+rh*0.66+4);x.fillText('ป-'+BTXT(c.tie)+'@'+f2(c.ts)+'ม.',x0+hw+i*cw+1.5,ry+rh*0.66+8.2);x.textAlign='center'})});x.restore()}
 function beamTabData(){const M=markMaps(),bs=S.els.filter(e=>e.type==='beam'&&e.bm!=='steel'),mk=[...new Set(bs.map(e=>markOf(M,e)))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));return mk.map(m=>{const b=bs.find(e=>markOf(M,e)===m),R=rebarOf(b);return{mark:m,w:b.w,d:b.d,R}})}
-function beamTabSize(){const L=beamTabData(),cols=3,ch=Math.max(34,...L.map(b=>b.d*DK+16));return{w:cols*(36+DK*0.55),h:Math.ceil(L.length/cols)*ch,ch,cols,L}}
+function beamTabSize(){const L=beamTabData(),cols=3,ch=Math.max(34,...L.map(b=>b.d*DK+20));return{w:cols*(36+DK*0.55),h:Math.ceil(L.length/cols)*ch,ch,cols,L}}
 function drawBeamTab(x,x0,y0){const Z=beamTabSize();x.save();Z.L.forEach((b,i)=>{const col=i%Z.cols,row=Math.floor(i/Z.cols),cx=x0+col*(36+DK*0.55)+14,cy=y0+row*Z.ch+Z.ch/2-3,W=b.w*DK,H=b.d*DK,cv=Math.max(1.2,0.03*DK);
     x.strokeStyle='#111';x.lineWidth=0.35;x.strokeRect(cx-W/2,cy-H/2,W,H);x.lineWidth=0.2;x.strokeRect(cx-W/2+cv,cy-H/2+cv,W-2*cv,H-2*cv);x.fillStyle='#111';
     const row_=(n,yy)=>{for(let k=0;k<n;k++){const px=n===1?cx:cx-W/2+cv+0.9+k*(W-2*cv-1.8)/(n-1);x.beginPath();x.arc(px,yy,0.5,0,7);x.fill()}};row_(b.R.tn,cy-H/2+cv+0.9);row_(b.R.bn,cy+H/2-cv-0.9);
@@ -3625,11 +3642,11 @@ function drawGNotes(x,x0,y0){x.save();x.fillStyle='#111';x.strokeStyle='#111';x.
   ty+=7+COVER_T.length*6+10;x.textAlign='left';x.font=FONT('700',3.2);x.fillText('ขนาดของอมาตรฐาน (มม.)',tx,ty);ty+=4;const hc=[22,16,18,18,18,18],hdr=['ขนาดเหล็ก','D','180° G','180° J','90° G','90° J'],TW=hc.reduce((a,b)=>a+b,0);x.lineWidth=0.3;x.strokeRect(tx,ty,TW,6+HOOK_T.length*5.5);
   let cx=tx;hdr.forEach((h,i)=>{x.font=FONT('600',2.3);x.textAlign='center';x.fillText(h,cx+hc[i]/2,ty+4.2);if(i){x.beginPath();x.moveTo(cx,ty);x.lineTo(cx,ty+6+HOOK_T.length*5.5);x.stroke()}cx+=hc[i]});x.beginPath();x.moveTo(tx,ty+6);x.lineTo(tx+TW,ty+6);x.stroke();
   HOOK_T.forEach((r,j)=>{let c=tx;r.forEach((v,i)=>{x.font=FONT('400',2.3);x.fillText(String(v),c+hc[i]/2,ty+10.2+j*5.5);c+=hc[i]})});x.restore()}
-function snoteLines(ref){const out=['ระยะและระดับของโครงสร้างให้ยึดตามแบบสถาปัตยกรรมเป็นหลัก'];if(ref==='roof'){const sec=new Map();allRoofMembers().forEach(m=>{if(m.s&&m.s.n)sec.set(m.s.n,m.s.kg||0)});sec.forEach((kg,n)=>out.push(n+(kg?' ('+f2(kg)+' กก./ม.)':'')));return out}
+function snoteLines(ref){if(String(ref).startsWith('rmat'))return roofMatLines(ref.split(':')[1]);const out=['ระยะและระดับของโครงสร้างให้ยึดตามแบบสถาปัตยกรรมเป็นหลัก'];if(ref==='roof'){const sec=new Map();allRoofMembers().forEach(m=>{if(m.s&&m.s.n)sec.set(m.s.n,m.s.kg||0)});sec.forEach((kg,n)=>out.push(n+(kg?' ('+f2(kg)+' กก./ม.)':'')));return out}
   const rs=S.els.filter(e=>e.type==='room'&&e.level===ref);const g={};rs.forEach(r=>{const ll=llOf(r),k=/น้ำ|ส้วม/.test(r.name)?'ห้องน้ำ':/ระเบียง|บันได|โถง/.test(r.name)?'ระเบียง บันได โถง':'ห้องทั่วไป';g[k]=Math.max(g[k]||0,ll)});Object.entries(g).forEach(([k,v])=>out.push('น้ำหนักบรรทุกจร'+k+' = '+v+' กก./ตร.ม.'));
   if(S.els.some(e=>e.type==='footing'&&e.level===ref))out.push('กรณีไม่ใช้เสาเข็ม ชั้นดินต้องรับน้ำหนักปลอดภัยได้ไม่น้อยกว่า 10 ตัน/ตร.ม.');return out}
-function snoteSize(ref){return{w:120,h:6+snoteLines(ref).length*4.3}}
-function drawSNote(x,ref,x0,y0){x.save();x.fillStyle='#111';x.textAlign='left';x.font=FONT('600',2.7);x.fillText('หมายเหตุ',x0,y0+3);x.lineWidth=0.2;x.beginPath();x.moveTo(x0,y0+3.7);x.lineTo(x0+12,y0+3.7);x.stroke();x.font=FONT('400',2.4);snoteLines(ref).forEach((t,i)=>x.fillText('– '+t,x0,y0+8+i*4.3));x.restore()}
+function snoteSize(ref){return{w:String(ref).startsWith('rmat')?170:120,h:6+snoteLines(ref).length*4.3}}
+function drawSNote(x,ref,x0,y0){x.save();x.fillStyle='#111';x.textAlign='left';x.font=FONT('600',2.7);x.fillText(String(ref).startsWith('rmat')?'รายการวัสดุหลังคา':'หมายเหตุ',x0,y0+3);x.lineWidth=0.2;x.beginPath();x.moveTo(x0,y0+3.7);x.lineTo(x0+12,y0+3.7);x.stroke();x.font=FONT('400',2.4);snoteLines(ref).forEach((t,i)=>x.fillText('– '+t,x0,y0+8+i*4.3));x.restore()}
 function drawRoofLabels(L){const rs=L.filter(e=>e.type==='roof');rs.forEach(e=>{const ms=roofMembers(e);const pick=k=>{const c=ms.filter(m=>(m.kk||m.k)===k);return c[Math.floor(c.length/2)]};[['rafter','จันทันเหล็ก',+e.rs||1],['purlin','แปเหล็ก',+e.ps||(ROOFMAT[e.mat]||{}).ps||1],['batten','ระแนง',+e.ps||0.33],['plate','อะเส',0]].forEach(([k,nm,sp],i)=>{const m=pick(k);if(!m)return;
     const a={x:(m.a[0]*2+m.b[0])/3,y:(m.a[1]*2+m.b[1])/3},B=bbox(roofOuter(e)),tgt={x:B.x1+1.2,y:B.y1-1-i*1.1},pa=ws(a),pt=ws(tgt);g.save();g.strokeStyle=C['ink'];g.lineWidth=0.6;g.beginPath();g.moveTo(pa.x,pa.y);g.lineTo(pt.x,pt.y);g.lineTo(pt.x+8,pt.y);g.stroke();g.beginPath();g.arc(pa.x,pa.y,1.6,0,7);g.fillStyle=C['ink'];g.fill();
     txt(nm+' '+m.s.n+(sp?' @'+f2(sp)+'ม.':''),{x:pt.x+10,y:pt.y},{size:9.5,al:'left',c:C['ink']});g.restore()})})}
@@ -3641,14 +3658,17 @@ function fontReady(){const fam=DFF.split(',')[0];try{return document.fonts?Promi
 const LOGO={src:null,img:null,ok:false};
 function logoImg(){const P=S.proj||{};if(!P.logo)return null;if(LOGO.src!==P.logo){LOGO.src=P.logo;LOGO.ok=false;LOGO.img=new Image();LOGO.img.onload=()=>{LOGO.ok=true;VPC.clear();if(typeof drawH==='function'&&isSheet())drawH()};LOGO.img.src=P.logo}return LOGO.ok?LOGO.img:null}
 function logoReady(){logoImg();return LOGO.img&&!LOGO.ok?new Promise(r=>{LOGO.img.onload=()=>{LOGO.ok=true;r()};LOGO.img.onerror=()=>r();setTimeout(r,1500)}):Promise.resolve()}
-function vpScaleOf(vp){if(DRAWK.includes(vp.kind))return vp.scale;if(vp.kind==='detail')return DSC[vp.ref];if(vp.kind==='coltab'||vp.kind==='beamtab')return +vp.scale||20;if(vp.kind==='opel')return 50;return 0}
+function vpScaleOf(vp){const z=FIXZ(vp.kind)?(+vp.zf||1):1;const v=vpScaleOf_(vp);return v&&z!==1?Math.round(v/z):v}
+function vpScaleOf_(vp){if(DRAWK.includes(vp.kind))return vp.scale;if(vp.kind==='detail')return +vp.scale||DSC[vp.ref];if(vp.kind==='coltab'||vp.kind==='beamtab')return +vp.scale||20;if(vp.kind==='opel')return 50;return 0}
 function clampVp(vp,A){let b=vpBox(vp);const AW=A.x1-A.x0,AH=A.y1-A.y0-17;
   if(DRAWK.includes(vp.kind)&&(b.w>AW+0.1||b.h>AH+0.1)){const E=vpExt(vp);if(E){vp.scale=pickScale(E.x1-E.x0,E.y1-E.y0,AW,AH);b=vpBox(vp)}}
+  if(FIXZ(vp.kind)&&(b.w>AW+0.1||b.h>AH+0.1)){vp.zf=r3((+vp.zf||1)*Math.min(AW/b.w,AH/b.h)*0.98);b=vpBox(vp)}
   if(vp.kind==='3d'&&(b.w>AW+0.1||b.h>AH+0.1)){const f=Math.min(AW/b.w,AH/b.h);vp.w=r3(b.w*f);vp.h=r3(b.h*f);b=vpBox(vp)}
   const cx=b.w<=AW?Math.min(Math.max(vp.x,A.x0+b.w/2),A.x1-b.w/2):(A.x0+A.x1)/2,cy=b.h<=AH?Math.min(Math.max(vp.y,A.y0+b.h/2),A.y1-17-b.h/2):A.y0+b.h/2;if(Math.abs(cx-vp.x)>0.01)vp.x=r3(cx);if(Math.abs(cy-vp.y)>0.01)vp.y=r3(cy)}
 function heroLayout(sh){const A=drawArea(sh),W=A.x1-A.x0,H=A.y1-A.y0,c=sh.vps.find(v=>v.kind==='cover'),t=sh.vps.find(v=>v.kind==='3d');const ch=62;if(t){t.w=r3(W);t.h=r3(H-ch-24);t.x=r3(A.x0+W/2);t.y=r3(A.y0+t.h/2);t.bg=t.bg||'sky'}
   if(c){c.cw=r3(Math.min(W,200));c.ch=ch;c.x=r3(A.x0+c.cw/2);c.y=r3(A.y1-17-ch/2)}}
-function titleBlock(x,sh,A){const P=S.proj||defProj(),M=10,x0=A.W-M-A.tb,w=A.tb,y0=M,H=A.H-2*M,k=H/277,idx=S.sheets.indexOf(sh)+1,tot=S.sheets.length;
+function titleBlock(x,sh,A){const svTB=TSC;TSC*=Math.max(0.78,Math.min(1,A.tb/66));try{titleBlock_(x,sh,A)}finally{TSC=svTB}}
+function titleBlock_(x,sh,A){const P=S.proj||defProj(),M=10,x0=A.W-M-A.tb,w=A.tb,y0=M,H=A.H-2*M,k=H/277,idx=S.sheets.indexOf(sh)+1,tot=S.sheets.length;
   const sc=[...new Set(sh.vps.map(vpScaleOf).filter(v=>v>0))],scale=sc.length===1?'1:'+sc[0]:sc.length?'ตามระบุ':'-';let y=y0;
   x.save();x.strokeStyle='#111';x.fillStyle='#111';x.textBaseline='alphabetic';x.textAlign='left';
   const hl=(yy,lw)=>{x.lineWidth=lw||0.3;x.beginPath();x.moveTo(x0,yy);x.lineTo(x0+w,yy);x.stroke()};
@@ -3671,6 +3691,44 @@ function titleBlock(x,sh,A){const P=S.proj||defProj(),M=10,x0=A.W-M-A.tb,w=A.tb,
 function finishRows(){const rows=[];S.levels.forEach(l=>S.els.filter(e=>e.type==='room'&&e.level===l.id).forEach(r=>{const c=centroid(r.pts),f=zoneAt('flr',l.id,c),z=zoneAt('clg',l.id,c);
     const ws_=S.els.filter(w=>w.type==='wall'&&w.level===l.id&&r.pts.some((p,i)=>{const q=r.pts[(i+1)%r.pts.length],m=lerp(wA(w),wB(w),.5);return segDist(m,p,q).d<w.t/2+0.15}));const wm=[...new Set(ws_.map(w=>(WALLM[w.wm||'brick']||WALLM.brick).n))].join(', ');
     rows.push([l.name,r.name||'',(FIN[f?f.fin:'none']||FIN.none).n,lvTxt(elevOf(l.id)+(f?(+f.dz||0):0)),wm||'-',z?(CEIL[z.ct]||{}).n||'-':'-',z&&z.ct!=='none'?'+'+f2(ceilH(z)):'-'])}));return rows}
+
+// ================= v8.3: rendered cover images, resizable viewports, fit-to-sheet, elevation realism, roof material notes
+const IMGC=new Map();
+function vpImg(src){if(!src)return null;let o=IMGC.get(src);if(!o){o={img:new Image(),ok:false};o.img.onload=()=>{o.ok=true;if(isSheet())drawH()};o.img.src=src;IMGC.set(src,o);if(IMGC.size>20)IMGC.delete(IMGC.keys().next().value)}return o.ok?o.img:null}
+function imgReady(){const ps=[];S.sheets.forEach(sh=>sh.vps.forEach(v=>{if(v.img){vpImg(v.img);const o=IMGC.get(v.img);if(o&&!o.ok)ps.push(new Promise(r=>{o.img.addEventListener('load',r);o.img.addEventListener('error',r);setTimeout(r,2000)}))}}));return Promise.all(ps)}
+function pickImageFile(cb,maxPx,fmt){const inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.onchange=()=>{const f=inp.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{const im=new Image();im.onload=()=>{const r=Math.min(1,maxPx/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*r);c.height=Math.round(im.height*r);const x=c.getContext('2d');if(fmt==='jpeg'){x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height)}x.drawImage(im,0,0,c.width,c.height);cb(c.toDataURL(fmt==='jpeg'?'image/jpeg':'image/png',0.88),im.width/im.height)};im.src=rd.result};rd.readAsDataURL(f)};inp.click()}
+function fit3D(ar){const b=bounds3();if(b.isEmpty())return;const c=new THREE.Vector3(),sp=new THREE.Sphere();b.getCenter(c);b.getBoundingSphere(sp);const v=cam.fov*Math.PI/180,hf=2*Math.atan(Math.tan(v/2)*ar),a=Math.min(v,hf);orb.tx=c.x;orb.ty=c.y;orb.tz=c.z;orb.d=sp.radius/Math.sin(a/2)*1.04}
+const FIXZ=k=>FIXK.includes(k)||k==='cover';
+function fitSheet(sh){const A=drawArea(sh),AW=A.x1-A.x0,AH=A.y1-A.y0,n=sh.vps.length;if(!n)return;const cols=n===1?1:n<=2?2:Math.ceil(Math.sqrt(n)),rows=Math.ceil(n/cols),cw=(AW-9*(cols-1))/cols,ch=(AH-(17+9)*rows)/rows;
+  sh.vps.forEach(vp=>{if(FIXZ(vp.kind)){const z0=+vp.zf||1,b=vpBox(vp),w0=b.w/z0,h0=b.h/z0;vp.zf=r3(Math.max(0.3,Math.min(4,Math.min(cw/w0,ch/h0)*0.95)))}
+    else if(vp.kind==='3d'||vp.kind==='img'){const ar=(vp.w||200)/(vp.h||122);let w=cw,h=w/ar;if(h>ch){h=ch;w=h*ar}vp.w=r3(w);vp.h=r3(h)}
+    else if(DRAWK.includes(vp.kind)){const E=vpExt(vp);if(E)vp.scale=pickScale(E.x1-E.x0,E.y1-E.y0,cw,ch)}});
+  sh.vps.forEach((vp,i)=>{const ri=Math.floor(i/cols),ci=i%cols;vp.x=r3(A.x0+ci*(cw+9)+cw/2);vp.y=r3(A.y0+ri*(ch+17+9)+ch/2)})}
+const RFKN={hip:'ปั้นหยา',gable:'จั่ว',shed:'เพิงหมาแหงน',butterfly:'ผีเสื้อ',dutch:'มะนิลา',gambrel:'สองชั้น (แกมเบรล)',mansard:'แมนซาร์ด',pyramid:'ทรงพีระมิด',saltbox:'ซอลท์บ็อกซ์',split:'เพิงสองระดับ',flat:'แบน'};
+function roofMatLines(lid){const out=[];S.els.filter(e=>e.type==='roof'&&(!lid||e.level===lid||true)).forEach((e,i)=>{const M=ROOFMAT[e.mat]||ROOFMAT.metal;out.push('R'+(i+1)+' หลังคาทรง'+(RFKN[e.kind]||e.kind)+' ความลาด '+(e.kind==='flat'?'-':e.pitch+'°')+' • วัสดุมุง: '+M.n+(e.color?' สี '+colorNameTH(e.color):''));
+    const ex=[];if((e.cap||'auto')!=='none')ex.push('ครอบสัน/ครอบตะเฆ่ตามระบบวัสดุมุง');if((e.fas||'smart')!=='none')ex.push('เชิงชาย/ปั้นลม: '+((FASM[e.fasm]||FASM[e.fas]||{}).n||'ไม้เทียมไฟเบอร์ซีเมนต์'));if(e.sof&&e.sof!=='none')ex.push('ฝ้าชายคา: '+((CEIL[e.sof]||{}).n||e.sof));ex.push('ยื่นชายคา '+f2(+e.over||0)+' ม.');out.push('    '+ex.join(' • '))});
+  out.push('ปูแผ่นสะท้อนความร้อนใต้วัสดุมุง และติดตั้งตามคำแนะนำของผู้ผลิตวัสดุมุง');return out}
+function colorNameTH(c){const n=RP_COL(c);const fx={white:'ขาว','off-white':'ขาวนวล','light grey':'เทาอ่อน',grey:'เทา',charcoal:'เทาเข้ม',black:'ดำ'};if(fx[n])return fx[n];const B={red:'แดง',brown:'น้ำตาล',orange:'ส้ม',beige:'เบจ',ochre:'เหลืองหม่น',green:'เขียว',teal:'เขียวอมฟ้า',blue:'น้ำเงิน',purple:'ม่วง',pink:'ชมพู'};const p=n.split(' '),base=B[p[p.length-1]]||p[p.length-1];return base+(p[0]==='dark'?'เข้ม':p[0]==='light'?'อ่อน':'')}
+// ----- professional section drawings (override)
+function dimLn(x,a,b,txt,vert,off){x.save();x.strokeStyle='#111';x.fillStyle='#111';x.lineWidth=0.15;const o=off||2.2;
+  if(!vert){const y=a.y-o;x.beginPath();x.moveTo(a.x,a.y-0.6);x.lineTo(a.x,y-0.8);x.moveTo(b.x,b.y-0.6);x.lineTo(b.x,y-0.8);x.moveTo(a.x-0.8,y);x.lineTo(b.x+0.8,y);[a.x,b.x].forEach(px=>{x.moveTo(px-0.6,y+0.6);x.lineTo(px+0.6,y-0.6)});x.stroke();x.font=FONT('400',1.9);x.textAlign='center';x.textBaseline='alphabetic';x.fillText(txt,(a.x+b.x)/2,y-0.6)}
+  else{const xx=a.x-o;x.beginPath();x.moveTo(a.x-0.6,a.y);x.lineTo(xx-0.8,a.y);x.moveTo(b.x-0.6,b.y);x.lineTo(xx-0.8,b.y);x.moveTo(xx,a.y-0.8);x.lineTo(xx,b.y+0.8);[a.y,b.y].forEach(py=>{x.moveTo(xx-0.6,py+0.6);x.lineTo(xx+0.6,py-0.6)});x.stroke();x.font=FONT('400',1.9);x.textAlign='center';x.save();x.translate(xx-0.7,(a.y+b.y)/2);x.rotate(-Math.PI/2);x.fillText(txt,0,0);x.restore()}x.restore()}
+function concreteFill(x,x0,y0,W,H){x.save();x.fillStyle='#f3f3f0';x.fillRect(x0,y0,W,H);x.beginPath();x.rect(x0,y0,W,H);x.clip();x.fillStyle='#9a9a94';let s=1;for(let i=0;i<W*H/2.2;i++){s=(s*9301+49297)%233280;const r1=s/233280;s=(s*9301+49297)%233280;const r2=s/233280;x.beginPath();x.arc(x0+r1*W,y0+r2*H,0.09+((i%3)*0.04),0,7);x.fill()}
+  x.strokeStyle='#b5b5ae';x.lineWidth=0.12;for(let i=0;i<W*H/14;i++){s=(s*9301+49297)%233280;const r1=s/233280;s=(s*9301+49297)%233280;const r2=s/233280;const px=x0+r1*W,py=y0+r2*H;x.beginPath();x.moveTo(px,py);x.lineTo(px+0.5,py+0.25);x.lineTo(px+0.1,py+0.55);x.closePath();x.stroke()}x.restore()}
+function tieRect(x,x0,y0,W,H,r){x.beginPath();x.moveTo(x0+r,y0);x.lineTo(x0+W-r,y0);x.arcTo(x0+W,y0,x0+W,y0+r,r);x.lineTo(x0+W,y0+H-r);x.arcTo(x0+W,y0+H,x0+W-r,y0+H,r);x.lineTo(x0+r,y0+H);x.arcTo(x0,y0+H,x0,y0+H-r,r);x.lineTo(x0,y0+r);x.arcTo(x0,y0,x0+r,y0,r);x.stroke();
+  x.beginPath();x.moveTo(x0+r*0.6,y0+r*0.2);x.lineTo(x0+r*0.6+1.6,y0+r*0.2+1.6);x.moveTo(x0+r*0.2,y0+r*0.6);x.lineTo(x0+r*0.2+1.6,y0+r*0.6+1.6);x.stroke()}
+function sectionDraw(x,cx,cy,w,d,k,bars,tie,bar){const W=w*k,H=d*k,x0=cx-W/2,y0=cy-H/2,cv=Math.max(0.9,0.035*k),db=Math.max(0.42,(barDia(bar||'DB16')||0.016)*k/2),tr=Math.max(0.6,db*1.4);x.save();
+  concreteFill(x,x0,y0,W,H);x.strokeStyle='#111';x.lineWidth=0.5;x.strokeRect(x0,y0,W,H);x.lineWidth=0.28;tieRect(x,x0+cv,y0+cv,W-2*cv,H-2*cv,tr);
+  const n=Math.max(4,bars|0),i0=cv+0.15+db,ix0=x0+i0,ix1=x0+W-i0,iy0=y0+i0,iy1=y0+H-i0,pts=[[ix0,iy0],[ix1,iy0],[ix1,iy1],[ix0,iy1]];let extra=n-4;const cnt=[0,0,0,0];let si=0;while(extra>0){cnt[si%4]++;extra--;si++}
+  const sg=[[[ix0,iy0],[ix1,iy0]],[[ix0,iy1],[ix1,iy1]],[[ix0,iy0],[ix0,iy1]],[[ix1,iy0],[ix1,iy1]]];cnt.forEach((m,i)=>{for(let j=1;j<=m;j++){const t=j/(m+1),a=sg[i][0],b=sg[i][1];pts.push([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t])}});
+  x.fillStyle='#111';pts.forEach(([px,py])=>{x.beginPath();x.arc(px,py,db,0,7);x.fill()});dimLn(x,{x:x0,y:y0},{x:x0+W,y:y0},f2(w),false,2.2);dimLn(x,{x:x0,y:y0},{x:x0,y:y0+H},f2(d),true,2.2);x.restore()}
+function drawBeamTab(x,x0,y0){const Z=beamTabSize();x.save();Z.L.forEach((b,i)=>{const col=i%Z.cols,row=Math.floor(i/Z.cols),cx=x0+col*(36+DK*0.55)+14,cy=y0+row*Z.ch+Z.ch/2-3,W=b.w*DK,H=b.d*DK,cv=Math.max(0.9,0.035*DK),R_=b.R,dt=Math.max(0.42,(barDia(R_.td)||0.012)*DK/2),dbb=Math.max(0.42,(barDia(R_.bd)||0.012)*DK/2);
+    concreteFill(x,cx-W/2,cy-H/2,W,H);x.strokeStyle='#111';x.lineWidth=0.5;x.strokeRect(cx-W/2,cy-H/2,W,H);x.lineWidth=0.28;tieRect(x,cx-W/2+cv,cy-H/2+cv,W-2*cv,H-2*cv,Math.max(0.6,dt*1.4));x.fillStyle='#111';
+    const row_=(n,yy,r)=>{const out=[];for(let k=0;k<n;k++){const px=n===1?cx:cx-W/2+cv+0.15+r+k*(W-2*(cv+0.15+r))/(n-1);x.beginPath();x.arc(px,yy,r,0,7);x.fill();out.push(px)}return out};
+    const yt=cy-H/2+cv+0.15+dt,yb=cy+H/2-cv-0.15-dbb;row_(R_.tn,yt,dt);row_(R_.bn,yb,dbb);dimLn(x,{x:cx-W/2,y:cy-H/2},{x:cx+W/2,y:cy-H/2},f2(b.w),false,2.2);dimLn(x,{x:cx-W/2,y:cy-H/2},{x:cx-W/2,y:cy+H/2},f2(b.d),true,2.2);
+    const tx=cx+W/2+7,lead=(yy,py,t)=>{x.lineWidth=0.15;x.beginPath();x.moveTo(cx+W/2-cv-0.4,py);x.lineTo(tx-1.5,yy);x.lineTo(tx-0.5,yy);x.stroke();x.font=FONT('400',2.1);x.textAlign='left';x.textBaseline='middle';x.fillText(t,tx,yy)};
+    lead(cy-H/2+1.2,yt,R_.tn+'-'+BTXT(R_.td));lead(cy,cy,'ป-'+BTXT(R_.sd)+'@'+f2(R_.ss)+'ม.');lead(cy+H/2-1.2,yb,R_.bn+'-'+BTXT(R_.bd));
+    x.textBaseline='alphabetic';x.font=FONT('700',3);x.textAlign='center';x.fillText(b.mark,cx,cy+H/2+5.2);x.font=FONT('400',2);x.fillText(f2(b.w)+' × '+f2(b.d)+' ม.',cx,cy+H/2+8.4)});x.restore()}
 
 // ================= Boot
 readColors();buildTools();
