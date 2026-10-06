@@ -273,6 +273,7 @@ dialog .f{grid-template-columns:1fr 150px}
   <button data-m="save">ส่งออกโครงการนี้ (.json)</button>
   <button data-m="open">นำเข้าโครงการ (.json)</button>
   <hr>
+  <button data-m="rvt">ส่งออกสคริปต์สร้างโมเดลใน Revit (.py) — แก้ไขได้จริง</button>
   <button data-m="ifc">ส่งออก IFC สำหรับ Revit / ArchiCAD (.ifc)</button>
   <button data-m="dxf">ส่งออก DXF ทุกชั้น (.zip)</button>
   <button data-m="png2">ส่งออกภาพแปลน (.png)</button>
@@ -462,16 +463,16 @@ Object.assign(OPLIB,{d_panel4:{k:'door',n:'บานลูกฟัก 4 ลู�
 const OPL=e=>OPLIB[e.st]||OPLIB[e.type==='door'?'d_single':'w_slide'];
 const OPOPT=k=>Object.entries(OPLIB).filter(([,v])=>v.k===k).map(([id,v])=>[id,v.n]);
 const FMAT=[['alu','อลูมิเนียม'],['upvc','uPVC'],['wood','ไม้'],['steel','เหล็ก']],GLASS=[['clear','กระจกใส'],['green','เขียวตัดแสง'],['bronze','ชาตัดแสง'],['frosted','ฝ้า'],['reflect','สะท้อนแสง']];
-const FIN={tile60:{n:'กระเบื้องแกรนิตโต้ 60×60',t:[.6,.6],c:'#d9d4cb',gloss:1,kg:75},tile120:{n:'กระเบื้องแกรนิตโต้ 60×120',t:[1.2,.6],c:'#cfc8bc',gloss:1,kg:80},
-  marble120:{n:'กระเบื้องลายหินอ่อน 60×120 เงา',t:[1.2,.6],pat:'veins',c:'#eeebe6',gloss:1,kg:80},concrete60:{n:'กระเบื้องลายปูนเปลือย 60×60',t:[.6,.6],pat:'veins',c:'#a9aaa6',kg:75},
-  tile30:{n:'กระเบื้องเซรามิก 30×30',t:[.3,.3],c:'#e3ddd2',kg:70},anti:{n:'กระเบื้องกันลื่น 30×30',t:[.3,.3],c:'#c3cbcf',kg:70},
-  subway:{n:'กระเบื้อง 30×60 ปูสลับแนว',plank:[.6,.3],c:'#e8e6e1',kg:75},hex:{n:'กระเบื้องหกเหลี่ยม 20 ซม.',pat:'hex',hex:.115,c:'#d8d2c6',kg:70},
-  cement:{n:'กระเบื้องลายซีเมนต์ 20×20',t:[.2,.2],pat:'cement',c:'#cfc6b6',kg:75},terrazzo:{n:'หินขัด (เทอราซโซ)',pat:'terrazzo',c:'#d6d1c7',gloss:1,kg:120},
-  lam:{n:'พื้นลามิเนต',plank:[1.2,.19],c:'#a7835c',kg:60},woodw:{n:'ไม้ลามิเนตแผ่นกว้าง 20 ซม.',plank:[1.8,.2],c:'#b38b62',kg:60},herring:{n:'ไม้ลายก้างปลา',plank:[.6,.1],pat:'herring',c:'#9e7650',kg:65},
-  wood:{n:'พื้นไม้จริง',plank:[1.0,.1],c:'#8e6a45',kg:70},spc:{n:'กระเบื้องยาง SPC',plank:[1.2,.18],c:'#b69a7a',kg:55},
-  granite:{n:'หินแกรนิต',t:[.6,.6],c:'#6f6a66',speck:1,gloss:1,kg:120},marble:{n:'หินอ่อน',t:[.6,.6],pat:'veins',c:'#eeebe6',gloss:1,kg:120},
-  polish:{n:'ขัดมันเรียบ',c:'#a8a8a4',kg:120},epoxy:{n:'อีพ็อกซี',c:'#7f9aa6',gloss:1,kg:10},wash:{n:'หินล้าง/ทรายล้าง',c:'#b9ab92',speck:1,kg:100},
-  carpet:{n:'พรม',c:'#6d7480',kg:10},deck:{n:'ไม้เทียม (ภายนอก)',plank:[2.0,.14],c:'#7a5b40',kg:40},none:{n:'ไม่ระบุ',kg:0}};
+const FIN={tile60:{n:'กระเบื้องแกรนิตโต้ 60×60',t:[.6,.6],c:'#d9d4cb',gloss:1,kg:130},tile120:{n:'กระเบื้องแกรนิตโต้ 60×120',t:[1.2,.6],c:'#cfc8bc',gloss:1,kg:130},
+  marble120:{n:'กระเบื้องลายหินอ่อน 60×120 เงา',t:[1.2,.6],pat:'veins',c:'#eeebe6',gloss:1,kg:135},concrete60:{n:'กระเบื้องลายปูนเปลือย 60×60',t:[.6,.6],pat:'veins',c:'#a9aaa6',kg:130},
+  tile30:{n:'กระเบื้องเซรามิก 30×30',t:[.3,.3],c:'#e3ddd2',kg:125},anti:{n:'กระเบื้องกันลื่น 30×30',t:[.3,.3],c:'#c3cbcf',kg:125},
+  subway:{n:'กระเบื้อง 30×60 ปูสลับแนว',plank:[.6,.3],c:'#e8e6e1',kg:130},hex:{n:'กระเบื้องหกเหลี่ยม 20 ซม.',pat:'hex',hex:.115,c:'#d8d2c6',kg:125},
+  cement:{n:'กระเบื้องลายซีเมนต์ 20×20',t:[.2,.2],pat:'cement',c:'#cfc6b6',kg:130},terrazzo:{n:'หินขัด (เทอราซโซ)',pat:'terrazzo',c:'#d6d1c7',gloss:1,kg:150},
+  lam:{n:'พื้นลามิเนต',plank:[1.2,.19],c:'#a7835c',kg:110},woodw:{n:'ไม้ลามิเนตแผ่นกว้าง 20 ซม.',plank:[1.8,.2],c:'#b38b62',kg:110},herring:{n:'ไม้ลายก้างปลา',plank:[.6,.1],pat:'herring',c:'#9e7650',kg:115},
+  wood:{n:'พื้นไม้จริง',plank:[1.0,.1],c:'#8e6a45',kg:120},spc:{n:'กระเบื้องยาง SPC',plank:[1.2,.18],c:'#b69a7a',kg:110},
+  granite:{n:'หินแกรนิต',t:[.6,.6],c:'#6f6a66',speck:1,gloss:1,kg:160},marble:{n:'หินอ่อน',t:[.6,.6],pat:'veins',c:'#eeebe6',gloss:1,kg:160},
+  polish:{n:'ขัดมันเรียบ',c:'#a8a8a4',kg:120},epoxy:{n:'อีพ็อกซี',c:'#7f9aa6',gloss:1,kg:105},wash:{n:'หินล้าง/ทรายล้าง',c:'#b9ab92',speck:1,kg:130},
+  carpet:{n:'พรม',c:'#6d7480',kg:105},deck:{n:'ไม้เทียม (ภายนอก)',plank:[2.0,.14],c:'#7a5b40',kg:40},none:{n:'ไม่ระบุ',kg:0}};
 const FINOPT=Object.entries(FIN).map(([k,v])=>[k,v.n]);
 const SLABK=[['cast','หล่อในที่'],['precast','พื้นสำเร็จรูป'],['ground','พื้นวางบนดิน'],['deck','พื้นเหล็ก (Metal deck)']],SLABKN=Object.fromEntries(SLABK);
 function chairX(cx,cy,back){const s=.2;return[box(cx-s,cy-s,cx+s,cy+s,.42,.46,'fabric'),box(cx-.12,cy-.12,cx+.12,cy+.12,0,.42,'wood'),box(back>0?cx+s-.04:cx-s,cy-s,back>0?cx+s:cx-s+.04,cy+s,.46,.9,'wood')]}
@@ -548,7 +549,8 @@ function rfSpec(e){const fam=e.frame==='wood'?'wood':'steel',d=DEFSEC[fam],o={};
 const WALLM={brick:{n:'อิฐมอญครึ่งแผ่น ฉาบ 2 ด้าน',kg:180,hatch:'diag'},aac:{n:'อิฐมวลเบา 7.5 ซม. ฉาบ 2 ด้าน',kg:90,hatch:'dots'},block:{n:'คอนกรีตบล็อก ฉาบ 2 ด้าน',kg:150,hatch:'cross'},
   rc:{n:'ผนังคอนกรีตเสริมเหล็ก',kg:0,hatch:'solid'},dry:{n:'ผนังเบา โครงเหล็ก + ยิปซัม',kg:30,hatch:'none'},glass:{n:'ผนังกระจก',kg:40,hatch:'none'}};
 const wallKg=w=>(w.wm==='rc')?Math.round(2400*w.t):(WALLM[w.wm||'brick']||WALLM.brick).kg;
-function llOf(r){const v=parseFloat(r.ll);if(v>0)return v;return /บันได|โถง|ทางเดิน|ระเบียง/.test(r.name||'')?300:/จอดรถ/.test(r.name||'')?400:150}
+function llOf(r){const v=parseFloat(r.ll);if(v>0)return v;return /จอดรถ|โรงรถ/.test(r.name||'')?300:/ดาดฟ้า/.test(r.name||'')?200:200}
+const CTMAT={metal:'metal047',cpac:'concTile',clay:'clay',shingle:'shingle',upvc:'upvc',slab:'slab'};
 const FASM={smart:{n:'ไม้เทียม (ไฟเบอร์ซีเมนต์)',c:'#efebe2'},wood:{n:'ไม้จริง',c:'#8a5a2b'},metal:{n:'เมทัลชีทพับ (สีเดียวกับหลังคา)',c:''},none:{n:'ไม่มี'}};
 const GABM={siding:{n:'ไม้ฝาไม้เทียม',c:'#d9cbb2'},wsid:{n:'ไม้ฝาไม้จริง',c:'#9a6b43'},board:{n:'แผ่นไฟเบอร์ซีเมนต์เรียบ',c:'#e6e3dc'},wall:{n:'ผนังก่อฉาบ (ต่อจากผนัง)',c:''},none:{n:'เปิดโล่ง'}};
 function chairM(cx,cy,back){const s=.22;return[box(cx-s,cy-s,cx+s,cy+s,.42,.48,'fabric'),['c',cx,cy,.03,.03,0,.42,'metal'],box(cx-s,back>0?cy+s-.05:cy-s,cx+s,back>0?cy+s:cy-s+.05,.48,.85,'fabric')]}
@@ -1703,7 +1705,7 @@ $('#fileB').onclick=e=>{e.stopPropagation();const r=e.currentTarget.getBoundingC
 document.addEventListener('click',e=>{if(!menu.contains(e.target))menu.style.display='none'});
 menu.onclick=e=>{const b=e.target.closest('button');if(!b)return;menu.style.display='none';const m=b.dataset.m;
   if(m==='save')saveFile('yothacad-project.json',JSON.stringify({app:'yothacad',S,cur},null,1));
-  if(m==='open')fileIn.click();if(m==='dxf')exportDXF();if(m==='ifc')exportIFC();if(m==='png2')exportPNG2();if(m==='png3')exportPNG3();if(m==='csv')exportCSV();if(m==='xct')openExchange();if(m==='rbin')$('#rbIn').click();
+  if(m==='open')fileIn.click();if(m==='dxf')exportDXF();if(m==='ifc')exportIFC();if(m==='rvt')exportRevitPy();if(m==='png2')exportPNG2();if(m==='png3')exportPNG3();if(m==='csv')exportCSV();if(m==='xct')openExchange();if(m==='rbin')$('#rbIn').click();
   if(m==='sample')newProject('บ้านตัวอย่าง 2 ชั้น',true);if(m==='proj')openProjects();
   if(m==='new')newProject('โครงการใหม่ '+(pIndex().length+1),false);
   if(m==='theme'){const r=document.documentElement;const dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;r.dataset.theme=dark?'light':'dark';readColors();draw2();req3()}};
@@ -2217,7 +2219,7 @@ function exchangeData(){WOFF.clear();const M=markMaps();const gx=S.els.filter(e=
   let X=[...new Set(gx.map(g=>r3(g.a.x)))],Y=[...new Set(gy.map(g=>r3(g.a.y)))];const cols=S.els.filter(e=>e.type==='column');
   if(X.length<2)X=[...new Set(cols.map(e=>r3(e.p.x)))].sort((a,b)=>a-b);if(Y.length<2)Y=[...new Set(cols.map(e=>r3(e.p.y)))].sort((a,b)=>a-b);
   const x0=X[0]||0,y0=Y[0]||0,li=id=>lvIdx(id),near=(arr,v)=>arr.findIndex(q=>Math.abs(q-v)<0.02);
-  const P=p=>({x:r3(p.x),y:r3(p.y)});const unit=t=>t<=0.12?90:180;
+  const P=p=>({x:r3(p.x),y:r3(p.y)});const unitW=w=>wallKg(w);
   const members={
     columns:cols.map(e=>({mark:markOf(M,e),rkey:rkey(e),level:li(e.level),x:r3(e.p.x),y:r3(e.p.y),b:e.w,h:e.shape==='circle'?e.w:e.d,shape:e.shape,rot:+e.rot||0,height:r3(elH(e)),grid:[near(X,e.p.x),near(Y,e.p.y)]})),
     beams:S.els.filter(e=>e.type==='beam'&&e.bm!=='steel').map(e=>({mark:markOf(M,e),rkey:rkey(e),level:li(e.level),at:e.at==='floor'?'floor':'top',topLevel:r3(beamTop(e)),a:P(e.a),b:P(e.b),width:e.w,depth:e.d,span:r3(dist(e.a,e.b))})),
@@ -2233,11 +2235,11 @@ function exchangeData(){WOFF.clear();const M=markMaps();const gx=S.els.filter(e=
   // Civil Toolkit BIM fields (grid model)
   const nx=X.length-1,ny=Y.length-1,slabs=S.els.filter(e=>e.type==='slab'),cells=[];
   for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const c={x:(X[i]+X[i+1])/2,y:(Y[j]+Y[j+1])/2};if(!slabs.length||slabs.some(s=>inPoly(c,s.pts)))cells.push(i+','+j)}
-  const floors=S.levels.map((l,k)=>{const f={walls:{},off:[],slabs:{},sec:[],stairs:[],doors:'',windows:'',sanitary:''};
+  const BL=S.levels.filter(l=>l.kind!=='roof');const floors=BL.map((l,k)=>{const f={walls:{},off:[],slabs:{},sec:[],stairs:[],doors:'',windows:'',sanitary:''};
     S.els.filter(e=>e.type==='wall'&&e.level===l.id).forEach(w=>{const hz=Math.abs(w.a.y-w.b.y)<1e-3,vt=Math.abs(w.a.x-w.b.x)<1e-3;let done=false;
-      if(hz){const j=near(Y,w.a.y);if(j>=0){const lo=Math.min(w.a.x,w.b.x),hi=Math.max(w.a.x,w.b.x);for(let i=0;i<nx;i++){if(lo<=X[i]+0.05&&hi>=X[i+1]-0.05){f.walls['x:'+j+':'+i]=unit(w.t);done=true}}if(done&&!(near(X,lo)>=0&&near(X,hi)>=0))done=false}}
-      if(vt){const i=near(X,w.a.x);if(i>=0){const lo=Math.min(w.a.y,w.b.y),hi=Math.max(w.a.y,w.b.y);for(let j=0;j<ny;j++){if(lo<=Y[j]+0.05&&hi>=Y[j+1]-0.05){f.walls['y:'+i+':'+j]=unit(w.t);done=true}}if(done&&!(near(Y,lo)>=0&&near(Y,hi)>=0))done=false}}
-      if(!done)f.off.push({x1:r3(w.a.x-x0),y1:r3(w.a.y-y0),x2:r3(w.b.x-x0),y2:r3(w.b.y-y0),unit:unit(w.t)})});
+      if(hz){const j=near(Y,w.a.y);if(j>=0){const lo=Math.min(w.a.x,w.b.x),hi=Math.max(w.a.x,w.b.x);for(let i=0;i<nx;i++){if(lo<=X[i]+0.05&&hi>=X[i+1]-0.05){f.walls['x:'+j+':'+i]=unitW(w);done=true}}if(done&&!(near(X,lo)>=0&&near(X,hi)>=0))done=false}}
+      if(vt){const i=near(X,w.a.x);if(i>=0){const lo=Math.min(w.a.y,w.b.y),hi=Math.max(w.a.y,w.b.y);for(let j=0;j<ny;j++){if(lo<=Y[j]+0.05&&hi>=Y[j+1]-0.05){f.walls['y:'+i+':'+j]=unitW(w);done=true}}if(done&&!(near(Y,lo)>=0&&near(Y,hi)>=0))done=false}}
+      if(!done)f.off.push({x1:r3(w.a.x-x0),y1:r3(w.a.y-y0),x2:r3(w.b.x-x0),y2:r3(w.b.y-y0),unit:unitW(w)})});
     S.els.filter(e=>e.type==='room'&&e.level===l.id&&/น้ำ|ส้วม|bath|toilet/i.test(e.name)).forEach(r=>{for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const c={x:(X[i]+X[i+1])/2,y:(Y[j]+Y[j+1])/2};if(inPoly(c,r.pts))f.slabs[i+','+j]='bath'}});
     S.els.filter(e=>e.type==='beam'&&e.level===l.id&&e.at!=='floor').forEach(b=>{const hz=Math.abs(b.a.y-b.b.y)<1e-3,vt=Math.abs(b.a.x-b.b.x)<1e-3;
       if(hz&&near(Y,b.a.y)<0){const j=Y.findIndex((v,q)=>q<ny&&b.a.y>v&&b.a.y<Y[q+1]),m=(b.a.x+b.b.x)/2,i=X.findIndex((v,q)=>q<nx&&m>v&&m<X[q+1]);if(i>=0&&j>=0)f.sec.push({dir:'x',i,j,pos:r3(b.a.y-Y[j])})}
@@ -2247,13 +2249,13 @@ function exchangeData(){WOFF.clear();const M=markMaps();const gx=S.els.filter(e=
     f.doors=cnt('door');f.windows=cnt('window');f.sanitary=S.els.filter(e=>e.type==='furn'&&e.level===l.id&&(LIB[e.kind]||{}).c==='สุขภัณฑ์').map(e=>(LIB[e.kind]||{}).n).reduce((o,n)=>(o[n]=(o[n]||0)+1,o),{});
     f.sanitary=Object.entries(f.sanitary).map(([n,c])=>n+'×'+c).join(', ');return f});
   const cs=modeOf(cols.map(e=>Math.round(e.w*100)+'x'+Math.round((e.shape==='circle'?e.w:e.d)*100)))||'25x25',bs=modeOf(S.els.filter(e=>e.type==='beam'&&e.bm!=='steel'&&e.at!=='floor').map(e=>Math.round(e.w*100)+'x'+Math.round(e.d*100)))||'20x40';
-  const roof=S.els.find(e=>e.type==='roof'),ft=S.els.filter(e=>e.type==='footing'),pileF=ft.find(e=>+e.piles>0);
-  const civilToolkitBim={xs:X.slice(1).map((v,i)=>r3(v-X[i])).join(', '),ys:Y.slice(1).map((v,i)=>r3(v-Y[i])).join(', '),cells:cells.join(';'),storeys:S.levels.map(l=>+l.height).join(', '),floors:JSON.stringify(floors),
-    slabT:Math.round((modeOf(slabs.map(e=>e.t))||0.12)*100),finish:(()=>{const z=S.els.filter(e=>e.type==='flr');const A=z.reduce((a,e)=>a+polyArea(e.pts),0);return A?Math.round(z.reduce((a,e)=>a+polyArea(e.pts)*((FIN[e.fin]||{}).kg||0),0)/A):50})(),ll:150,beamB:+bs.split('x')[0],beamH:+bs.split('x')[1],colB:+cs.split('x')[0],colH:+cs.split('x')[1],
-    roofType:roof?roof.kind:'flat',slope:roof?+roof.pitch:0,eave:roof?Math.round(+roof.over*100):0,fdnType:pileF?'pile':'spread',Df:ft.length?r3(ft[0].depth+ft[0].t):1.5,pileSize:pileF?Math.round(pileF.pd*100):0};
+  const roofs_=S.els.filter(e=>e.type==='roof').sort((a,b)=>roofArea(b)-roofArea(a)),roof=roofs_[0],ft=S.els.filter(e=>e.type==='footing'),pileF=ft.find(e=>+e.piles>0),hasPlate=S.els.some(e=>e.type==='beam'&&e.bm==='steel');
+  const civilToolkitBim={xs:X.slice(1).map((v,i)=>r3(v-X[i])).join(', '),ys:Y.slice(1).map((v,i)=>r3(v-Y[i])).join(', '),cells:cells.join(';'),storeys:BL.map(l=>+l.height).join(', '),floors:JSON.stringify(floors),
+    slabT:Math.round((modeOf(slabs.map(e=>e.t))||0.12)*100),finish:(()=>{const avg=(z,L)=>{const A=z.reduce((a,e)=>a+polyArea(e.pts),0);return A?z.reduce((a,e)=>a+polyArea(e.pts)*((L[e.fin||e.ct]||{}).kg||0),0)/A:0};const f0=avg(S.els.filter(e=>e.type==='flr'),FIN),c0=avg(S.els.filter(e=>e.type==='clg'),CEIL);return Math.round((f0||130)+(c0||15)+10)})(),ll:(()=>{const rs=S.els.filter(e=>e.type==='room'),A=rs.reduce((a,e)=>a+polyArea(e.pts),0);return A?Math.round(rs.reduce((a,e)=>a+polyArea(e.pts)*llOf(e),0)/A):200})(),beamB:+bs.split('x')[0],beamH:+bs.split('x')[1],colB:+cs.split('x')[0],colH:+cs.split('x')[1],
+    roofType:roof?roof.kind:'flat',slope:roof?+roof.pitch:0,eave:roof?Math.round(+roof.over*100):0,roofMat:roof?(CTMAT[roof.mat]||'metal047'):'',roofSp:roof?(+roof.rs||1):1,roofLL:50,roofSupport:hasPlate?'steel':'',fdnType:pileF?'pile':'spread',Df:ft.length?r3(ft[0].depth+ft[0].t):1.5,pileSize:pileF?Math.round(pileF.pd*100):0};
   return{format:'yothacad-exchange',version:1,app:'โยธาแคด',createdAt:new Date().toISOString(),units:{length:'m',civilToolkitBim:'cm สำหรับขนาดหน้าตัด, m สำหรับระยะ'},
     notes:'แกน X ของโยธาแคดตรงกับกริด A, B, C… ของ Civil Toolkit และแกน Y ตรงกับกริด 1, 2, 3… / ส่งผลออกแบบกลับด้วย format "yothacad-rebar" โดยอ้างอิง rkey',
-    project:S.proj,site:{groundLevel:+(S.site||{}).gl||0,firstFloorLevel:+(S.site||{}).ffl||0},grid:{x:X,y:Y,xLabels:gx.map(g=>g.label),yLabels:gy.map(g=>g.label)},levels:S.levels.map((l,i)=>({index:i,name:l.name,elev:r3(elevOf(l.id)),height:+l.height})),
+    project:S.proj,site:{groundLevel:+(S.site||{}).gl||0,firstFloorLevel:+(S.site||{}).ffl||0},grid:{x:X,y:Y,xLabels:gx.map(g=>g.label),yLabels:gy.map(g=>g.label)},levels:S.levels.map((l,i)=>({index:i,name:l.name,elev:r3(elevOf(l.id)),height:+l.height,roofLevel:l.kind==='roof'})),
     loads:loadsData(),roofDesign:roofDesignData(),
     members,rebar:Object.fromEntries([...new Set(S.els.map(rkey).filter(Boolean))].map(k=>{const e=S.els.find(x=>rkey(x)===k);return[k,{mark:rmark(e),type:e.type,...rebarOf(e)}]})),civilToolkitBim}}
 function b64u(str){const b=new TextEncoder().encode(str);let s='';for(let i=0;i<b.length;i+=0x8000)s+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
@@ -2274,7 +2276,7 @@ $('#rbIn').onchange=async()=>{const f=$('#rbIn').files[0];if(!f)return;try{const
       v.src=d.app||d.source||'Civil Toolkit';S.rebar[k]={...(S.rebar[k]||{}),...v};n++})});toast('นำเข้าเหล็กเสริม '+n+' รายการ');}catch(e){toast('ไฟล์นี้ไม่ใช่ผลออกแบบเหล็กเสริม')}$('#rbIn').value=''};
 
 // ================= App shell: version, sync, manual, install, service worker
-const APP_VER='v7.6';$('#verL').textContent=APP_VER;
+const APP_VER='v7.7';$('#verL').textContent=APP_VER;
 const isEmbedded=/claude\.ai|claudeusercontent|anthropic/.test(location.host)||location.protocol==='blob:';
 const LSK={sync:'yothacad-sync',saved:'yothacad-savedAt',last:'yothacad-lastSync',dev:'yothacad-device'};
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -2320,7 +2322,7 @@ $('#syncB').onclick=()=>{renderSync();const d=$('#syncDlg');d.showModal?d.showMo
 // ----- manual
 function helpHTML(){const T=(t,b,open)=>`<details${open?' open':''}><summary>${t}</summary>${b}</details>`;
   return T('1. เริ่มต้นใช้งาน',`<p>หน้าจอแบ่งเป็นแถบเครื่องมือซ้าย (บน iPad อยู่ด้านล่าง) พื้นที่เขียนแบบ และแผงข้างขวา ปุ่มด้านบนสลับมุมมอง 2D, 2D + 3D, 3D, รูปตัด และแผ่นงาน ช่องเลือกชั้นอยู่ซ้ายบน</p>
-    <ul><li>เริ่มเร็วที่สุด: กด <b>สร้างกริดและโครงสร้าง</b> ใส่ระยะช่วงเสา แล้วแอปจะวางกริด ฐานราก เสา คาน พื้น และผนังรอบนอกให้</li><li>ดูตัวอย่างงานครบชุด: ไฟล์ → เปิดบ้านตัวอย่าง (จะแทนที่แบบปัจจุบัน ควรสำรองก่อน)</li><li>หน่วยทั้งหมดเป็นเมตร ยกเว้นขนาดบนแผ่นงานเป็นมิลลิเมตร</li><li><b>ระเบียง</b> วาดเป็นสี่เหลี่ยมหรือหลายเหลี่ยม กำหนดระดับเอง (เช่น +0.25) ขั้นบันไดลงดินสร้างให้ด้านที่ไม่ติดผนัง เลือกกันสาดเมทัลชีท พื้นคอนกรีต หรือเพอร์โกลาพร้อมเสา • <b>บันไดหน้าบ้าน</b> คลิกขอบบน 2 จุดแล้วคลิกด้านที่ลง คำนวณขั้นจากระดับพื้นถึงดินให้เอง ขึ้นได้ 1 หรือ 3 ด้าน • <b>ราวกันตก</b> ลากเป็นแนว เลือกราวเหล็ก กระจก ไม้ ลูกกรงปูนปั้น หรือผนังเตี้ย วางบนระเบียงจะยกตามระดับระเบียงให้เอง</li><li><b>ระดับพื้นและคาน:</b> แท็บ ชั้น กำหนดความหนาวัสดุปูพื้น (เช่น 0.05 ม.) หลังพื้นโครงสร้างและหลังคานจะอยู่ต่ำกว่าผิวพื้นสำเร็จตามค่านี้ • พื้น คาน และพื้นผิว ยก/ลดระดับได้ทีละชิ้น (เช่น ห้องน้ำลด −0.10) • คานเลือกเป็นเหล็กรูปพรรณ (อะเส) ได้ จะไม่ส่งไปออกแบบเป็นคาน คสล.</li><li><b>หลังคาหลายเหลี่ยม:</b> เครื่องมือหลังคา → รูปแบบ "หลายเหลี่ยม" วาดตามแนวผนังเป็นรูปตัว L, T, U หรือหลายเหลี่ยมนูน แอปสร้างปีกหลังคา ตะเฆ่ราง ครอบ เชิงชาย ฝ้าชายคา และโครงหลังคาให้ • ยก/ลดระดับหลังคาที่แผงคุณสมบัติ หรือกดปุ่ม ▲ ▼</li><li><b>ส่งต่อ Revit:</b> ไฟล์ → ส่งออก IFC ได้ไฟล์ .ifc (IFC4) มีชั้น ผนัง พื้น เสา คาน ฐานราก บันได หลังคา โครงหลังคา ประตูหน้าต่าง ฝ้า พื้นผิว และเฟอร์นิเจอร์ พร้อมชื่อวัสดุ เปิดใน Revit ด้วย File → Open → IFC หรือ Insert → Link IFC</li><li><b>หน้าปก:</b> แผ่น A-00 กด "จัดเป็นหน้าปก" เลือกมุมกล้อง 3D เอง แก้หัวเรื่อง คำบรรยาย สีแถบ และพื้นหลังภาพได้ • <b>ผนังต่อชนหลังคา:</b> เลือกผนังหรือกดปุ่มที่หลังคา ผนังจะสูงขึ้นไปชนใต้หลังคาตามความลาด</li><li><b>ชั้นหลังคา:</b> แท็บ ชั้น → "+ เพิ่มชั้นหลังคา" หลังคาจะวางที่ระดับนั้นพอดี และแยกจากชั้นบนสุดชัดเจน</li><li><b>ระดับอ้างอิง:</b> แท็บ ชั้น → กำหนดระดับดินเดิมและระดับพื้นชั้น 1 (เช่น ดินเดิม ±0.00 พื้นชั้น 1 +0.40) ทุกชั้น รูปตัด รูปด้าน และ 3D เลื่อนตาม</li><li><b>โครงการ:</b> ปุ่มชื่อโครงการด้านบน สร้าง เปิด ทำสำเนา เปลี่ยนชื่อ ส่งออก และลบโครงการ แต่ละโครงการเก็บแยกกัน</li><li><b>ทั้งหมด / สถาปัตย์ / โครงสร้าง:</b> เลือกงานที่จะเขียน งานอีกฝั่งจะล็อกไว้เป็นพื้นหลังจาง ๆ คลิกโดนไม่ได้ ในโหมดโครงสร้าง 3D จะซ่อนผนังและแสดงโครงหลังคา</li></ul>`,1)+
+    <ul><li>เริ่มเร็วที่สุด: กด <b>สร้างกริดและโครงสร้าง</b> ใส่ระยะช่วงเสา แล้วแอปจะวางกริด ฐานราก เสา คาน พื้น และผนังรอบนอกให้</li><li>ดูตัวอย่างงานครบชุด: ไฟล์ → เปิดบ้านตัวอย่าง (จะแทนที่แบบปัจจุบัน ควรสำรองก่อน)</li><li>หน่วยทั้งหมดเป็นเมตร ยกเว้นขนาดบนแผ่นงานเป็นมิลลิเมตร</li><li><b>ระเบียง</b> วาดเป็นสี่เหลี่ยมหรือหลายเหลี่ยม กำหนดระดับเอง (เช่น +0.25) ขั้นบันไดลงดินสร้างให้ด้านที่ไม่ติดผนัง เลือกกันสาดเมทัลชีท พื้นคอนกรีต หรือเพอร์โกลาพร้อมเสา • <b>บันไดหน้าบ้าน</b> คลิกขอบบน 2 จุดแล้วคลิกด้านที่ลง คำนวณขั้นจากระดับพื้นถึงดินให้เอง ขึ้นได้ 1 หรือ 3 ด้าน • <b>ราวกันตก</b> ลากเป็นแนว เลือกราวเหล็ก กระจก ไม้ ลูกกรงปูนปั้น หรือผนังเตี้ย วางบนระเบียงจะยกตามระดับระเบียงให้เอง</li><li><b>ระดับพื้นและคาน:</b> แท็บ ชั้น กำหนดความหนาวัสดุปูพื้น (เช่น 0.05 ม.) หลังพื้นโครงสร้างและหลังคานจะอยู่ต่ำกว่าผิวพื้นสำเร็จตามค่านี้ • พื้น คาน และพื้นผิว ยก/ลดระดับได้ทีละชิ้น (เช่น ห้องน้ำลด −0.10) • คานเลือกเป็นเหล็กรูปพรรณ (อะเส) ได้ จะไม่ส่งไปออกแบบเป็นคาน คสล.</li><li><b>หลังคาหลายเหลี่ยม:</b> เครื่องมือหลังคา → รูปแบบ "หลายเหลี่ยม" วาดตามแนวผนังเป็นรูปตัว L, T, U หรือหลายเหลี่ยมนูน แอปสร้างปีกหลังคา ตะเฆ่ราง ครอบ เชิงชาย ฝ้าชายคา และโครงหลังคาให้ • ยก/ลดระดับหลังคาที่แผงคุณสมบัติ หรือกดปุ่ม ▲ ▼</li><li><b>สร้างโมเดลแก้ไขได้ใน Revit:</b> ไฟล์ → ส่งออกสคริปต์สร้างโมเดลใน Revit (.py) แล้วรันด้วย pyRevit, RevitPythonShell หรือ Dynamo ในโปรเจกต์ Revit ที่มีแม่แบบ ได้ระดับชั้น กริด ผนัง พื้น เสา คาน ประตู หน้าต่าง หลังคา และห้องเป็นชิ้นงานของ Revit จริง แก้ไขได้ทุกชิ้น</li><li><b>ส่งต่อ Revit:</b> ไฟล์ → ส่งออก IFC ได้ไฟล์ .ifc (IFC4) มีชั้น ผนัง พื้น เสา คาน ฐานราก บันได หลังคา โครงหลังคา ประตูหน้าต่าง ฝ้า พื้นผิว และเฟอร์นิเจอร์ พร้อมชื่อวัสดุ เปิดใน Revit ด้วย File → Open → IFC หรือ Insert → Link IFC</li><li><b>หน้าปก:</b> แผ่น A-00 กด "จัดเป็นหน้าปก" เลือกมุมกล้อง 3D เอง แก้หัวเรื่อง คำบรรยาย สีแถบ และพื้นหลังภาพได้ • <b>ผนังต่อชนหลังคา:</b> เลือกผนังหรือกดปุ่มที่หลังคา ผนังจะสูงขึ้นไปชนใต้หลังคาตามความลาด</li><li><b>ชั้นหลังคา:</b> แท็บ ชั้น → "+ เพิ่มชั้นหลังคา" หลังคาจะวางที่ระดับนั้นพอดี และแยกจากชั้นบนสุดชัดเจน</li><li><b>ระดับอ้างอิง:</b> แท็บ ชั้น → กำหนดระดับดินเดิมและระดับพื้นชั้น 1 (เช่น ดินเดิม ±0.00 พื้นชั้น 1 +0.40) ทุกชั้น รูปตัด รูปด้าน และ 3D เลื่อนตาม</li><li><b>โครงการ:</b> ปุ่มชื่อโครงการด้านบน สร้าง เปิด ทำสำเนา เปลี่ยนชื่อ ส่งออก และลบโครงการ แต่ละโครงการเก็บแยกกัน</li><li><b>ทั้งหมด / สถาปัตย์ / โครงสร้าง:</b> เลือกงานที่จะเขียน งานอีกฝั่งจะล็อกไว้เป็นพื้นหลังจาง ๆ คลิกโดนไม่ได้ ในโหมดโครงสร้าง 3D จะซ่อนผนังและแสดงโครงหลังคา</li></ul>`,1)+
   T('2. โครงสร้าง: กริด ฐานราก เสา คาน พื้น บันได',`<ul><li><b>กริด</b> คลิก 2 จุด ชื่อแกนตั้งให้อัตโนมัติ (แนวตั้ง 1, 2, 3 / แนวนอน A, B, C)</li><li><b>ฐานราก</b> คลิกที่ศูนย์กลางเสา กำหนดขนาด ความลึก ตอม่อ และเสาเข็ม 0–6 ต้น หรือเลือกเสาแล้วกด "สร้างฐานรากใต้เสา"</li>
     <li><b>เสา</b> คลิกวาง ปรับขนาด รูปทรง มุมหมุน และความสูงที่แผงข้าง (เว้นว่าง = สูงเท่าชั้น)</li><li><b>คาน</b> คลิกต่อเนื่องเป็นแนว ตั้ง "ระดับคาน" เป็นคานคอดินได้</li><li><b>พื้น</b> สี่เหลี่ยม 2 คลิก หรือหลายเหลี่ยม (เว้นช่องบันไดโดยวาดเป็นรูปหลายเหลี่ยม)</li>
     <li><b>บันได</b> 7 รูปแบบ: ทางเดียว ทางเดียวมีชานพัก รูปตัว L (ชานพักหรือขั้นเวียน) รูปตัว U (พับผ้า) รูปตัว U สามช่วง และบันไดวน เลือกโครงสร้างคอนกรีต เหล็ก หรือไม้ ราวเหล็ก กระจก หรือไม้ ทิศเลี้ยว ลูกนอน ความลึกชานพัก และจำนวนขั้นช่วงแรกได้ แอปคำนวณลูกตั้งให้ไม่เกิน 18 ซม.</li></ul>`)+
@@ -2789,19 +2791,20 @@ function addRoofLevel(){const top=S.levels[S.levels.length-1];if(top.kind==='roo
   S.els.forEach(e=>{if(e.level!==top.id)return;if(e.type==='roof'){const v=parseFloat(e.base);e.level=id;e.base=isFinite(v)&&String(e.base).trim()!==''?r3(v-(+top.height)):''}if(e.type==='rmem'){e.level=id;e.za=r3((+e.za||0)-(+top.height));e.zb=r3((+e.zb||0)-(+top.height))}});cur=id});syncLevelSel();toast('เพิ่มชั้นหลังคาและย้ายหลังคามาไว้ที่ชั้นนี้แล้ว')}
 // ----- design loads for Civil Toolkit
 function loadsData(){const M=markMaps(),li=id=>lvIdx(id),P=p=>({x:r3(p.x),y:r3(p.y)});
-  return{units:{weight:'kg',area:'m2',lineLoad:'kg/m',areaLoad:'kg/m2'},note:'น้ำหนักบรรทุกคงที่ส่วนเพิ่ม (SDL) จากวัสดุ และน้ำหนักบรรทุกจรแนะนำตามการใช้งาน ผู้ออกแบบต้องตรวจตามกฎกระทรวงที่ใช้บังคับ',
+  return{units:{weight:'kg',area:'m2',lineLoad:'kg/m',areaLoad:'kg/m2'},note:'SDL ของพื้นรวมปูนทรายปรับระดับตามความหนาวัสดุปูพื้น • น้ำหนักบรรทุกจรตามกฎกระทรวง 2566 (บ้านพักอาศัย 200, หลังคา 50, ที่จอดรถ 300 กก./ตร.ม.) ผู้ออกแบบต้องตรวจตามการใช้งานจริง',
     floors:S.els.filter(e=>e.type==='flr').map(e=>({level:li(e.level),code:e.fin,material:(FIN[e.fin]||FIN.none).n,sdl:(FIN[e.fin]||FIN.none).kg||0,area:r3(polyArea(e.pts)),pts:e.pts.map(P)})),
     ceilings:S.els.filter(e=>e.type==='clg').map(e=>({level:li(e.level),code:e.ct,material:(CEIL[e.ct]||CEIL.gyp).n,sdl:(CEIL[e.ct]||CEIL.gyp).kg||0,height:r3(ceilH(e)),area:r3(polyArea(e.pts)),pts:e.pts.map(P)})),
     soffits:S.els.filter(e=>e.type==='roof'&&e.sof&&e.sof!=='none'&&e.kind!=='flat').map(e=>({level:li(e.level),material:(CEIL[e.sof]||{}).n,sdl:(CEIL[e.sof]||{}).kg||0,area:r3(polyArea(roofOuter(e))-polyArea(e.pts))})),
     rooms:S.els.filter(e=>e.type==='room').map(e=>({level:li(e.level),name:e.name,area:r3(polyArea(e.pts)),liveLoad:llOf(e),pts:e.pts.map(P)})),
     walls:S.els.filter(e=>e.type==='wall').map(e=>{const H=elH(e),L=dist(e.a,e.b),op=hosted(e.id).reduce((a,o)=>a+o.w*o.h,0),kg=wallKg(e);return{level:li(e.level),code:e.wm||'brick',material:(WALLM[e.wm||'brick']||WALLM.brick).n,thickness:e.t,unitWeight:kg,height:r3(H),length:r3(L),openingArea:r3(op),lineLoad:Math.round(kg*(L*H-op)/Math.max(L,0.01)),a:P(wA(e)),b:P(wB(e))}}),
-    roofs:S.els.filter(e=>e.type==='roof').map(e=>({level:li(e.level),code:e.mat||'metal',material:(ROOFMAT[e.mat]||ROOFMAT.metal).n,coveringDL:(ROOFMAT[e.mat]||ROOFMAT.metal).kg,liveLoad:30,area:r3(roofArea(e))})),
-    porches:S.els.filter(e=>e.type==='porch').map(e=>({level:li(e.level),topLevel:r3(porchZ(e)),finish:(FIN[e.fin]||FIN.none).n,sdl:(FIN[e.fin]||FIN.none).kg||0,liveLoad:300,area:r3(polyArea(e.pts)),canopy:e.canopy||'none',pts:e.pts.map(P)})),
+    roofs:S.els.filter(e=>e.type==='roof').map(e=>({level:li(e.level),code:e.mat||'metal',material:(ROOFMAT[e.mat]||ROOFMAT.metal).n,coveringDL:(ROOFMAT[e.mat]||ROOFMAT.metal).kg,liveLoad:50,area:r3(roofArea(e))})),
+    porches:S.els.filter(e=>e.type==='porch').map(e=>({level:li(e.level),topLevel:r3(porchZ(e)),finish:(FIN[e.fin]||FIN.none).n,sdl:(FIN[e.fin]||FIN.none).kg||0,liveLoad:200,area:r3(polyArea(e.pts)),canopy:e.canopy||'none',pts:e.pts.map(P)})),
     railings:S.els.filter(e=>e.type==='rail').map(e=>({level:li(e.level),kind:e.kind,name:RAILK[e.kind||'steel'],height:+e.h||1,length:r3(e.pts.slice(1).reduce((a,q,i)=>a+dist(e.pts[i],q),0)),lineLoad:railKg(e),horizontalLoad:'ตามกฎกระทรวง (แรงผลักด้านข้างที่ราวกันตก)',pts:e.pts.map(P)})),
     equipment:S.els.filter(e=>e.type==='plumb'&&(e.kind==='tank'||e.kind==='pump')).map(e=>({level:li(e.level),kind:e.kind,name:PLIB[e.kind].n,x:r3(e.p.x),y:r3(e.p.y),pointLoad:e.kind==='tank'?1050:60}))}}
 function roofDesignData(){return S.els.filter(e=>e.type==='roof').map(e=>{const M=ROOFMAT[e.mat]||ROOFMAT.metal,cov=M.kg||5,ps=Math.max(0.15,+e.ps||M.ps||1.0),rs=Math.max(0.4,+e.rs||1.0),base=roofBase(e),
   ms=(e.frame==='manual'?S.els.filter(x=>x.type==='rmem'&&x.roof===e.id).map(rmemM).map(m=>({...m,a:[m.a[0],m.a[1],m.a[2]+elevOf(e.level)-base],b:[m.b[0],m.b[1],m.b[2]+elevOf(e.level)-base]})):roofMembers(e).map(m=>({...m,k:m.kk||m.k})));
-  return{level:lvIdx(e.level),kind:e.kind,shape:ROOFK[e.kind],pitch:+e.pitch,overhang:+e.over,material:M.n,coveringDL:cov,roofLL:30,frame:e.frame,rafterSpacing:rs,purlinSpacing:ps,baseElevation:r3(base),
+  const BB=bbox(e.pts),rect=isRectPts(e.pts),F_=rect?roofFrame(e):null,dims=rect?[dist(e.pts[0],e.pts[1]),dist(e.pts[1],e.pts[2])]:[BB.x1-BB.x0,BB.y1-BB.y0];
+  return{level:lvIdx(e.level),kind:e.kind,shape:ROOFK[e.kind],ctShape:{hip:'hip',gable:'gable',shed:'shed',butterfly:'butterfly',dutch:'manila',saltbox:'gable',gambrel:'gable',split:'shed',pyramid:'hip',mansard:'hip',flat:'flat'}[e.kind]||'hip',ctMat:CTMAT[e.mat]||'metal047',planW:r3(e.kind==='shed'||e.kind==='gable'||e.kind==='saltbox'?Math.min(...dims):Math.min(...dims)),planL:r3(Math.max(...dims)),polygon:!rect,area:r3(roofArea(e)),pitch:+e.pitch,overhang:+e.over,material:M.n,coveringDL:cov,roofLL:50,frame:e.frame,rafterSpacing:rs,purlinSpacing:ps,baseElevation:r3(base),
     members:ms.map((m,i)=>{const dx=m.b[0]-m.a[0],dy=m.b[1]-m.a[1],dz=m.b[2]-m.a[2],L=Math.hypot(dx,dy,dz),Lh=Math.hypot(dx,dy),trib=m.k==='purlin'||m.k==='batten'?ps:m.k==='rafter'?rs:null,self=m.s.kg||0;
       const dl=trib?Math.round((cov*trib+(m.k==='rafter'?(SECLIB[(e.secs||{}).purlin]||{kg:3.25}).kg*trib/ps:0)+self)*10)/10:Math.round(self*10)/10;
       return{id:i+1,kind:m.k,name:RMKN[m.k]||m.k,section:m.s.n,kgPerM:self||null,length:r3(L),horizontalSpan:r3(Lh),slopeDeg:r3(deg(Math.atan2(Math.abs(dz),Math.max(Lh,1e-6)))),tributary:trib,dlLine:dl,llLine:trib?Math.round(30*trib*10)/10:null,a:m.a.map(v=>r3(v)),b:m.b.map(v=>r3(v))}})}})}
@@ -3026,6 +3029,308 @@ function finalizeCaps(acc,tile,cm,base,id){if(!acc.length)return;const K=p=>p[0]
     for(let i=0;i<n;i++){const p0=add3(hi,mul3(d,i*sg)),p1=add3(hi,mul3(d,Math.min(L,(i+1)*sg+0.03)));addRod(p0,p1,0.1,0.118,cm,base,id,0.03)}s2._lo=lo});
   cnt.forEach((c,k)=>{const p=k.split(',').map(Number);if(c>=2){tile?ball(p,0.14,0.8,0.04):ball(p,0.045,0.6,0.03)}});
   acc.forEach(s2=>{[s2.a,s2.b].forEach(p=>{if(cnt.get(K(p))!==1)return;if(tile){const low=p[2]<Math.max(s2.a[2],s2.b[2])-0.05,q=low&&s2._lo?s2._lo:p;ball(q,0.12,0.85,0.03)}})})}
+
+// ================= v7.7: Revit native model builder (pyRevit / RevitPythonShell / Dynamo)
+function revitData(){WOFF.clear();const P=p=>[r3(p.x),r3(p.y)],E=id=>r3(elevOf(id));
+  const roofs=S.els.filter(e=>e.type==='roof').map(e=>{const pts=polyCCW(e.pts)?e.pts:e.pts.slice().reverse(),tp=Math.tan(rad(+e.pitch||0)),k=e.kind;let slope;
+    if(k==='flat')slope=pts.map(()=>false);
+    else if(['gable','saltbox','gambrel','split'].includes(k)){let lu=0,dir={x:1,y:0};pts.forEach((a,i)=>{const b=pts[(i+1)%pts.length],L=dist(a,b);if(L>lu){lu=L;dir=nrm(sub(b,a))}});if(isRectPts(e.pts)&&e.ridge==='v')dir=perp(dir);slope=pts.map((a,i)=>Math.abs(crs(nrm(sub(pts[(i+1)%pts.length],a)),dir))<0.05)}
+    else if(k==='shed'||k==='butterfly'){const zs=pts.map((a,i)=>{const b=pts[(i+1)%pts.length],m=lerp(a,b,.5),c=centroid(pts),q=add(m,mul(nrm(sub(c,m)),0.3));const z=roofSurfZ(e,q);return z==null?1e9:z});const mn=Math.min(...zs);slope=zs.map(z=>z<mn+0.05)}
+    else slope=pts.map(()=>true);
+    return{id:e.id,level:e.level,pts:pts.map(P),slope,pitch:+e.pitch||0,over:+e.over||0,kind:k,base:r3(roofBase(e)+(k==='flat'?0:(+e.over||0)*tp)),mat:(ROOFMAT[e.mat]||ROOFMAT.metal).n}});
+  return{app:'YothaCAD '+APP_VER,project:(S.proj&&S.proj.name)||'',levels:S.levels.map(l=>({id:l.id,name:l.name,elev:E(l.id),height:+l.height||0,roof:l.kind==='roof'})),
+    grids:S.els.filter(e=>e.type==='grid').map(e=>({a:P(e.a),b:P(e.b),label:e.label||''})),
+    walls:S.els.filter(e=>e.type==='wall').map(e=>({id:e.id,level:e.level,a:P(wA(e)),b:P(wB(e)),t:r3(e.t),h:r3(elH(e)),mat:(WALLM[e.wm||'brick']||WALLM.brick).n})),
+    floors:S.els.filter(e=>e.type==='slab').map(e=>({level:e.level,pts:e.pts.map(P),t:r3(e.t),off:r3(slabTop(e)-elevOf(e.level))})),
+    columns:S.els.filter(e=>e.type==='column').map(e=>({level:e.level,x:r3(e.p.x),y:r3(e.p.y),b:r3(e.w),d:r3(e.shape==='circle'?e.w:e.d),round:e.shape==='circle',rot:+e.rot||0,h:r3(elH(e))})),
+    beams:S.els.filter(e=>e.type==='beam').map(e=>{const st=e.bm==='steel',sp=st?(SECLIB[e.sec]||SECLIB.C150):null;return{level:e.level,a:P(e.a),b:P(e.b),w:r3(st?sp.b:e.w),d:r3(st?sp.h:e.d),top:r3(beamTop(e)),steel:st,sec:st?sp.n:''}}),
+    openings:S.els.filter(e=>e.type==='door'||e.type==='window').map(o=>{const F=openingFrame(o);if(!F||!F.w)return null;return{type:o.type,host:F.w.id,x:r3(F.c.x),y:r3(F.c.y),w:r3(o.w),h:r3(o.h),sill:o.type==='window'?r3(+o.sill||0):0,name:(OPL(o)||{}).n||''}}).filter(Boolean),
+    roofs,rooms:S.els.filter(e=>e.type==='room').map(e=>{const c=centroid(e.pts);return{level:e.level,x:r3(c.x),y:r3(c.y),name:e.name||''}})}}
+function exportRevitPy(){const D=revitData(),json=JSON.stringify(D).replace(/[\u0080-\uffff]/g,c=>'\\u'+c.charCodeAt(0).toString(16).padStart(4,'0')).split("'"+"'"+"'").join("\\'\\'\\'");
+  const py=String.raw`# -*- coding: utf-8 -*-
+# YothaCAD -> Revit : build NATIVE, editable Revit elements (walls, floors, columns, beams, doors, windows, roofs, rooms, grids, levels)
+# How to run (choose one):
+#   1) pyRevit  : put this file in a pushbutton folder, or use pyRevit > RevitPythonShell / "Run script"
+#   2) RevitPythonShell : Run Script... and pick this file
+#   3) Dynamo 2.x : Python Script node (IronPython2 or CPython3), paste the whole file, Run
+# Before running: open a Revit project from an architectural/structural template that already has
+#   a basic Wall type, a Floor type, a Roof type, a Door family, a Window family,
+#   and (for columns/beams) a structural column and a structural framing family loaded.
+# Units in DATA are metres. Revit internal units are feet; the script converts automatically.
+import clr, json, math
+clr.AddReference('RevitAPI')
+from Autodesk.Revit.DB import *
+from Autodesk.Revit.DB.Structure import StructuralType
+from System.Collections.Generic import List
+DYN = False
+try:
+    doc = __revit__.ActiveUIDocument.Document
+except Exception:
+    clr.AddReference('RevitServices')
+    from RevitServices.Persistence import DocumentManager
+    from RevitServices.Transactions import TransactionManager
+    doc = DocumentManager.Instance.CurrentDBDocument
+    DYN = True
+FT = 1.0 / 0.3048
+DATA = json.loads(r'''@@JSON@@''')
+log = []
+def note(msg):
+    log.append(msg)
+def XYZm(x, y, z=0.0):
+    return XYZ(x * FT, y * FT, z * FT)
+def first(cls_or_cat, by_class=True, pred=None):
+    col = FilteredElementCollector(doc)
+    col = col.OfClass(cls_or_cat) if by_class else col.OfCategory(cls_or_cat).WhereElementIsElementType()
+    for el in col:
+        if pred is None or pred(el):
+            return el
+    return None
+def set_param(el, bip, val):
+    try:
+        p = el.get_Parameter(bip)
+        if p and not p.IsReadOnly:
+            p.Set(val)
+            return True
+    except Exception:
+        pass
+    return False
+def set_named(el, names, val):
+    for nm in names:
+        try:
+            p = el.LookupParameter(nm)
+            if p and not p.IsReadOnly:
+                p.Set(val)
+                return True
+        except Exception:
+            pass
+    return False
+def sym_name(sym):
+    try:
+        return Element.Name.__get__(sym)
+    except Exception:
+        return sym.Name
+def dup_type(base, name):
+    for t in FilteredElementCollector(doc).OfClass(type(base)):
+        if sym_name(t) == name:
+            return t
+    return base.Duplicate(name)
+if DYN:
+    TransactionManager.Instance.EnsureInTransaction(doc)
+else:
+    tr = Transaction(doc, 'YothaCAD import')
+    tr.Start()
+# ---------- levels
+LV = {}
+existing = list(FilteredElementCollector(doc).OfClass(Level))
+for L in DATA['levels']:
+    z = L['elev'] * FT
+    lv = None
+    for e in existing:
+        if abs(e.Elevation - z) < 0.01:
+            lv = e
+            break
+    if lv is None:
+        lv = Level.Create(doc, z)
+        existing.append(lv)
+        try:
+            lv.Name = L['name']
+        except Exception:
+            pass
+    LV[L['id']] = lv
+def level_at(z_m):
+    z = z_m * FT
+    best = None
+    for e in existing:
+        if e.Elevation <= z + 0.01 and (best is None or e.Elevation > best.Elevation):
+            best = e
+    return best or existing[0]
+# ---------- grids
+for g in DATA['grids']:
+    try:
+        gr = Grid.Create(doc, Line.CreateBound(XYZm(g['a'][0], g['a'][1]), XYZm(g['b'][0], g['b'][1])))
+        try:
+            gr.Name = g['label']
+        except Exception:
+            pass
+    except Exception as ex:
+        note('grid ' + g['label'] + ': ' + str(ex))
+# ---------- walls (one Basic wall type per thickness)
+base_wt = first(WallType, True, lambda t: t.Kind == WallKind.Basic)
+WT = {}
+def wall_type(t):
+    key = int(round(t * 1000))
+    if key in WT:
+        return WT[key]
+    wt = dup_type(base_wt, 'Yotha Wall ' + str(key) + ' mm')
+    try:
+        cs = CompoundStructure.CreateSingleLayerCompoundStructure(MaterialFunctionAssignment.Structure, t * FT, ElementId.InvalidElementId)
+        wt.SetCompoundStructure(cs)
+    except Exception as ex:
+        note('wall type ' + str(key) + ': ' + str(ex))
+    WT[key] = wt
+    return wt
+WALLS = {}
+for w in DATA['walls']:
+    try:
+        ln = Line.CreateBound(XYZm(w['a'][0], w['a'][1]), XYZm(w['b'][0], w['b'][1]))
+        wl = Wall.Create(doc, ln, wall_type(w['t']).Id, LV[w['level']].Id, w['h'] * FT, 0.0, False, False)
+        set_param(wl, BuiltInParameter.WALL_KEY_REF_PARAM, 0)
+        WALLS[w['id']] = wl
+    except Exception as ex:
+        note('wall: ' + str(ex))
+# ---------- floors (one Floor type per thickness)
+base_ft = first(FloorType, True, lambda t: not t.IsFoundationSlab)
+FTY = {}
+def floor_type(t):
+    key = int(round(t * 1000))
+    if key in FTY:
+        return FTY[key]
+    ft = dup_type(base_ft, 'Yotha Slab ' + str(key) + ' mm')
+    try:
+        cs = CompoundStructure.CreateSingleLayerCompoundStructure(MaterialFunctionAssignment.Structure, t * FT, ElementId.InvalidElementId)
+        ft.SetCompoundStructure(cs)
+    except Exception as ex:
+        note('floor type ' + str(key) + ': ' + str(ex))
+    FTY[key] = ft
+    return ft
+for f in DATA['floors']:
+    try:
+        pts = [XYZm(p[0], p[1]) for p in f['pts']]
+        loop = CurveLoop()
+        for i in range(len(pts)):
+            loop.Append(Line.CreateBound(pts[i], pts[(i + 1) % len(pts)]))
+        try:
+            fl = Floor.Create(doc, List[CurveLoop]([loop]), floor_type(f['t']).Id, LV[f['level']].Id)
+        except Exception:
+            ca = CurveArray()
+            for i in range(len(pts)):
+                ca.Append(Line.CreateBound(pts[i], pts[(i + 1) % len(pts)]))
+            fl = doc.Create.NewFloor(ca, floor_type(f['t']), LV[f['level']], True)
+        set_param(fl, BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM, f['off'] * FT)
+    except Exception as ex:
+        note('floor: ' + str(ex))
+# ---------- structural columns & beams (types duplicated per size: b / h parameters)
+col_sym = first(BuiltInCategory.OST_StructuralColumns, False)
+beam_sym = first(BuiltInCategory.OST_StructuralFraming, False)
+SYM = {}
+def sized(sym, b, d, tag):
+    key = tag + str(int(round(b * 1000))) + 'x' + str(int(round(d * 1000)))
+    if key in SYM:
+        return SYM[key]
+    s2 = dup_type(sym, key)
+    set_named(s2, ['b', 'B', 'Width', 'width'], b * FT)
+    set_named(s2, ['h', 'H', 'Depth', 'depth', 'd'], d * FT)
+    if not s2.IsActive:
+        s2.Activate()
+    SYM[key] = s2
+    return s2
+if col_sym is None:
+    note('no structural column family loaded - columns skipped')
+else:
+    for c in DATA['columns']:
+        try:
+            lv = LV[c['level']]
+            fi = doc.Create.NewFamilyInstance(XYZm(c['x'], c['y'], 0) + XYZ(0, 0, lv.Elevation), sized(col_sym, c['b'], c['d'], 'Yotha C '), lv, StructuralType.Column)
+            set_param(fi, BuiltInParameter.FAMILY_BASE_LEVEL_PARAM, lv.Id)
+            set_param(fi, BuiltInParameter.FAMILY_TOP_LEVEL_PARAM, lv.Id)
+            set_param(fi, BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM, c['h'] * FT)
+            if abs(c['rot']) > 1e-6:
+                ax = Line.CreateBound(XYZm(c['x'], c['y'], 0), XYZm(c['x'], c['y'], 1))
+                ElementTransformUtils.RotateElement(doc, fi.Id, ax, math.radians(c['rot']))
+        except Exception as ex:
+            note('column: ' + str(ex))
+if beam_sym is None:
+    note('no structural framing family loaded - beams skipped')
+else:
+    for b in DATA['beams']:
+        try:
+            lv = level_at(b['top'] - 0.001)
+            ln = Line.CreateBound(XYZm(b['a'][0], b['a'][1], b['top']), XYZm(b['b'][0], b['b'][1], b['top']))
+            doc.Create.NewFamilyInstance(ln, sized(beam_sym, b['w'], b['d'], 'Yotha S ' if b['steel'] else 'Yotha B '), lv, StructuralType.Beam)
+        except Exception as ex:
+            note('beam: ' + str(ex))
+# ---------- doors & windows hosted in the new walls
+door_sym = first(BuiltInCategory.OST_Doors, False)
+win_sym = first(BuiltInCategory.OST_Windows, False)
+OPS = {}
+def op_type(sym, kind, w, h):
+    key = 'Yotha ' + kind + ' ' + str(int(round(w * 1000))) + 'x' + str(int(round(h * 1000)))
+    if key in OPS:
+        return OPS[key]
+    s2 = dup_type(sym, key)
+    if kind == 'D':
+        set_param(s2, BuiltInParameter.DOOR_WIDTH, w * FT); set_param(s2, BuiltInParameter.DOOR_HEIGHT, h * FT)
+    else:
+        set_param(s2, BuiltInParameter.WINDOW_WIDTH, w * FT); set_param(s2, BuiltInParameter.WINDOW_HEIGHT, h * FT)
+    set_named(s2, ['Width', 'Rough Width'], w * FT); set_named(s2, ['Height', 'Rough Height'], h * FT)
+    if not s2.IsActive:
+        s2.Activate()
+    OPS[key] = s2
+    return s2
+doc.Regenerate()
+for o in DATA['openings']:
+    try:
+        host = WALLS.get(o['host'])
+        sym = door_sym if o['type'] == 'door' else win_sym
+        if host is None or sym is None:
+            continue
+        lv = doc.GetElement(host.LevelId)
+        pt = XYZm(o['x'], o['y'], 0) + XYZ(0, 0, lv.Elevation + o['sill'] * FT)
+        fi = doc.Create.NewFamilyInstance(pt, op_type(sym, 'D' if o['type'] == 'door' else 'W', o['w'], o['h']), host, lv, StructuralType.NonStructural)
+        if o['type'] == 'window':
+            set_param(fi, BuiltInParameter.INSTANCE_SILL_HEIGHT_PARAM, o['sill'] * FT)
+    except Exception as ex:
+        note('opening: ' + str(ex))
+# ---------- roofs: footprint roofs with slope-defining edges, overhang and pitch
+roof_type = first(RoofType, True)
+for r in DATA['roofs']:
+    try:
+        lv = level_at(r['base'])
+        ca = CurveArray()
+        pts = [XYZm(p[0], p[1], 0) + XYZ(0, 0, lv.Elevation) for p in r['pts']]
+        for i in range(len(pts)):
+            ca.Append(Line.CreateBound(pts[i], pts[(i + 1) % len(pts)]))
+        mca = None
+        try:
+            ref = clr.Reference[ModelCurveArray]()
+            roof = doc.Create.NewFootPrintRoof(ca, lv, roof_type, ref)
+            mca = ref.Value
+        except Exception:
+            res = doc.Create.NewFootPrintRoof(ca, lv, roof_type, None)
+            roof, mca = res[0], res[1]
+        set_param(roof, BuiltInParameter.ROOF_LEVEL_OFFSET_PARAM, r['base'] * FT - lv.Elevation)
+        k = 0
+        for mc in mca:
+            dslope = r['slope'][k] if k < len(r['slope']) else True
+            roof.set_DefinesSlope(mc, bool(dslope))
+            if dslope:
+                roof.set_SlopeAngle(mc, math.tan(math.radians(r['pitch'])))
+            try:
+                roof.set_Overhang(mc, r['over'] * FT)
+            except Exception:
+                pass
+            k += 1
+    except Exception as ex:
+        note('roof: ' + str(ex))
+# ---------- rooms
+doc.Regenerate()
+for rm in DATA['rooms']:
+    try:
+        room = doc.Create.NewRoom(LV[rm['level']], UV(rm['x'] * FT, rm['y'] * FT))
+        room.Name = rm['name']
+    except Exception as ex:
+        note('room ' + rm['name'] + ': ' + str(ex))
+if DYN:
+    TransactionManager.Instance.TransactionTaskDone()
+else:
+    tr.Commit()
+summary = 'YothaCAD: walls {0}, floors {1}, columns {2}, beams {3}, openings {4}, roofs {5}, rooms {6}, notes {7}'.format(len(DATA['walls']), len(DATA['floors']), len(DATA['columns']), len(DATA['beams']), len(DATA['openings']), len(DATA['roofs']), len(DATA['rooms']), len(log))
+print(summary)
+for m in log:
+    print(' - ' + m)
+OUT = [summary] + log
+`.replace('@@JSON@@',json);
+  saveFile(((S.proj&&S.proj.name)||'yothacad').replace(/[\\/:*?"<>|]+/g,'_')+' Revit.py',new Blob([py],{type:'text/x-python'}));toast('ส่งออกสคริปต์ Revit แล้ว • รันด้วย pyRevit, RevitPythonShell หรือ Dynamo');return py}
 
 // ================= Boot
 readColors();buildTools();
