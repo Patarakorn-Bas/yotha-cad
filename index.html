@@ -216,7 +216,11 @@ dialog .f{grid-template-columns:1fr 150px}
 :root[data-theme="cad"] header{background:#2a2f36}:root[data-theme="cad"] .brand{color:#e4e7ea}
 @media (prefers-reduced-motion:reduce){#toast{transition:none}}
 </style>
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="yc-icon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="yc-icon-192.png">
+<link rel="apple-touch-icon" href="yc-icon-180.png">
+<meta name="theme-color" content="#1d272f">
 </head>
 <body>
 <div id="app">
@@ -4001,7 +4005,7 @@ symLibHTML=function(t){const lib=t==='elec'?ELIB:PLIB,d=D[t],G=(t==='elec'?EGRP:
   return`<h3>${t==='elec'?'อุปกรณ์ไฟฟ้า':'อุปกรณ์สุขาภิบาล'} <small style="color:var(--muted);font-weight:400">${Object.keys(lib).length} รายการ</small></h3><p class="hint">${t==='elec'?'อุปกรณ์ติดผนังจะชิดผนังให้เอง อุปกรณ์ติดเพดานวางตามระดับฝ้าของห้อง':'เลือกอุปกรณ์แล้วคลิกวาง ใช้เครื่องมือ ท่อ เพื่อเดินท่อเชื่อม'}</p>`+(t==='elec'?fieldHTML(['วงจรตั้งต้น','ckt','text','เว้นว่างแล้วจัดอัตโนมัติ'],d.ckt||'','def'):'')+
     G.map(([g,ks])=>`<h4 class="sg">${g}</h4><div class="libg">${ks.map(btn).join('')}</div>`).join('')};
 // ----- favicon from the brand mark
-try{const sv=document.querySelector('.blogo');if(sv){const l=document.createElement('link');l.rel='icon';l.type='image/svg+xml';l.href='data:image/svg+xml,'+encodeURIComponent(sv.outerHTML.replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"'));document.head.appendChild(l)}}catch(_){}
+try{const sv=document.querySelector('.blogo');if(sv&&!document.querySelector('link[rel=icon]')){const l=document.createElement('link');l.rel='icon';l.type='image/svg+xml';l.href='data:image/svg+xml,'+encodeURIComponent(sv.outerHTML.replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"'));document.head.appendChild(l)}}catch(_){}
 // ================= Boot
 {let th=null;try{th=localStorage.getItem('yothacad-theme')}catch(_){}document.documentElement.dataset.theme=th||'cad'}
 readColors();buildTools();
