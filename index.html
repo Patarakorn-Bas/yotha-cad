@@ -46,7 +46,7 @@ html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
 #updbar:not([hidden]){display:flex}
 body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "IBM Plex Sans Thai",system-ui,"Noto Sans Thai",sans-serif;overflow:hidden}
 button,input,select{font:inherit;color:inherit}
-#app{height:100%;display:grid;grid-template-rows:auto 1fr auto}
+#app{height:100%;display:grid;grid-template-rows:auto auto 1fr auto}
 header{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;padding:6px 10px;background:var(--panel);border-bottom:1px solid var(--line);white-space:nowrap}
 header>*{flex:none}header>.sp{flex:1 1 0}header .seg{flex:none;overflow:visible}header .seg button:first-child{border-radius:5px 0 0 5px}header .seg button:last-child{border-radius:0 5px 5px 0}
 @media(max-width:900px){header .seg button{padding:5px 8px}#projB{max-width:150px!important}}
@@ -204,6 +204,25 @@ dialog .f{grid-template-columns:1fr 150px}
   #cmd{width:120px}
   #coord{min-width:120px}
 }
+
+#app>#tools{display:flex;flex-direction:column;width:auto;border-right:0;border-top:0;border-bottom:1px solid var(--line);padding:0;overflow:visible;order:0;background:var(--panel);grid-template-columns:none}
+#tools .rtabs{display:flex;gap:1px;padding:0 6px;background:var(--bg);border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+#tools .rtab{border:0;background:none;padding:5px 14px 6px;font:inherit;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+#tools .rtab:hover{color:var(--ink)}#tools .rtab.on{color:var(--ink);border-bottom-color:var(--acc);background:var(--panel)}#tools .rfill{flex:1}#tools .rmin{font-size:11px}
+#tools .rbody{display:flex;align-items:stretch;gap:2px;padding:4px 8px;overflow-x:auto;scrollbar-width:thin}
+#tools.rcol .rbody{display:none}
+#app>#tools .tool{min-width:60px;flex:none;padding:4px 6px 3px;font-size:11px;border-radius:4px;flex-direction:column;gap:2px;grid-column:auto}
+#app>#tools .tool svg{width:24px;height:24px;stroke-width:1.5}
+#app>#tools .tool kbd{font:10px ui-monospace,Consolas,monospace;color:var(--muted);opacity:.7}
+#app>#tools .tool.on kbd{color:inherit}
+#app>#tools .tool.rh{display:none}#tools .rsep{width:1px;background:var(--line);margin:4px 6px;flex:none}#tools .tgrp{display:none}
+:root[data-theme="cad"]{
+  --bg:#1f2329;--panel:#2a2f36;--panel2:#343a42;--line:#3f4650;--ink:#e4e7ea;--muted:#9ba4ad;
+  --acc:#3d9be9;--accfill:#2f7bc4;--accink:#ffffff;--sel:#ff9b3d;
+  --cv-bg:#212830;--cv-grid:#262e37;--cv-grid2:#323c47;--cv-wall:#eef1f3;--cv-col:#b5bec6;--cv-beam:#5cb3e6;
+  --cv-slab:rgba(150,170,185,.10);--cv-slabline:#6c7a86;--cv-gridline:#e86a5c;--cv-dim:#7fd39d;--cv-line:#dce2e7;
+  --cv-door:#e0aa70;--cv-win:#6cc6f0;--cv-under:rgba(220,230,235,.18);--cv-room:rgba(255,255,255,.025);--cv-roof:#ec9474;--cv-foot:#b9a3ee;--v3-bg:#3a414a;color-scheme:dark}
+:root[data-theme="cad"] header{background:#2a2f36}:root[data-theme="cad"] .brand{color:#e4e7ea}
 @media (prefers-reduced-motion:reduce){#toast{transition:none}}
 </style>
 </head>
@@ -295,7 +314,7 @@ dialog .f{grid-template-columns:1fr 150px}
   <hr>
   <button data-m="sample">โครงการใหม่จากบ้านตัวอย่าง</button>
   <button data-m="new">โครงการใหม่</button>
-  <button data-m="theme">สลับโหมดสว่าง/มืด</button>
+  <button data-m="theme">สลับธีม (CAD / สว่าง / มืด)</button>
 </div>
 <input type="file" id="fileIn" accept=".json,application/json">
 <input type="file" id="rbIn" accept=".json,application/json" style="display:none">
@@ -948,6 +967,7 @@ function draw2(){WOFF.clear();applyFont();g.setTransform(DPR,0,0,DPR,0,0);g.fill
   ORDER.forEach(t=>{if(t!=='roof')drawT(t)});drawT('roof');
   if((PRINT&&PRINT!=='roofs'&&!ENLV)||(!PRINT&&!(S.viewopt&&S.viewopt.adim===false)))drawGridDims(L);
   if(PRINT){drawTags(L);if(PRINT==='roofs')drawRoofLabels(L);return}
+  if(DISC==='struct'&&!(S.viewopt&&S.viewopt.stag==='0'))drawTags(L.filter(e=>!discLocked(e)&&e.type!=='door'&&e.type!=='window'));
   L.filter(e=>sel.has(e.id)).forEach(e=>drawAny(e,'s'));
   if(T.name==='select'&&sel.size&&sel.size<=80){g.fillStyle=C['accfill'];g.strokeStyle=C['ink'];g.lineWidth=1;gripsAll().forEach(gp=>{const s=ws(gp.p);g.fillRect(s.x-4,s.y-4,8,8);g.strokeRect(s.x-4,s.y-4,8,8)})}
   drawPreview();
@@ -1098,13 +1118,11 @@ const TOOLS=[
  ['measure','วัดระยะ','di','<path d="M3 17L17 3l4 4L7 21z"/><path d="M7 13l2 2M10 10l2 2M13 7l2 2"/>','แก้ไข']];
 const NEEDSEL=['move','copy','rotate','mirror','scale','array'];
 const TNAME=Object.fromEntries(TOOLS.map(t=>[t[0],t[1]]));
-function buildTools(){let h='',grp=null;TOOLS.forEach(t=>{if(t[4]!==grp){grp=t[4];if(grp)h+=`<div class="tgrp" data-grp="${grp}">${grp}</div>`}
-    h+=`<button class="tool${t[0]==='select'?' full':''}" data-grp="${t[4]}" data-tool="${t[0]}" title="${t[1]} — พิมพ์ ${t[2]}"><svg viewBox="0 0 24 24">${t[3]}</svg>${t[1]}</button>`});
-  $('#tools').innerHTML=h;$('#tools').addEventListener('click',e=>{const b=e.target.closest('.tool');if(b)setTool(b.dataset.tool)})}
+
 const isSelecting=()=>T.name==='select'||T.phase==='pick';
 function setTool(n){T={name:n,pts:[],phase:null,ref:null,meas:null};
   if(NEEDSEL.includes(n))T.phase=sel.size?'base':'pick';else if(n!=='select')sel.clear();
-  document.querySelectorAll('.tool').forEach(b=>b.classList.toggle('on',b.dataset.tool===n));
+  document.querySelectorAll('.tool').forEach(b=>b.classList.toggle('on',b.dataset.tool===n));{const tt=TOOLS.find(t=>t[0]===n);if(tt&&tt[4]&&tt[4]!==RTAB&&typeof showRTab==='function')showRTab(tt[4])}
   cv2.style.cursor=isSelecting()?'default':'crosshair';tab='props';setTab('props');updatePrompt();draw2();dirty3=true;req3()}
 function updatePrompt(){const t=T.name,n=T.pts.length;let s='';
   const L='คลิกจุดถัดไป หรือพิมพ์ระยะ เช่น 4, 3,2 หรือ 5<90 • Esc จบ';
@@ -1145,7 +1163,7 @@ function updatePrompt(){const t=T.name,n=T.pts.length;let s='';
     case 'measure':s=T.meas?T.meas.txt:(n?'คลิกจุดที่สอง':'วัดระยะ: คลิกจุดแรก');break}
   $('#prompt').textContent=s}
 
-function addEl(e){mutate(()=>{S.els.push(e)})}
+function addEl(e){if(['text','line','pline','dim','circle','arc'].includes(e.type)&&DISC==='struct')e.disc='struct';mutate(()=>{S.els.push(e)})}
 const rectFrom=(a,p)=>[cp(a),{x:p.x,y:a.y},cp(p),{x:a.x,y:p.y}];
 function click2(p){const t=T.name,P=T.pts;
   if(t==='select')return;
@@ -1389,8 +1407,8 @@ const FIELDS={
   rmem:[['ชนิดชิ้นส่วน','k','sel',RMK],['หน้าตัด','sec','sel',SECOPT],['ระดับปลายเริ่ม (ม.)','za'],['ระดับปลายสุด (ม.)','zb'],['ความยาวในแปลน (ม.)','_len']],
   offset:[['ระยะขนาน (ม.)','d']],mirror:[['เก็บต้นฉบับไว้','keep','sel',YN]]};
 const TEXTK=['rfin','rct','rch','hi','toRoof','bm','bk','zt','z0','z1','zb','steps','canopy','sides','rc','cc2','aux','wm','wco','wci','ll','zones','mode2','stk','smat','rail','ld','turn','split','ang','fas','fasc','gab','gabc','cap','k','sec','zmode','ct','ch','cc','sof','ckt','sys','dia','j','sk','sdir','st','fm','fc','gl','fin','mat','color','frame','ps','bub','snapw','tag','label','shape','mode','flip','side','name','kind','ridge','piles','pshape','at','s','keep','base','h'];
-function getF(e,k){if(e.type==='room'&&RPROX.includes(k))return roomZoneGet(e,k);if(k==='_len')return r3(dist(e.a,e.b));if(k==='_px')return r3(e.p.x);if(k==='_py')return r3(e.p.y);if(k==='closed')return String(!!e.closed);return e[k]??''}
-function setF(e,k,v){if(e.type==='room'&&RPROX.includes(k)){roomZoneSet(e,k,v);return}if(k==='_len'){const L=parseFloat(v);if(!(L>0))return;const nb=add(e.a,mul(nrm(sub(e.b,e.a)),L));e.type==='wall'?setSegEnds(e,e.a,nb):(e.b=nb);return}
+function getF(e,k){if(k==='_mark')return markOf(markMaps(),e);if(e.type==='room'&&RPROX.includes(k))return roomZoneGet(e,k);if(k==='_len')return r3(dist(e.a,e.b));if(k==='_px')return r3(e.p.x);if(k==='_py')return r3(e.p.y);if(k==='closed')return String(!!e.closed);return e[k]??''}
+function setF(e,k,v){if(k==='_mark'){const raw=markMaps()[e.type+'|'+MK[e.type](e)]||'',key=e.type+'|'+raw,t=String(v||'').trim();S.malias=S.malias||{};if(!t||t===raw)delete S.malias[key];else S.malias[key]=t;return}if(e.type==='room'&&RPROX.includes(k)){roomZoneSet(e,k,v);return}if(k==='_len'){const L=parseFloat(v);if(!(L>0))return;const nb=add(e.a,mul(nrm(sub(e.b,e.a)),L));e.type==='wall'?setSegEnds(e,e.a,nb):(e.b=nb);return}
   if(k==='_px'){e.p.x=+v;return}if(k==='_py'){e.p.y=+v;return}if(k==='closed'){e.closed=v==='true';return}
   if(k==='st'&&(e.type==='door'||e.type==='window')){const L=OPLIB[v];if(L){Object.assign(e,{st:v,w:L.w,h:L.h,fm:L.fm,fc:L.fc,gl:L.gl||'clear'});if(e.type==='window')e.sill=L.sill;const w=hostOf(e);if(w){const Lw=dist(w.a,w.b);e.w=Math.min(e.w,Lw);e.pos=r3(Math.max(e.w/2,Math.min(Lw-e.w/2,e.pos)))}}return}
   if(k==='mat'&&e.type==='roof'){const o=ROOFMAT[e.mat],n=ROOFMAT[v];if(n&&(!e.color||(o&&e.color===o.c)))e.color=n.c;e.mat=v;return}
@@ -1443,7 +1461,7 @@ function renderSide(){const P=$('#pane');if(isSheet()&&tab==='props'){renderShee
   else if(ids.length===1&&T.name==='select'){const e=byId(ids[0]);h=`<h3>${TYPE_NAME[e.type]}</h3>`+(FIELDS[e.type]||[]).filter(f=>f[1]!=='mode'&&f[1]!=='zones').map(f=>fieldHTML(f,getF(e,f[1]),'el')).join('')+infoFor(e);
     if(e.type==='roof')h+=roofSecHTML(e);
     h+=`<div class="acts"><button class="btn" data-a="del">ลบ</button>${e.type!=='grid'?'<button class="btn" data-a="dup">ทำสำเนา</button>':''}${e.type==='column'?'<button class="btn" data-a="foot">สร้างฐานรากใต้เสา</button>':''}${e.type==='roof'?'<button class="btn" data-a="rwall">ต่อผนังใต้หลังคานี้ขึ้นชนหลังคา</button>':''}${e.type==='roof'?'<button class="btn" data-a="rup">▲ ยกหลังคา 0.10</button><button class="btn" data-a="rdn">▼ ลดหลังคา 0.10</button><button class="btn" data-a="rplate">เปลี่ยนคานรับหลังคาเป็นอะเสเหล็ก</button>':''}${e.type==='roof'?'<button class="btn" data-a="flip">สลับแนวสัน</button>'+(e.frame!=='manual'&&e.frame!=='none'&&e.kind!=='flat'?'<button class="btn pri" data-a="rconv">แปลงโครงเป็นชิ้นที่แก้ไขได้</button>':''):''}${e.type==='section'?'<button class="btn pri" data-a="opensec">เปิดดูรูปตัดนี้</button>':''}${e.type==='room'?'<button class="btn" data-a="selflr">แก้พื้นผิวในห้องนี้</button><button class="btn" data-a="selclg">แก้ฝ้าในห้องนี้</button>':''}${e.type==='grid'?'<span style="display:flex;gap:4px;align-items:center"><input id="auxD" type="number" step="0.05" value="1.0" style="width:64px" aria-label="ระยะกริดเสริม"><button class="btn" data-a="gaux">+ กริดเสริม</button><button class="btn" data-a="gauxm">− ด้านตรงข้าม</button></span><button class="btn" data-a="gext">ยืด +0.5 ม.</button><button class="btn" data-a="gshr">หด −0.5 ม.</button><button class="btn pri" data-a="gfit">จัดกริดทั้งหมดให้พ้นแบบ</button>':''}</div>`;
-    if(RF[e.type]){const R0=rebarOf(e);h+=`<h3 style="margin-top:16px">เหล็กเสริม — ใช้กับทุกชิ้น ${esc(rmark(e))}</h3>`+RF[e.type].map(([lab,k,ty])=>ty==='bar'?`<div class="f"><label>${lab}</label><select data-rk="${k}">${BARS.map(b=>`<option${R0[k]===b?' selected':''}>${b}</option>`).join('')}</select></div>`:`<div class="f"><label>${lab}</label><input type="number" step="0.01" data-rk="${k}" value="${R0[k]}"></div>`).join('')+(S.rebar&&S.rebar[rkey(e)]&&S.rebar[rkey(e)].src?`<p class="hint">ค่าจาก ${esc(S.rebar[rkey(e)].src)}</p>`:'')}
+    if(RF[e.type]){const R0=rebarOf(e);h+=`<h3 style="margin-top:16px">เหล็กเสริม — ใช้กับทุกชิ้น ${esc(rmark(e))}</h3>`+RF[e.type].map(([lab,k,ty])=>ty==='bar'?`<div class="f"><label>${lab}</label><select data-rk="${k}">${BARS.map(b=>`<option${R0[k]===b?' selected':''}>${b}</option>`).join('')}</select></div>`:`<div class="f"><label>${lab}</label>${ty==='text'?`<input type="text" data-rt="1" data-rk="${k}" value="${esc(R0[k]||'')}" placeholder="อัตโนมัติ">`:`<input type="number" step="0.01" data-rk="${k}" value="${R0[k]}">`}</div>`).join('')+(S.rebar&&S.rebar[rkey(e)]&&S.rebar[rkey(e)].src?`<p class="hint">ค่าจาก ${esc(S.rebar[rkey(e)].src)}</p>`:'')}
     if(e.type!=='grid'&&!e.host&&S.levels.length>1)h+=`<div class="acts"><select id="cpLv" class="lv">${levelOpts(e.level)}</select><button class="btn" data-a="cplv">คัดลอกไปชั้นนี้</button></div>`}
   else if(ids.length>1||(ids.length&&T.name!=='select'&&NEEDSEL.includes(T.name))){const cnt={};ids.forEach(id=>{const t=byId(id).type;cnt[t]=(cnt[t]||0)+1});
     h=`<h3>เลือก ${ids.length} ชิ้น</h3><p class="hint">${Object.entries(cnt).map(([k,v])=>TYPE_NAME[k]+' '+v).join(', ')}</p>
@@ -1471,7 +1489,7 @@ function renderSide(){const P=$('#pane');if(isSheet()&&tab==='props'){renderShee
     if(inp.dataset.src==='def'){const d=D[T.name];if(TEXTK.includes(k)||k==='closed')d[k]=inp.value;else{const n=parseFloat(inp.value);if(isFinite(n)&&(n>0||k==='rot'||k==='z'||k==='za'||k==='zb'))d[k]=n}if(T.name==='rmem'&&k==='k')d.sec=DEFSEC[(SECLIB[d.sec]||{}).wood?'wood':'steel'][d.k]||d.sec;if(T.name==='rmem'&&(k==='zmode'||k==='k'))renderSide();updatePrompt();draw2();return}
     const e=byId(ids[0]);if(!e)return;mutate(()=>setF(e,k,inp.value))}));
   P.querySelectorAll('[data-ak]').forEach(inp=>inp.addEventListener('change',()=>{const k=inp.dataset.ak;D.array[k]=k==='mode'?inp.value:(+inp.value||0);if(k==='mode'){renderSide();updatePrompt()}draw2()}));
-  P.querySelectorAll('[data-rk]').forEach(inp=>inp.onchange=()=>{const e=byId(ids[0]);if(!e)return;const k=rkey(e),f=inp.dataset.rk,v=inp.tagName==='SELECT'?inp.value:parseFloat(inp.value);if(inp.tagName!=='SELECT'&&!(v>0))return;mutate(()=>{S.rebar=S.rebar||{};S.rebar[k]={...(S.rebar[k]||{}),[f]:v}})});
+  P.querySelectorAll('[data-rk]').forEach(inp=>inp.onchange=()=>{const e=byId(ids[0]);if(!e)return;const k=rkey(e),f=inp.dataset.rk,v=inp.tagName==='SELECT'||inp.dataset.rt?inp.value.trim():parseFloat(inp.value);if(inp.tagName!=='SELECT'&&!inp.dataset.rt&&!(v>0))return;mutate(()=>{S.rebar=S.rebar||{};S.rebar[k]={...(S.rebar[k]||{}),[f]:v}})});
   P.querySelectorAll('[data-op]').forEach(b=>b.onclick=()=>{const k=b.dataset.op,L=OPLIB[k],d=D[T.name];Object.assign(d,{st:k,w:L.w,h:L.h,fm:L.fm,fc:L.fc,gl:L.gl||'clear'});if(L.sill!=null)d.sill=L.sill;renderSide();draw2()});
   P.querySelectorAll('[data-stk]').forEach(b=>b.onclick=()=>{D.stair.stk=b.dataset.stk;renderSide();updatePrompt();draw2()});
   P.querySelectorAll('[data-rsec]').forEach(sl=>sl.onchange=()=>{const e=byId(ids[0]);if(!e)return;mutate(()=>{e.secs={...(e.secs||{}),[sl.dataset.rsec]:sl.value}})});
@@ -1803,7 +1821,7 @@ menu.onclick=e=>{const b=e.target.closest('button');if(!b)return;menu.style.disp
   if(m==='open')fileIn.click();if(m==='dxf')exportDXF();if(m==='ifc')exportIFC();if(m==='rvt')exportRevitPy();if(m==='png2')exportPNG2();if(m==='png3')exportPNG3();if(m==='png3hd')exportPNG3('hd');if(m==='png3k2')exportPNG3('k2');if(m==='png3k4')exportPNG3('k4');if(m==='csv')exportCSV();if(m==='xct')openExchange();if(m==='rbin')$('#rbIn').click();
   if(m==='sample')newProject('บ้านตัวอย่าง 2 ชั้น',true);if(m==='proj')openProjects();
   if(m==='new')newProject('โครงการใหม่ '+(pIndex().length+1),false);
-  if(m==='theme'){const r=document.documentElement;const dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;r.dataset.theme=dark?'light':'dark';readColors();draw2();req3()}};
+  if(m==='theme'){const r=document.documentElement,order=['cad','light','dark'],c0=r.dataset.theme||'light',nx=order[(order.indexOf(c0)+1)%3];r.dataset.theme=nx;try{localStorage.setItem('yothacad-theme',nx)}catch(_){}readColors();draw2();dirty3=true;req3();toast('ธีม: '+({cad:'แบบ CAD (พื้นมืด)',light:'สว่าง',dark:'มืด'})[nx])}};
 
 // ================= View mode & misc
 function setView(v){$('#views').className=v;document.querySelectorAll('#viewSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));requestAnimationFrame(()=>{resize2();resize3();if(v==='msec'){resizeS();fitS()}else if(v==='msheet'){resizeH();fitH()}else req3();renderSide()})}
@@ -1869,15 +1887,15 @@ function genSection(sec){WOFF.clear();const F=secFrame(sec),dep=Math.max(0.5,+se
   beyond.sort((a,b)=>b.key-a.key);let s0=1e9,s1=-1e9,z0=1e9,z1=-1e9;
   [...beyond,...cut].forEach(p=>(p.pts||p.seg).forEach(q=>{s0=Math.min(s0,q.x);s1=Math.max(s1,q.x);z0=Math.min(z0,q.y);z1=Math.max(z1,q.y)}));
   if(s0>s1){s0=0;s1=10;z0=0;z1=3}if(sec.kind==='elev')z0=Math.max(z0,GROUND);return{F,sec,beyond,cut,ext:{s0,s1,z0,z1}}}
-function secFill(m,cutp){if(cutp)return{fin:'#cfc8bc',frame:'#4c5660',conc:C['cv-wall'],wall:C['cv-col'],door:C['cv-door'],glass:C['cv-win'],furn:C['cv-bg'],roof:C['cv-roof']}[m]||C['cv-wall'];
+function secFill(m,cutp){if(cutp)return{fin:'#cfc8bc',frame:'#4c5660',conc:C===PC?'#e2e2de':'rgba(160,170,180,.45)',wall:C===PC?'#ffffff':'rgba(210,215,220,.18)',door:C['cv-door'],glass:C['cv-win'],furn:C['cv-bg'],roof:C['cv-roof']}[m]||C['cv-wall'];
   return{glass:'rgba(98,170,215,.28)',door:'rgba(160,110,60,.22)',roof:'rgba(160,80,55,.22)'}[m]||C['cv-bg']}
 function gridDims(x,R,tf,GS,zb){if(GS.length<2)return;GS.sort((a,b)=>a.s-b.s);const y=zb-0.9,y2=zb-1.5;const tick=(p)=>{x.beginPath();x.moveTo(p.x-4,p.y+4);x.lineTo(p.x+4,p.y-4);x.stroke()};x.save();x.strokeStyle=C['cv-dim'];x.fillStyle=C['cv-dim'];x.lineWidth=0.8;
   const ln=(yy)=>{const a=tf({x:GS[0].s,y:yy}),b=tf({x:GS[GS.length-1].s,y:yy});x.beginPath();x.moveTo(a.x,a.y);x.lineTo(b.x,b.y);x.stroke()};ln(y);ln(y2);
   GS.forEach(g2=>{const a=tf({x:g2.s,y}),b=tf({x:g2.s,y:y2});tick(a);tick(b);x.beginPath();x.moveTo(a.x,a.y-6);x.lineTo(b.x,b.y+6);x.stroke()});
-  x.font='500 11.5px "IBM Plex Sans Thai",sans-serif';x.textAlign='center';x.textBaseline='bottom';for(let i=0;i<GS.length-1;i++){const m=tf({x:(GS[i].s+GS[i+1].s)/2,y});x.fillText(f2(GS[i+1].s-GS[i].s),m.x,m.y-3)}
+  x.font=FONT('500',11.5);x.textAlign='center';x.textBaseline='bottom';for(let i=0;i<GS.length-1;i++){const m=tf({x:(GS[i].s+GS[i+1].s)/2,y});x.fillText(f2(GS[i+1].s-GS[i].s),m.x,m.y-3)}
   const m=tf({x:(GS[0].s+GS[GS.length-1].s)/2,y:y2});x.fillText(f2(GS[GS.length-1].s-GS[0].s),m.x,m.y-3);x.restore()}
 function renderSec(x,R,tf,sc,noTitle,anno){const{ext}=R,elev=R.sec.kind==='elev';const path=(pts,close=true)=>{x.beginPath();pts.forEach((p,i)=>{const q=tf(p);i?x.lineTo(q.x,q.y):x.moveTo(q.x,q.y)});if(close)x.closePath()};
-  const T_=(s,p,o={})=>{x.save();x.font=(o.w||'500')+' '+(o.size||12)+'px "IBM Plex Sans Thai",system-ui,sans-serif';x.fillStyle=o.c||C['ink'];x.textAlign=o.al||'center';x.textBaseline=o.bl||'middle';if(o.rot){x.translate(p.x,p.y);x.rotate(o.rot);x.fillText(s,0,0)}else x.fillText(s,p.x,p.y);x.restore()};
+  const T_=(s,p,o={})=>{x.save();x.font=FONT(o.w||'500',o.size||12);x.fillStyle=o.c||C['ink'];x.textAlign=o.al||'center';x.textBaseline=o.bl||'middle';if(o.rot){x.translate(p.x,p.y);x.rotate(o.rot);x.fillText(s,0,0)}else x.fillText(s,p.x,p.y);x.restore()};
   const s0=ext.s0-2,s1=ext.s1+2,zb=elev?GROUND-0.8:Math.min(ext.z0,GROUND)-0.8;
   const earth=()=>{path([{x:s0,y:GROUND},{x:s1,y:GROUND},{x:s1,y:zb},{x:s0,y:zb}]);x.fillStyle=C['cv-bg'];x.fill();x.fillStyle=C['cv-slab'];x.fill();x.save();x.clip();
     const a=tf({x:s0,y:GROUND}),b=tf({x:s1,y:zb});x.strokeStyle=C['muted'];x.globalAlpha=.3;x.lineWidth=0.7;x.beginPath();for(let X=a.x-(b.y-a.y);X<b.x;X+=10){x.moveTo(X,a.y);x.lineTo(X+(b.y-a.y),b.y)}x.stroke();x.restore()};
@@ -1890,7 +1908,7 @@ function renderSec(x,R,tf,sc,noTitle,anno){const{ext}=R,elev=R.sec.kind==='elev'
   if(elev)x.restore();
   if(elev)earth();
   if(!anno)R.cut.forEach(c=>{if(c.seg){path(c.seg,false);x.strokeStyle=C['cv-roof'];x.lineWidth=Math.max(2.5,0.12*sc);x.lineCap='round';x.stroke();x.lineCap='butt';return}
-    path(c.pts);x.fillStyle=secFill(c.m,true);x.fill();x.strokeStyle=C['ink'];x.lineWidth=c.m==='furn'?0.7:1.3;x.stroke()});
+    path(c.pts);x.fillStyle=secFill(c.m,true);x.fill();secHatch(x,c.pts.map(tf),c.m,sc);path(c.pts);x.strokeStyle=C['ink'];x.lineWidth=c.m==='furn'?0.7:1.3;x.stroke()});
   x.strokeStyle=C['ink'];x.lineWidth=2.2;path([{x:s0,y:GROUND},{x:s1,y:GROUND}],false);x.stroke();
   const zs=S.levels.map(l=>({n:l.name,z:elevOf(l.id)}));const lt=S.levels[S.levels.length-1];zs.push({n:'หลังคา/บนสุด',z:elevOf(lt.id)+(+lt.height)});
   zs.forEach(L=>{const a=tf({x:s0,y:L.z}),b=tf({x:s1+1,y:L.z});x.setLineDash([6,4]);x.strokeStyle=C['muted'];x.lineWidth=0.8;x.beginPath();x.moveTo(a.x,a.y);x.lineTo(b.x,b.y);x.stroke();x.setLineDash([]);
@@ -1903,7 +1921,8 @@ function renderSec(x,R,tf,sc,noTitle,anno){const{ext}=R,elev=R.sec.kind==='elev'
     const a=tf({x:s,y:zb}),b=tf({x:s,y:ext.z1+0.8});x.setLineDash([14,4,2,4]);x.strokeStyle=C['cv-gridline'];x.lineWidth=0.8;x.beginPath();x.moveTo(a.x,a.y);x.lineTo(b.x,b.y);x.stroke();x.setLineDash([]);
     x.beginPath();x.arc(b.x,b.y-11,11,0,7);x.fillStyle=C['cv-bg'];x.fill();x.stroke();T_(gd.label||'',{x:b.x,y:b.y-11},{c:C['cv-gridline'],size:11,w:'600'})});
   gridDims(x,R,tf,GS,zb);
-  if(noTitle)return;const tp=tf({x:(ext.s0+ext.s1)/2,y:zb});T_(R.sec.name,{x:tp.x,y:tp.y+26},{size:16,w:'600'});x.strokeStyle=C['ink'];x.lineWidth=1;x.beginPath();x.moveTo(tp.x-70,tp.y+40);x.lineTo(tp.x+70,tp.y+40);x.stroke()}
+  if(!elev&&!(S.viewopt&&S.viewopt.secanno==='0'))secAnno(x,R,tf,sc,T_);
+  if(noTitle)return;const tp=tf({x:(ext.s0+ext.s1)/2,y:zb-1.9});T_(R.sec.name,{x:tp.x,y:tp.y+26},{size:16,w:'600'});x.strokeStyle=C['ink'];x.lineWidth=1;x.beginPath();x.moveTo(tp.x-70,tp.y+40);x.lineTo(tp.x+70,tp.y+40);x.stroke()}
 const sSS=p=>({x:(p.x-vS.x)*vS.s+WS/2,y:HS/2-(p.y-vS.y)*vS.s});
 function syncSecSel(){const L=sections();if(!L.some(e=>e.id===secCur))secCur=L.length?L[0].id:null;const s=$('#secSel');
   s.innerHTML=L.map(e=>`<option value="${e.id}"${e.id===secCur?' selected':''}>${esc(e.name)}</option>`).join('');s.style.display=L.length?'':'none';$('#sEmpty').style.display=L.length?'none':'flex'}
@@ -1999,28 +2018,29 @@ const curSheet=()=>(S.sheets||[]).find(s=>s.id===shCur)||(S.sheets||[])[0]||null
 function drawArea(sh){const[W,H]=PAPER[sh.size]||PAPER.A3,md=sh.tbm||'full';if(md!=='full'){const m=md==='none'?8:14;return{W,H,tb:0,md,x0:md==='none'?m:29,y0:m,x1:W-m,y1:H-m}}const tb=(S.viewopt||{}).tbw==='wide'?Math.max(60,W*0.165):Math.max(46,W*0.118);return{W,H,tb,md,x0:31,y0:15,x1:W-10-tb-6,y1:H-15}}
 function genSecCached(sec){const k=sec.id+'|'+modelVer+'|'+JSON.stringify([sec.a,sec.b,sec.flip,sec.depth]);if(!SECC.has(k)){if(SECC.size>40)SECC.clear();SECC.set(k,genSection(sec))}return SECC.get(k)}
 function structEls(lid,roofs){const i=lvIdx(lid),below=i>0?S.levels[i-1].id:null;return S.els.filter(e=>{if(e.type==='grid')return true;
-  if(roofs)return e.level===lid&&(e.type==='column'||e.type==='roof'||e.type==='rmem'||(e.type==='beam'&&e.bm!=='steel'&&e.at!=='floor'));
+  if(roofs)return e.level===lid&&((e.disc==='struct'&&['text','line','pline','dim','circle','arc'].includes(e.type))||e.type==='column'||e.type==='roof'||e.type==='rmem'||(e.type==='beam'&&e.bm!=='steel'&&e.at!=='floor'));
   if(e.level===lid&&['column','footing','slab','dim'].includes(e.type))return true;
+  if(e.level===lid&&e.disc==='struct'&&['text','line','pline','circle','arc'].includes(e.type))return true;
   if(e.type==='beam')return(e.level===lid&&e.at==='floor')||(!!below&&e.level===below&&e.at!=='floor');return false})}
 function planList(lid,mode){if(mode==='rcp')return S.els.filter(e=>e.type==='grid'||(e.level===lid&&['wall','door','window','room','clg','roof','column','elec','wire','stair','text','dim'].includes(e.type)));
   if(mode==='plumb')return S.els.filter(e=>e.type==='grid'||(e.level===lid&&(['wall','door','window','room','column','pipe','plumb','stair','text','dim'].includes(e.type)||(e.type==='furn'&&/สุขภัณฑ์|ครัว/.test((LIB[e.kind]||{}).c||'')))));
   const dims=S.els.filter(e=>e.type==='dim'&&e.level===lid);
   if(mode==='fdnplan')return S.els.filter(e=>e.type==='grid'||(e.level===lid&&['footing','column','dim'].includes(e.type)));
   if(mode==='struct'||mode==='roofs')return structEls(lid,mode==='roofs').filter(e=>!(mode==='struct'&&e.type==='footing')&&e.type!=='dim').concat(dims);
-  return S.els.filter(e=>(e.type==='grid'||e.level===lid||(e.type==='section'&&e.kind!=='elev'))&&!['beam','footing','elec','wire','pipe','plumb'].includes(e.type))}
+  return S.els.filter(e=>(e.type==='grid'||e.level===lid||(e.type==='section'&&e.kind!=='elev'))&&!['beam','footing','elec','wire','pipe','plumb'].includes(e.type)&&e.disc!=='struct')}
 function structTitle(lid){const L=lvl(lid);return L.kind==='roof'?'แปลนเสา คาน ชั้นคานหลังคา':'แปลนเสา คาน และพื้น'+L.name}
 const MK={door:e=>OPL(e).n+'|'+f2(e.w)+'×'+f2(e.h),window:e=>OPL(e).n+'|'+f2(e.w)+'×'+f2(e.h)+'/'+f2(e.sill),column:e=>(e.shape==='circle'?'Ø':'')+f2(e.w)+'×'+f2(e.d),beam:e=>e.bm==='steel'?'S'+(e.sec||''):f2(e.w)+'×'+f2(e.d),slab:e=>(e.sk||'cast')+'|'+f2(e.t)};
 const MP={door:'D',window:'W',column:'C',beam:'B',slab:'S'};
 function markMaps(){const M={};Object.keys(MK).forEach(t=>{[...new Set(S.els.filter(e=>e.type===t).map(MK[t]))].sort((a,b)=>(parseFloat(a.replace('Ø',''))-parseFloat(b.replace('Ø','')))||a.localeCompare(b)).forEach((k,i)=>M[t+'|'+k]=MP[t]+(i+1))});return M}
-const markOf=(M,e)=>M[e.type+'|'+MK[e.type](e)]||'';
-function drawTags(L){const M=markMaps();const tg=(p,t,round)=>{if(!t)return;const s=ws(p);g.save();g.font=FONT('600',8);const w=Math.max(15,g.measureText(t).width+8);g.fillStyle='#fff';g.strokeStyle=C['ink'];g.lineWidth=0.8;g.beginPath();
+const markOf=(M,e)=>{const r=M[e.type+'|'+MK[e.type](e)]||'';return(S.malias&&S.malias[e.type+'|'+r])||r};
+function drawTags(L){const M=markMaps();const tg=(p,t,round)=>{if(!t)return;const s=ws(p);g.save();g.font=FONT('600',8);const w=Math.max(15,g.measureText(t).width+8);g.fillStyle=C['cv-bg'];g.strokeStyle=C['ink'];g.lineWidth=0.8;g.beginPath();
     if(round)g.arc(s.x,s.y,w/2,0,7);else g.rect(s.x-w/2,s.y-6,w,12);g.fill();g.stroke();g.fillStyle=C['ink'];g.textAlign='center';g.textBaseline='middle';g.fillText(t,s.x,s.y+0.5);g.restore()};
   L.forEach(e=>{if(PRINT==='rcp'||PRINT==='plumb')return;if(PRINT==='arch'){if(e.type==='door'||e.type==='window'){const F=openingFrame(e);if(!F)return;const sd=e.type==='door'?(e.side==='1'?1:-1):1;tg(add(F.c,mul(F.n,sd*(F.w.t/2+0.34))),markOf(M,e),e.type==='door')}}
     else{const tx=(p,t,o)=>{if(!t)return;const s2=ws(p);txt(t,s2,{size:(o&&o.size)||8.5,w:'600',c:C['ink'],rot:(o&&o.rot)||0,al:(o&&o.al)||'center'})};
-      if(e.type==='column')tx(add(e.p,{x:-e.w/2-0.02,y:e.d/2+0.14}),markOf(M,e),{al:'left'});
-      if(e.type==='beam'&&PRINT!=='fdnplan'){const u=nrm(sub(e.b,e.a));let ang=-Math.atan2(u.y,u.x);if(ang>Math.PI/2)ang-=Math.PI;if(ang<-Math.PI/2)ang+=Math.PI;const n=perp(u);tx(add(lerp(e.a,e.b,.5),mul(n,e.w/2+0.13)),markOf(M,e)+(Math.abs(+e.dz||0)>0.005?'('+(e.dz>0?'+':'')+f2(+e.dz)+')':''),{rot:ang})}
-      if(e.type==='slab'){const mk=e.sk==='pc'?'PS':e.sk==='ground'?'GS':markOf(M,e);tg(centroid(e.pts),mk,true)}
-      if(e.type==='footing'&&PRINT==='fdnplan'){const fw=e.w/2,fd=e.d/2;tx(add(e.p,{x:fw+0.05,y:-fd+0.02}),e.name||'F',{al:'left'})}}})}
+      if(e.type==='column')tx(add(e.p,{x:-e.w/2-0.02,y:e.d/2+0.14}),e.tagtxt||markOf(M,e),{al:'left'});
+      if(e.type==='beam'&&PRINT!=='fdnplan'){const u=nrm(sub(e.b,e.a));let ang=-Math.atan2(u.y,u.x);if(ang>Math.PI/2)ang-=Math.PI;if(ang<-Math.PI/2)ang+=Math.PI;const n=perp(u);tx(add(lerp(e.a,e.b,.5),mul(n,e.w/2+0.13)),e.tagtxt||markOf(M,e)+(Math.abs(+e.dz||0)>0.005?'('+(e.dz>0?'+':'')+f2(+e.dz)+')':''),{rot:ang})}
+      if(e.type==='slab'){const mk=e.sk==='pc'?'PS':e.sk==='ground'?'GS':markOf(M,e);tg(centroid(e.pts),e.tagtxt||mk,true)}
+      if(e.type==='footing'&&PRINT==='fdnplan'){const fw=e.w/2,fd=e.d/2;tx(add(e.p,{x:fw+0.05,y:-fd+0.02}),e.tagtxt||e.name||'F',{al:'left'})}}})}
 function vpExt(vp){if(vp.kind==='enl'){const c=byId(vp.ref);if(!c||c.type!=='callout')return null;const B=calloutBox(c),m=0.15;return{x0:B.x0-m,x1:B.x1+m,y0:B.y0-m,y1:B.y1+m}}
   if(vp.kind==='sec'){const sec=byId(vp.ref);if(!sec||sec.type!=='section')return null;const R=genSecCached(sec),e=R.ext;return{R,x0:e.s0-3,x1:e.s1+3.6,y0:(sec.kind==='elev'?GROUND:Math.min(e.z0,GROUND))-2.2,y1:e.z1+1.6}}
   if(DRAWK.includes(vp.kind)){if(!S.levels.some(l=>l.id===vp.ref))return null;let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
@@ -2145,7 +2165,7 @@ const PCN={};function autoSheets(){Object.keys(PCN).forEach(k=>delete PCN[k]);SE
     mk('P','สัญลักษณ์และสรุปงานระบบ',[{kind:'legend',ref:'plumb',title:'สัญลักษณ์งานสุขาภิบาล'},{kind:'sched',ref:'mepq',title:'สรุปท่อและอุปกรณ์งานระบบ'}])}
   const CO=S.els.filter(e=>e.type==='callout');if(CO.length)mk('A','แบบขยาย',CO.map(c=>({kind:'enl',ref:c.id,title:c.name,scale:+c.scale||25})));
   if(S.els.some(e=>e.type==='door'||e.type==='window'))mk('A','แบบขยายประตู-หน้าต่าง',[{kind:'opel',title:'แบบขยายประตู-หน้าต่าง'}]);
-  S.sheets=out;out.forEach(layoutSheet);heroLayout(out[0]);return out}
+  S.sheets=out;out.forEach(layoutSheet);heroLayout(out[0]);{const dm=(S.viewopt||{}).detmode;if(dm&&dm!=='type')regroupDetails(dm)}return S.sheets}
 // ----- sheet view UI
 const cvH=$('#cvH'),gH=cvH.getContext('2d');let WH=1,HH=1;const vH={x:210,y:148,s:2};
 function syncShSel(){const L=S.sheets||[];if(!L.some(s=>s.id===shCur))shCur=L.length?L[0].id:null;const s=$('#shSel');s.innerHTML=L.map(x=>`<option value="${x.id}"${x.id===shCur?' selected':''}>${esc(x.no+'  '+x.title)}</option>`).join('');
@@ -2187,6 +2207,7 @@ function renderSheetSide(P){const sh=curSheet();if(!sh){P.innerHTML='<h3>แผ�
     if(vp.kind==='detail')h+=F('มาตราส่วน','scale',vp.scale||DSC[vp.ref],'sel',[[5,'1:5'],[10,'1:10'],[15,'1:15'],[20,'1:20'],[25,'1:25'],[50,'1:50']]);
     if(FIXZ(vp.kind))h+=F('ขนาดการแสดงผล (เท่า)','zf',vp.zf||1,'number')+'<p class="hint">ลากจุดสีส้มที่มุมล่างขวาของกรอบเพื่อยืดหรือย่อได้อิสระ</p>';
     if(vp.kind==='coltab'||vp.kind==='beamtab')h+=F('มาตราส่วน','scale',vp.scale||20,'sel',[[10,'1:10'],[15,'1:15'],[20,'1:20'],[25,'1:25'],[50,'1:50']]);
+    h+=F('ย้ายมุมมองนี้ไปแผ่น','mvsh','','sel',[['','— เลือกแผ่น —'],...S.sheets.filter(s=>s!==sh).map(s=>[s.id,s.no+' '+s.title]),['__new','+ สร้างแผ่นใหม่']]);
     h+=F('ป้ายชื่อรูป (เลข ชื่อ มาตราส่วน)','notitle',vp.notitle||'','sel',[['','แสดง'],['1','ซ่อน']]);
     h+=F('ขนาดตัวอักษรในมุมมองนี้ (%)','ts',vp.ts||100,'sel',[[70,'70%'],[80,'80%'],[90,'90%'],[100,'100%'],[115,'115%'],[130,'130%'],[150,'150%'],[175,'175%'],[200,'200%']]);
     if(vp.kind==='enl')h+=F('ขอบเขตแบบขยาย','ref',vp.ref,'sel',S.els.filter(e=>e.type==='callout').map(e=>[e.id,e.name]));
@@ -2196,19 +2217,19 @@ function renderSheetSide(P){const sh=curSheet();if(!sh){P.innerHTML='<h3>แผ�
     if(vp.kind==='cover')h+=F('หัวเรื่อง','ctitle',vp.ctitle??(S.proj.name||''))+F('คำบรรยายใต้หัวเรื่อง','csub',vp.csub??'')+F('ข้อความเพิ่มเติม (บรรทัดละข้อ คั่นด้วย | )','cnote',vp.cnote??'')+F('สีแถบ','accent',vp.accent||'#c8a227','color')+F('ความกว้าง (มม.)','cw',vp.cw||170,'number')+F('ความสูง (มม.)','ch',vp.ch||64,'number')+F('ขนาดตัวอักษรหัวเรื่อง (มม.)','cts',vp.cts||9,'number');
     h+=`<div class="acts"><button class="btn" data-ha="delvp">ลบมุมมอง</button><button class="btn" data-ha="layout">จัดวางแผ่นใหม่</button></div><p class="hint" style="margin-top:10px">ลากมุมมองบนแผ่นเพื่อย้าย (ขยับทีละ 2.5 มม.) • ภาพ 3D ใช้มุมมองไอโซเมตริกอัตโนมัติ</p>`}
   else{h=`<h3>แผ่น ${esc(sh.no)}</h3>`+F('เลขที่แผ่น','no',sh.no)+F('ชื่อแผ่นงาน','stitle',sh.title)+F('ขนาดกระดาษ','size',sh.size,'sel',Object.keys(PAPER).map(k=>[k,k+' แนวนอน']))+F('กรอบแผ่นงาน','tbm',sh.tbm||'full','sel',[['full','กรอบ + กรอบชื่อแบบ'],['border','เฉพาะเส้นกรอบ'],['none','ไม่มีกรอบ (หน้าปก)']])+
-    `<div class="acts" style="margin-top:8px"><button class="btn pri" data-ha="fitsheet">ขยายแบบให้พอดีกระดาษ</button></div><h4 style="margin:12px 0 4px">โลโก้และกรอบชื่อแบบ</h4><div class="f"><label>ชื่อสำนักงาน</label><input data-hp="office" value="${esc((S.proj&&S.proj.office)||'')}"></div><div class="f"><label>ที่อยู่ / โทรศัพท์</label><input data-hp="addr" value="${esc((S.proj&&S.proj.addr)||'')}"></div><div class="acts"><button class="btn" data-ha="logo">${S.proj&&S.proj.logo?'เปลี่ยนโลโก้':'ใส่โลโก้สำนักงาน'}</button>${S.proj&&S.proj.logo?'<button class="btn" data-ha="logodel">ลบโลโก้</button>':''}</div><div class="f"><label>ความกว้างกรอบชื่อแบบ</label><select data-ho="tbw"><option value="narrow"${(S.viewopt||{}).tbw!=='wide'?' selected':''}>แคบ (มาตรฐาน)</option><option value="wide"${(S.viewopt||{}).tbw==='wide'?' selected':''}>กว้าง</option></select></div><h4 style="margin:12px 0 4px">ตัวอักษรในแบบ (ทุกแผ่น)</h4><div class="f"><label>ฟอนต์งานเขียนแบบ</label><select data-ho="font">${Object.entries(FONTS).map(([k,v])=>`<option value="${k}"${((S.viewopt||{}).font||'plex')===k?' selected':''}>${esc(v[0])}</option>`).join('')}</select></div>`+((S.viewopt||{}).font==='custom'?`<div class="f"><label>ชื่อฟอนต์ที่ติดตั้งในเครื่อง</label><input data-ho="fontName" value="${esc((S.viewopt||{}).fontName||'')}" placeholder="เช่น TH CAD, TH Sarabun New"></div>`:'')+`<div class="f"><label>ขนาดตัวอักษร (%)</label><select data-ho="tscale">${[70,80,90,100,110,120,135,150,175,200].map(v=>`<option value="${v}"${(+((S.viewopt||{}).tscale)||100)===v?' selected':''}>${v}%</option>`).join('')}</select></div><p class="hint">ฟอนต์ TH ที่ติดตั้งในเครื่องจะถูกใช้ก่อน ถ้าไม่มีจะใช้ Sarabun / Niramit จากอินเทอร์เน็ตแทน</p>`+
+    `<div class="acts" style="margin-top:8px"><button class="btn pri" data-ha="fitsheet">ขยายแบบให้พอดีกระดาษ</button></div><h4 style="margin:12px 0 4px">จัดแผ่นแบบขยายโครงสร้าง</h4><div class="f"><label>รูปแบบ</label><select data-ho="detmode"><option value="type"${((S.viewopt||{}).detmode||'type')==='type'?' selected':''}>แยกตามชนิด (เสา-คาน / ฐานราก / พื้น)</option><option value="one"${(S.viewopt||{}).detmode==='one'?' selected':''}>รวมทั้งหมดในแผ่นเดียว</option><option value="each"${(S.viewopt||{}).detmode==='each'?' selected':''}>แยกทุกรายการคนละแผ่น</option></select></div><div class="f"><label>คำอธิบายในรูปตัด</label><select data-ho="secanno"><option value="1"${(S.viewopt||{}).secanno!=='0'?' selected':''}>แสดง (ห้อง ฝ้า FFL หลังคา)</option><option value="0"${(S.viewopt||{}).secanno==='0'?' selected':''}>ซ่อน</option></select></div><h4 style="margin:12px 0 4px">โลโก้และกรอบชื่อแบบ</h4><div class="f"><label>ชื่อสำนักงาน</label><input data-hp="office" value="${esc((S.proj&&S.proj.office)||'')}"></div><div class="f"><label>ที่อยู่ / โทรศัพท์</label><input data-hp="addr" value="${esc((S.proj&&S.proj.addr)||'')}"></div><div class="acts"><button class="btn" data-ha="logo">${S.proj&&S.proj.logo?'เปลี่ยนโลโก้':'ใส่โลโก้สำนักงาน'}</button>${S.proj&&S.proj.logo?'<button class="btn" data-ha="logodel">ลบโลโก้</button>':''}</div><div class="f"><label>ความกว้างกรอบชื่อแบบ</label><select data-ho="tbw"><option value="narrow"${(S.viewopt||{}).tbw!=='wide'?' selected':''}>แคบ (มาตรฐาน)</option><option value="wide"${(S.viewopt||{}).tbw==='wide'?' selected':''}>กว้าง</option></select></div><h4 style="margin:12px 0 4px">ตัวอักษรในแบบ (ทุกแผ่น)</h4><div class="f"><label>ฟอนต์งานเขียนแบบ</label><select data-ho="font">${Object.entries(FONTS).map(([k,v])=>`<option value="${k}"${((S.viewopt||{}).font||'plex')===k?' selected':''}>${esc(v[0])}</option>`).join('')}</select></div>`+((S.viewopt||{}).font==='custom'?`<div class="f"><label>ชื่อฟอนต์ที่ติดตั้งในเครื่อง</label><input data-ho="fontName" value="${esc((S.viewopt||{}).fontName||'')}" placeholder="เช่น TH CAD, TH Sarabun New"></div>`:'')+`<div class="f"><label>ขนาดตัวอักษร (%)</label><select data-ho="tscale">${[70,80,90,100,110,120,135,150,175,200].map(v=>`<option value="${v}"${(+((S.viewopt||{}).tscale)||100)===v?' selected':''}>${v}%</option>`).join('')}</select></div><p class="hint">ฟอนต์ TH ที่ติดตั้งในเครื่องจะถูกใช้ก่อน ถ้าไม่มีจะใช้ Sarabun / Niramit จากอินเทอร์เน็ตแทน</p>`+
     `<div class="acts" style="margin-top:10px"><button class="btn pri" data-ha="coverhero">จัดเป็นหน้าปก: ภาพเต็ม</button><button class="btn" data-ha="coversplit">หน้าปก: ภาพ + สารบัญ</button></div><p class="hint" style="margin-top:12px">เพิ่มมุมมองลงแผ่นนี้</p><div class="acts">${[['cover','หัวเรื่องปก'],['plan','แปลนสถาปัตย์'],['struct','แปลนโครงสร้าง'],['rcp','แปลนฝ้าและไฟฟ้า'],['plumb','แปลนสุขาภิบาล'],['sec','รูปตัด/รูปด้าน'],['3d','ภาพ 3D'],['sched','ตาราง'],['fdnplan','แปลนฐานรากและตอม่อ'],['coltab','ตารางเสาและตอม่อ'],['beamtab','แบบขยายคาน'],['gnotes','ข้อกำหนดทั่วไปโครงสร้าง'],['detail','แบบขยายโครงสร้าง'],['enl','แบบขยายพื้นที่'],['opel','แบบขยายประตู-หน้าต่าง'],['legend','สัญลักษณ์'],['notes','หมายเหตุ']].map(([k,n])=>`<button class="btn" data-addvp="${k}">+ ${n}</button>`).join('')}</div>
     <div class="acts"><button class="btn" data-ha="layout">จัดวางอัตโนมัติ</button><button class="btn" data-ha="up">เลื่อนลำดับขึ้น</button><button class="btn" data-ha="down">เลื่อนลำดับลง</button><button class="btn" data-ha="delsh">ลบแผ่นนี้</button></div>
     <p class="hint" style="margin-top:12px">คลิกมุมมองบนแผ่นเพื่อแก้มาตราส่วน ชั้น หรือชื่อ • แก้แบบที่แปลนแล้วแผ่นงานจะอัปเดตตามเอง</p>`}
   P.innerHTML=h;
-  P.querySelectorAll('[data-hk]').forEach(i=>i.onchange=()=>{const k=i.dataset.hk,v=i.value;mutate(()=>{if(vp){if(k==='scale'||k==='w'||k==='zf'){const n=+v;if(n>0){vp[k]=n;if(k==='w'&&!vp.img)vp.h=r3(n/1.636)}}else if(k==='hh'){const n=+v;if(n>0)vp.h=n}else vp[k]=v;
+  P.querySelectorAll('[data-hk]').forEach(i=>i.onchange=()=>{const k=i.dataset.hk,v=i.value;if(k==='mvsh'){if(vp&&v)moveVpTo(vp,sh,v);return}mutate(()=>{if(vp){if(k==='scale'||k==='w'||k==='zf'){const n=+v;if(n>0){vp[k]=n;if(k==='w'&&!vp.img)vp.h=r3(n/1.636)}}else if(k==='hh'){const n=+v;if(n>0)vp.h=n}else vp[k]=v;
       if(k==='ref'&&vp.kind==='sec'){const s=byId(v);if(s)vp.title=s.name}if(k==='ref'&&vp.kind==='sched'){const o=SCHEDS.find(x=>x[0]===v);if(o)vp.title=o[1]}if(k==='ref'&&vp.kind==='detail'){const o=DETAILS.find(x=>x[0]===v);if(o)vp.title=o[1]}if(k==='ref'&&vp.kind==='plan')vp.title='แปลนพื้น'+lvl(v).name;if(k==='ref'&&vp.kind==='struct')vp.title=structTitle(v)}
       else{if(k==='stitle')sh.title=v;else if(k==='no')sh.no=v;else if(k==='size'){sh.size=v;layoutSheet(sh)}else if(k==='tbm')sh.tbm=v}});if(k==='size')fitH();if(k==='tbm')drawH()});
   P.querySelectorAll('[data-hp]').forEach(el=>el.onchange=()=>{mutate(()=>{S.proj=S.proj||defProj();S.proj[el.dataset.hp]=el.value});VPC.clear();drawH()});
   P.querySelectorAll('[data-addvp]').forEach(b=>b.onclick=()=>{const k=b.dataset.addvp;const sid=secCur||(sections()[0]||{}).id;if(k==='sec'&&!sid){toast('ยังไม่มีรูปตัด สร้างได้ที่มุมมองรูปตัด');return}
     const d={plan:{ref:cur,title:'แปลนพื้น'+lvl(cur).name},struct:{ref:cur,title:structTitle(cur)},sec:{ref:sid,title:(byId(sid)||{}).name},'3d':{title:'ทัศนียภาพ'},sched:{ref:'openings',title:'ตารางประตูและหน้าต่าง'},fdnplan:{ref:S.levels[0].id,title:'แปลนฐานรากและตอม่อ'},coltab:{title:'แบบขยายเสาและตอม่อ'},beamtab:{title:'แบบขยายคาน'},gnotes:{title:''},snote:{ref:cur,title:''},enl:(()=>{const c=S.els.find(e=>e.type==='callout');return{ref:c?c.id:'',title:c?c.name:'แบบขยาย',scale:c?(+c.scale||25):25}})(),opel:{title:'แบบขยายประตู-หน้าต่าง'},cover:{title:'',ctitle:S.proj.name||'',csub:'แบบก่อสร้าง'},detail:{ref:'col',title:'หน้าตัดเสา'},notes:{title:'หมายเหตุทั่วไป'},rcp:{ref:cur,title:'แปลนฝ้าและไฟฟ้า'+lvl(cur).name},plumb:{ref:cur,title:'แปลนระบบสุขาภิบาล'+lvl(cur).name},legend:{ref:'elec',title:'สัญลักษณ์ไฟฟ้า'}}[k];
     const id='vp'+Math.random().toString(36).slice(2,8);mutate(()=>{sh.vps.push({id,kind:k,scale:100,...d});layoutSheet(sh)});hSel=id;renderSide()});
-  P.querySelectorAll('[data-ho]').forEach(el=>el.onchange=()=>{const k=el.dataset.ho;mutate(()=>{S.viewopt={...(S.viewopt||{}),[k]:el.value}});applyFont();VPC.clear();fontReady().then(()=>{VPC.clear();drawH();draw2()});renderSide()});
+  P.querySelectorAll('[data-ho]').forEach(el=>el.onchange=()=>{const k=el.dataset.ho;mutate(()=>{S.viewopt={...(S.viewopt||{}),[k]:el.value};if(k==='detmode'){const n=regroupDetails(el.value);if(n)toast('จัดแผ่นแบบขยายใหม่เป็น '+n+' แผ่น')}});if(k==='detmode'){const c=S.sheets.find(s=>s.vps.some(isDetVp));if(c)shCur=c.id;fitH()}applyFont();VPC.clear();fontReady().then(()=>{VPC.clear();drawH();draw2()});renderSide()});
   P.querySelectorAll('[data-ha]').forEach(b=>b.onclick=()=>{const a=b.dataset.ha,i=S.sheets.indexOf(sh);
     if(a==='delvp'){mutate(()=>{sh.vps=sh.vps.filter(v=>v.id!==hSel)});hSel=null;renderSide()}
     if(a==='layout')mutate(()=>layoutSheet(sh));
@@ -2311,7 +2332,7 @@ let DETSC=0;function detailCells(ref){const k=1000/(DETSC||DSC[ref]),cells=[];
       x.strokeStyle='#111';dimH(x,L,L+W,fy+T+PL+5,f2(e.w));
       {const lc=0.05*k,sd=0.10*k,yb=fy+T;x.save();x.lineWidth=0.2;x.strokeStyle='#111';x.fillStyle='#e9e9e6';x.fillRect(L-2,yb,W+4,lc);x.strokeRect(L-2,yb,W+4,lc);x.strokeRect(L-2,yb+lc,W+4,sd);x.fillStyle='#999';for(let px=L-1.2,i=0;px<L+W+1.6;px+=1.3,i++){x.beginPath();x.arc(px,yb+lc+sd*(0.3+0.4*((i*7)%5)/5),0.17,0,7);x.fill()}
         const tx=L+W+12,lead=(yy,t)=>{x.lineWidth=0.15;x.beginPath();x.moveTo(L+W-1,yy);x.lineTo(tx-1,yy);x.stroke();x.font=FONT('400',2.2);x.fillStyle='#111';x.textAlign='left';x.fillText(t,tx,yy+0.8)};
-        const nb=Math.max(2,Math.floor((e.w-2*R.c)/R.s)+1),nb2=Math.max(2,Math.floor((e.d-2*R.c)/R.s)+1);{const LB=[[fy+T*0.3,'1-DB12มม. รัดรอบ'],[fy+T-c-rb*2.4,nb+'-'+R.d+'มม. # (แนวยาว '+nb2+'-'+R.d+'มม.)'],[yb+lc/2,'คอนกรีตหยาบ 1:3:5 หนา 0.05 ม.'],[yb+lc+sd/2,'ทรายหยาบอัดแน่น หนา 0.10 ม.']].sort((a,b)=>a[0]-b[0]);let ly=-1e9;LB.forEach(([py,t])=>{const yy=Math.max(py,ly+3.4);ly=yy;x.lineWidth=0.15;x.beginPath();x.moveTo(L+W-1,py);x.lineTo(tx-3,py);x.lineTo(tx-1,yy);x.stroke();x.beginPath();x.arc(L+W-1,py,0.35,0,7);x.fillStyle='#111';x.fill();x.font=FONT('400',2.2);x.textAlign='left';x.fillText(t,tx,yy+0.8)})}
+        const nb=Math.max(2,Math.floor((e.w-2*R.c)/R.s)+1),nb2=Math.max(2,Math.floor((e.d-2*R.c)/R.s)+1);{const LB=[[fy+T*0.3,'1-DB12มม. รัดรอบ'],[fy+T-c-rb*2.4,(R.lab1||nb+'-'+R.d+'มม. # (แนวยาว '+nb2+'-'+R.d+'มม.)')],[yb+lc/2,'คอนกรีตหยาบ 1:3:5 หนา 0.05 ม.'],[yb+lc+sd/2,'ทรายหยาบอัดแน่น หนา 0.10 ม.']].sort((a,b)=>a[0]-b[0]);let ly=-1e9;LB.forEach(([py,t])=>{const yy=Math.max(py,ly+3.4);ly=yy;x.lineWidth=0.15;x.beginPath();x.moveTo(L+W-1,py);x.lineTo(tx-3,py);x.lineTo(tx-1,yy);x.stroke();x.beginPath();x.arc(L+W-1,py,0.35,0,7);x.fillStyle='#111';x.fill();x.font=FONT('400',2.2);x.textAlign='left';x.fillText(t,tx,yy+0.8)})}
         const gy=top+(elevOf(e.level)-GROUND)*k,vx=L-7;x.lineWidth=0.15;x.beginPath();x.moveTo(vx,gy);x.lineTo(vx,fy);x.moveTo(vx,fy);x.lineTo(vx,fy+T);x.moveTo(vx-1,gy+1);x.lineTo(vx+1,gy-1);x.moveTo(vx-1,fy+1);x.lineTo(vx+1,fy-1);x.moveTo(vx-1,fy+T+1);x.lineTo(vx+1,fy+T-1);x.stroke();x.font=FONT('400',2.1);x.textAlign='center';x.save();x.translate(vx-1.4,(gy+fy)/2);x.rotate(-Math.PI/2);x.fillText(f2(Math.max(0,(fy-gy)/k)),0,0);x.restore();x.save();x.translate(vx-1.4,fy+T/2);x.rotate(-Math.PI/2);x.fillText(f2(e.t),0,0);x.restore();
         x.beginPath();x.moveTo(L+W*0.7,gy-0.2);x.lineTo(L+W*0.7-1.2,gy-2.2);x.lineTo(L+W*0.7+1.2,gy-2.2);x.closePath();x.fillStyle='#111';x.fill();x.restore()}
       const px0=cx+W/2+66,pcx=px0+Wd/2,pcy=fy+T/2;x.lineWidth=0.35;x.strokeRect(px0,pcy-W/2,Wd,W);x.fillStyle='#f0f0ee';x.fillRect(pcx-S_/2,pcy-S_/2,S_,S_);x.strokeRect(pcx-S_/2,pcy-S_/2,S_,S_);
@@ -2405,7 +2426,7 @@ $('#rbIn').onchange=async()=>{const f=$('#rbIn').files[0];if(!f)return;try{const
       v.src=d.app||d.source||'Civil Toolkit';S.rebar[k]={...(S.rebar[k]||{}),...v};n++})});toast('นำเข้าผลออกแบบ '+n+' รายการ'+(nsz?' • ปรับขนาดชิ้นส่วน '+nsz+' กลุ่ม':'')+' • แปลนและตารางโครงสร้างอัปเดตแล้ว');}catch(e){toast('ไฟล์นี้ไม่ใช่ผลออกแบบเหล็กเสริม')}$('#rbIn').value=''};
 
 // ================= App shell: version, sync, manual, install, service worker
-const APP_VER='v8.4';$('#verL').textContent=APP_VER;
+const APP_VER='v8.5';$('#verL').textContent=APP_VER;
 const isEmbedded=/claude\.ai|claudeusercontent|anthropic/.test(location.host)||location.protocol==='blob:';
 const LSK={sync:'yothacad-sync',saved:'yothacad-savedAt',last:'yothacad-lastSync',dev:'yothacad-device'};
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -2451,7 +2472,7 @@ $('#syncB').onclick=()=>{renderSync();const d=$('#syncDlg');d.showModal?d.showMo
 // ----- manual
 function helpHTML(){const T=(t,b,open)=>`<details${open?' open':''}><summary>${t}</summary>${b}</details>`;
   return T('1. เริ่มต้นใช้งาน',`<p>หน้าจอแบ่งเป็นแถบเครื่องมือซ้าย (บน iPad อยู่ด้านล่าง) พื้นที่เขียนแบบ และแผงข้างขวา ปุ่มด้านบนสลับมุมมอง 2D, 2D + 3D, 3D, รูปตัด และแผ่นงาน ช่องเลือกชั้นอยู่ซ้ายบน</p>
-    <ul><li>เริ่มเร็วที่สุด: กด <b>สร้างกริดและโครงสร้าง</b> ใส่ระยะช่วงเสา แล้วแอปจะวางกริด ฐานราก เสา คาน พื้น และผนังรอบนอกให้</li><li>ดูตัวอย่างงานครบชุด: ไฟล์ → เปิดบ้านตัวอย่าง (จะแทนที่แบบปัจจุบัน ควรสำรองก่อน)</li><li>หน่วยทั้งหมดเป็นเมตร ยกเว้นขนาดบนแผ่นงานเป็นมิลลิเมตร</li><li><b>ระเบียง</b> วาดเป็นสี่เหลี่ยมหรือหลายเหลี่ยม กำหนดระดับเอง (เช่น +0.25) ขั้นบันไดลงดินสร้างให้ด้านที่ไม่ติดผนัง เลือกกันสาดเมทัลชีท พื้นคอนกรีต หรือเพอร์โกลาพร้อมเสา • <b>บันไดหน้าบ้าน</b> คลิกขอบบน 2 จุดแล้วคลิกด้านที่ลง คำนวณขั้นจากระดับพื้นถึงดินให้เอง ขึ้นได้ 1 หรือ 3 ด้าน • <b>ราวกันตก</b> ลากเป็นแนว เลือกราวเหล็ก กระจก ไม้ ลูกกรงปูนปั้น หรือผนังเตี้ย วางบนระเบียงจะยกตามระดับระเบียงให้เอง</li><li><b>ระดับพื้นและคาน:</b> แท็บ ชั้น กำหนดความหนาวัสดุปูพื้น (เช่น 0.05 ม.) หลังพื้นโครงสร้างและหลังคานจะอยู่ต่ำกว่าผิวพื้นสำเร็จตามค่านี้ • พื้น คาน และพื้นผิว ยก/ลดระดับได้ทีละชิ้น (เช่น ห้องน้ำลด −0.10) • คานเลือกเป็นเหล็กรูปพรรณ (อะเส) ได้ จะไม่ส่งไปออกแบบเป็นคาน คสล.</li><li><b>หลังคาหลายเหลี่ยม:</b> เครื่องมือหลังคา → รูปแบบ "หลายเหลี่ยม" วาดตามแนวผนังเป็นรูปตัว L, T, U หรือหลายเหลี่ยมนูน แอปสร้างปีกหลังคา ตะเฆ่ราง ครอบ เชิงชาย ฝ้าชายคา และโครงหลังคาให้ • ยก/ลดระดับหลังคาที่แผงคุณสมบัติ หรือกดปุ่ม ▲ ▼</li><li><b>Prompt เรนเดอร์ AI:</b> ปุ่ม ✨ ในมุมมอง 3D เลือกสไตล์ (12 แบบ) เวลา แสง สภาพแวดล้อม มุมกล้อง และโปรแกรม AI ที่ใช้ แอปเขียน Prompt พร้อมคำอธิบายอาคารจากแบบให้ คัดลอกไปใช้กับ ChatGPT, Gemini, Midjourney หรือ Stable Diffusion พร้อมแนบภาพ 3D</li><li><b>โหมดงาน:</b> ทั้งหมด / สถาปัตย์ (ซ่อนคานและฐานราก) / โครงสร้าง (ซ่อนเฟอร์นิเจอร์ ห้อง ประตูหน้าต่าง) / ไฟฟ้า (แปลนฝ้าและไฟฟ้า) / ประปา (ท่อและสุขภัณฑ์) • <b>ห้อง:</b> กำหนดชนิดพื้น ระดับพื้นห้อง ชนิดฝ้า ความสูงฝ้าได้ที่ห้อง และลากจุดกลางชื่อห้องเพื่อย้ายตำแหน่งป้าย • <b>เฟอร์นิเจอร์:</b> กดเปิดคลังเพื่อค้นหาตามหมวด • <b>แบบขยาย:</b> เครื่องมือแบบขยายลากกรอบพื้นที่ (เช่น ห้องน้ำ) ชุดแบบจะมีแผ่นแบบขยายมาตราส่วน 1:25 และแผ่นแบบขยายประตู-หน้าต่างให้อัตโนมัติ</li><li><b>สร้างโมเดลแก้ไขได้ใน Revit:</b> ไฟล์ → ส่งออกสคริปต์สร้างโมเดลใน Revit (.py) แล้วรันด้วย pyRevit, RevitPythonShell หรือ Dynamo ในโปรเจกต์ Revit ที่มีแม่แบบ ได้ระดับชั้น กริด ผนัง พื้น เสา คาน ประตู หน้าต่าง หลังคา และห้องเป็นชิ้นงานของ Revit จริง แก้ไขได้ทุกชิ้น</li><li><b>ส่งต่อ Revit:</b> ไฟล์ → ส่งออก IFC ได้ไฟล์ .ifc (IFC4) มีชั้น ผนัง พื้น เสา คาน ฐานราก บันได หลังคา โครงหลังคา ประตูหน้าต่าง ฝ้า พื้นผิว และเฟอร์นิเจอร์ พร้อมชื่อวัสดุ เปิดใน Revit ด้วย File → Open → IFC หรือ Insert → Link IFC</li><li><b>หน้าปก:</b> แผ่น A-00 กด "จัดเป็นหน้าปก" เลือกมุมกล้อง 3D เอง แก้หัวเรื่อง คำบรรยาย สีแถบ และพื้นหลังภาพได้ • <b>ผนังต่อชนหลังคา:</b> เลือกผนังหรือกดปุ่มที่หลังคา ผนังจะสูงขึ้นไปชนใต้หลังคาตามความลาด</li><li><b>ชั้นหลังคา:</b> แท็บ ชั้น → "+ เพิ่มชั้นหลังคา" หลังคาจะวางที่ระดับนั้นพอดี และแยกจากชั้นบนสุดชัดเจน</li><li><b>ระดับอ้างอิง:</b> แท็บ ชั้น → กำหนดระดับดินเดิมและระดับพื้นชั้น 1 (เช่น ดินเดิม ±0.00 พื้นชั้น 1 +0.40) ทุกชั้น รูปตัด รูปด้าน และ 3D เลื่อนตาม</li><li><b>โครงการ:</b> ปุ่มชื่อโครงการด้านบน สร้าง เปิด ทำสำเนา เปลี่ยนชื่อ ส่งออก และลบโครงการ แต่ละโครงการเก็บแยกกัน</li><li><b>ทั้งหมด / สถาปัตย์ / โครงสร้าง:</b> เลือกงานที่จะเขียน งานอีกฝั่งจะล็อกไว้เป็นพื้นหลังจาง ๆ คลิกโดนไม่ได้ ในโหมดโครงสร้าง 3D จะซ่อนผนังและแสดงโครงหลังคา</li></ul>`,1)+
+    <ul><li>เริ่มเร็วที่สุด: กด <b>สร้างกริดและโครงสร้าง</b> ใส่ระยะช่วงเสา แล้วแอปจะวางกริด ฐานราก เสา คาน พื้น และผนังรอบนอกให้</li><li>ดูตัวอย่างงานครบชุด: ไฟล์ → เปิดบ้านตัวอย่าง (จะแทนที่แบบปัจจุบัน ควรสำรองก่อน)</li><li>หน่วยทั้งหมดเป็นเมตร ยกเว้นขนาดบนแผ่นงานเป็นมิลลิเมตร</li><li><b>ระเบียง</b> วาดเป็นสี่เหลี่ยมหรือหลายเหลี่ยม กำหนดระดับเอง (เช่น +0.25) ขั้นบันไดลงดินสร้างให้ด้านที่ไม่ติดผนัง เลือกกันสาดเมทัลชีท พื้นคอนกรีต หรือเพอร์โกลาพร้อมเสา • <b>บันไดหน้าบ้าน</b> คลิกขอบบน 2 จุดแล้วคลิกด้านที่ลง คำนวณขั้นจากระดับพื้นถึงดินให้เอง ขึ้นได้ 1 หรือ 3 ด้าน • <b>ราวกันตก</b> ลากเป็นแนว เลือกราวเหล็ก กระจก ไม้ ลูกกรงปูนปั้น หรือผนังเตี้ย วางบนระเบียงจะยกตามระดับระเบียงให้เอง</li><li><b>ระดับพื้นและคาน:</b> แท็บ ชั้น กำหนดความหนาวัสดุปูพื้น (เช่น 0.05 ม.) หลังพื้นโครงสร้างและหลังคานจะอยู่ต่ำกว่าผิวพื้นสำเร็จตามค่านี้ • พื้น คาน และพื้นผิว ยก/ลดระดับได้ทีละชิ้น (เช่น ห้องน้ำลด −0.10) • คานเลือกเป็นเหล็กรูปพรรณ (อะเส) ได้ จะไม่ส่งไปออกแบบเป็นคาน คสล.</li><li><b>หลังคาหลายเหลี่ยม:</b> เครื่องมือหลังคา → รูปแบบ "หลายเหลี่ยม" วาดตามแนวผนังเป็นรูปตัว L, T, U หรือหลายเหลี่ยมนูน แอปสร้างปีกหลังคา ตะเฆ่ราง ครอบ เชิงชาย ฝ้าชายคา และโครงหลังคาให้ • ยก/ลดระดับหลังคาที่แผงคุณสมบัติ หรือกดปุ่ม ▲ ▼</li><li><b>หน้าตาแบบ CAD:</b> แถบเครื่องมือด้านบนแบ่งเป็นหมวด (สถาปัตย์ โครงสร้าง งานระบบ ตกแต่ง เขียนแบบ แก้ไข) กดหมวดเพื่อเปิดเครื่องมือย่อย • เมนูไฟล์ → สลับธีม (CAD / สว่าง / มืด) • <b>แก้ข้อความในแบบโครงสร้าง:</b> เลือกคาน เสา พื้น หรือฐานราก แล้วแก้ "เบอร์ชิ้นส่วน" (เปลี่ยนทั้งกลุ่ม) "ข้อความป้ายในแปลน" และ "ข้อความเหล็ก" ในตารางได้เอง • ข้อความหรือเส้นที่เขียนในโหมดโครงสร้างจะแสดงเฉพาะแปลนโครงสร้าง • <b>แบบขยาย:</b> คลิกที่ว่างบนแผ่นงาน เลือกรวมแผ่นเดียว / แยกตามชนิด / แยกทุกรายการ หรือคลิกแบบแล้ว "ย้ายมุมมองนี้ไปแผ่น"</li><li><b>Prompt เรนเดอร์ AI:</b> ปุ่ม ✨ ในมุมมอง 3D เลือกสไตล์ (12 แบบ) เวลา แสง สภาพแวดล้อม มุมกล้อง และโปรแกรม AI ที่ใช้ แอปเขียน Prompt พร้อมคำอธิบายอาคารจากแบบให้ คัดลอกไปใช้กับ ChatGPT, Gemini, Midjourney หรือ Stable Diffusion พร้อมแนบภาพ 3D</li><li><b>โหมดงาน:</b> ทั้งหมด / สถาปัตย์ (ซ่อนคานและฐานราก) / โครงสร้าง (ซ่อนเฟอร์นิเจอร์ ห้อง ประตูหน้าต่าง) / ไฟฟ้า (แปลนฝ้าและไฟฟ้า) / ประปา (ท่อและสุขภัณฑ์) • <b>ห้อง:</b> กำหนดชนิดพื้น ระดับพื้นห้อง ชนิดฝ้า ความสูงฝ้าได้ที่ห้อง และลากจุดกลางชื่อห้องเพื่อย้ายตำแหน่งป้าย • <b>เฟอร์นิเจอร์:</b> กดเปิดคลังเพื่อค้นหาตามหมวด • <b>แบบขยาย:</b> เครื่องมือแบบขยายลากกรอบพื้นที่ (เช่น ห้องน้ำ) ชุดแบบจะมีแผ่นแบบขยายมาตราส่วน 1:25 และแผ่นแบบขยายประตู-หน้าต่างให้อัตโนมัติ</li><li><b>สร้างโมเดลแก้ไขได้ใน Revit:</b> ไฟล์ → ส่งออกสคริปต์สร้างโมเดลใน Revit (.py) แล้วรันด้วย pyRevit, RevitPythonShell หรือ Dynamo ในโปรเจกต์ Revit ที่มีแม่แบบ ได้ระดับชั้น กริด ผนัง พื้น เสา คาน ประตู หน้าต่าง หลังคา และห้องเป็นชิ้นงานของ Revit จริง แก้ไขได้ทุกชิ้น</li><li><b>ส่งต่อ Revit:</b> ไฟล์ → ส่งออก IFC ได้ไฟล์ .ifc (IFC4) มีชั้น ผนัง พื้น เสา คาน ฐานราก บันได หลังคา โครงหลังคา ประตูหน้าต่าง ฝ้า พื้นผิว และเฟอร์นิเจอร์ พร้อมชื่อวัสดุ เปิดใน Revit ด้วย File → Open → IFC หรือ Insert → Link IFC</li><li><b>หน้าปก:</b> แผ่น A-00 กด "จัดเป็นหน้าปก" เลือกมุมกล้อง 3D เอง แก้หัวเรื่อง คำบรรยาย สีแถบ และพื้นหลังภาพได้ • <b>ผนังต่อชนหลังคา:</b> เลือกผนังหรือกดปุ่มที่หลังคา ผนังจะสูงขึ้นไปชนใต้หลังคาตามความลาด</li><li><b>ชั้นหลังคา:</b> แท็บ ชั้น → "+ เพิ่มชั้นหลังคา" หลังคาจะวางที่ระดับนั้นพอดี และแยกจากชั้นบนสุดชัดเจน</li><li><b>ระดับอ้างอิง:</b> แท็บ ชั้น → กำหนดระดับดินเดิมและระดับพื้นชั้น 1 (เช่น ดินเดิม ±0.00 พื้นชั้น 1 +0.40) ทุกชั้น รูปตัด รูปด้าน และ 3D เลื่อนตาม</li><li><b>โครงการ:</b> ปุ่มชื่อโครงการด้านบน สร้าง เปิด ทำสำเนา เปลี่ยนชื่อ ส่งออก และลบโครงการ แต่ละโครงการเก็บแยกกัน</li><li><b>ทั้งหมด / สถาปัตย์ / โครงสร้าง:</b> เลือกงานที่จะเขียน งานอีกฝั่งจะล็อกไว้เป็นพื้นหลังจาง ๆ คลิกโดนไม่ได้ ในโหมดโครงสร้าง 3D จะซ่อนผนังและแสดงโครงหลังคา</li></ul>`,1)+
   T('2. โครงสร้าง: กริด ฐานราก เสา คาน พื้น บันได',`<ul><li><b>กริด</b> คลิก 2 จุด ชื่อแกนตั้งให้อัตโนมัติ (แนวตั้ง 1, 2, 3 / แนวนอน A, B, C)</li><li><b>ฐานราก</b> คลิกที่ศูนย์กลางเสา กำหนดขนาด ความลึก ตอม่อ และเสาเข็ม 0–6 ต้น หรือเลือกเสาแล้วกด "สร้างฐานรากใต้เสา"</li>
     <li><b>เสา</b> คลิกวาง ปรับขนาด รูปทรง มุมหมุน และความสูงที่แผงข้าง (เว้นว่าง = สูงเท่าชั้น)</li><li><b>คาน</b> คลิกต่อเนื่องเป็นแนว ตั้ง "ระดับคาน" เป็นคานคอดินได้</li><li><b>พื้น</b> สี่เหลี่ยม 2 คลิก หรือหลายเหลี่ยม (เว้นช่องบันไดโดยวาดเป็นรูปหลายเหลี่ยม)</li>
     <li><b>บันได</b> 7 รูปแบบ: ทางเดียว ทางเดียวมีชานพัก รูปตัว L (ชานพักหรือขั้นเวียน) รูปตัว U (พับผ้า) รูปตัว U สามช่วง และบันไดวน เลือกโครงสร้างคอนกรีต เหล็ก หรือไม้ ราวเหล็ก กระจก หรือไม้ ทิศเลี้ยว ลูกนอน ความลึกชานพัก และจำนวนขั้นช่วงแรกได้ แอปคำนวณลูกตั้งให้ไม่เกิน 18 ซม.</li></ul>`)+
@@ -2665,7 +2686,7 @@ function opLibHTML(kind){const d=D[kind];return`<h3>${kind==='door'?'ประ�
 let DISC='all';const CAT={porch:'arch',steps:'arch',rail:'arch',flr:'arch',clg:'arch',rmem:'struct',elec:'mep',wire:'mep',pipe:'mep',plumb:'mep',wall:'arch',door:'arch',window:'arch',room:'arch',furn:'arch',roof:'arch',column:'struct',beam:'struct',footing:'struct',slab:'struct',stair:'struct'};
 function discLocked(e){if((e.type==='room'||e.type==='clg')&&isMEP())return false;if(e.type==='clg'&&!isMEP()&&!PRINT)return true;if(e.type==='flr'&&isMEP())return true;return !PRINT&&DISC!=='all'&&!!CAT[e.type]&&CAT[e.type]!==DISC}
 function setDisc(d){DISC=d;document.querySelectorAll('#discSeg button').forEach(b=>b.classList.toggle('on',b.dataset.d===d));const hide=d==='arch'?['โครงสร้าง','งานระบบ']:d==='struct'?['สถาปัตย์','ตกแต่ง','งานระบบ']:isMEP()?['โครงสร้าง','สถาปัตย์','ตกแต่ง']:[],hideT=d==='elec'?['plumb','pipe']:d==='plumb'?['elec','wire']:[];
-  document.querySelectorAll('#tools [data-grp]').forEach(el=>{el.style.display=(hide.includes(el.dataset.grp)&&el.dataset.tool!=='grid')||hideT.includes(el.dataset.tool)?'none':''});
+  document.querySelectorAll('#tools [data-grp]').forEach(el=>{el.style.display=(hide.includes(el.dataset.grp)&&el.dataset.tool!=='grid')||hideT.includes(el.dataset.tool)?'none':''});showRTab({arch:'สถาปัตย์',struct:'โครงสร้าง',elec:'งานระบบ',plumb:'งานระบบ'}[d]||RTAB);
   const tl=TOOLS.find(t=>t[0]===T.name);if(tl&&((hide.includes(tl[4])&&tl[0]!=='grid')||hideT.includes(tl[0])))setTool('select');[...sel].forEach(id=>{const e=byId(id);if(e&&discLocked(e))sel.delete(id)});
   SNAPS=null;renderSide();draw2();dirty3=true;req3();toast({all:'แสดงและแก้ไขได้ทุกงาน',arch:'งานสถาปัตย์: ซ่อนคานและฐานราก',struct:'งานโครงสร้าง: ซ่อนเฟอร์นิเจอร์ ห้อง ประตูหน้าต่าง',elec:'งานไฟฟ้า: แปลนฝ้าและไฟฟ้า',plumb:'งานประปาสุขาภิบาล: ท่อและสุขภัณฑ์'}[d]||'')}
 $('#discSeg').onclick=e=>{const b=e.target.closest('button');if(b)setDisc(b.dataset.d)};
@@ -3463,7 +3484,7 @@ OUT = [summary] + log
 
 // ================= v7.8: discipline views, merged beams, room labels, furniture library, auto dims, callouts, opening details
 const HIDE={arch:['beam','footing','rmem'],struct:['furn','room','flr','clg','door','window','elec','wire','pipe','plumb','porch','steps','rail'],elec:['beam','footing','rmem','pipe','plumb'],plumb:['beam','footing','rmem','elec','wire','clg']};
-function hiddenInDisc(e){return !PRINT&&(HIDE[DISC]||[]).includes(e.type)}
+function hiddenInDisc(e){return !PRINT&&((HIDE[DISC]||[]).includes(e.type)||(DISC==='arch'&&e.disc==='struct'))}
 function isMEP(){return DISC==='elec'||DISC==='plumb'||DISC==='mep'}
 function isRCP(){return PRINT==='rcp'||(!PRINT&&(DISC==='elec'||DISC==='mep'))}
 function plumbPanelHTML(){const Q=mepQty();return`<h3>งานประปาสุขาภิบาล — ${esc(lvl(cur).name)}</h3><p class="hint">โหมดนี้แสดงเฉพาะงานประปา ท่อ และสุขภัณฑ์ งานไฟฟ้าและโครงสร้างซ่อนไว้ ใช้เครื่องมือ สุขาภิบาล และ ท่อ ทางซ้าย</p>`+
@@ -3616,7 +3637,7 @@ function sectionDraw(x,cx,cy,w,d,k,bars,tie){const W=w*k,H=d*k,x0=cx-W/2,y0=cy-H
   x.font=FONT('400',2.1);x.textAlign='center';x.textBaseline='alphabetic';x.fillText(f2(w),cx,y0-1.4);x.lineWidth=0.15;x.beginPath();x.moveTo(x0,y0-1);x.lineTo(x0+W,y0-1);x.stroke();
   x.save();x.translate(x0-1.4,cy);x.rotate(-Math.PI/2);x.fillText(f2(d),0,0);x.restore();x.beginPath();x.moveTo(x0-1,y0);x.lineTo(x0-1,y0+H);x.stroke();x.restore()}
 function colTabData(){const M=markMaps(),cols=S.els.filter(e=>e.type==='column'),marks=[...new Set(cols.map(e=>markOf(M,e)))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
-  const lv=S.levels.filter(l=>l.kind!=='roof').slice().reverse(),rows=lv.map(l=>({name:l.name,cells:marks.map(mk=>{const c=cols.find(e=>e.level===l.id&&markOf(M,e)===mk);if(!c)return null;const R=rebarOf(c);return{w:c.w,d:c.shape==='circle'?c.w:c.d,n:R.n,bar:R.d,tie:R.td,ts:R.ts}})}));
+  const lv=S.levels.filter(l=>l.kind!=='roof').slice().reverse(),rows=lv.map(l=>({name:l.name,cells:marks.map(mk=>{const c=cols.find(e=>e.level===l.id&&markOf(M,e)===mk);if(!c)return null;const R=rebarOf(c);return{w:c.w,d:c.shape==='circle'?c.w:c.d,n:R.n,bar:R.d,tie:R.td,ts:R.ts,lab1:R.lab1,lab2:R.lab2}})}));
   if(S.els.some(e=>e.type==='footing')){const l1=S.levels[0];rows.push({name:'ตอม่อ',cells:marks.map(mk=>{const c=cols.find(e=>e.level===l1.id&&markOf(M,e)===mk);if(!c)return null;const s=stubSpec(colStubOf(c),c);return{w:s.w,d:s.d,n:s.n,bar:s.bar,tie:s.tie,ts:s.ts}})})}
   return{marks,rows}}
 let DK=50;function colTabSize(){const D_=colTabData(),f=DK/40;return{w:26+D_.marks.length*36*f,h:9+D_.rows.length*36*f}}
@@ -3626,7 +3647,7 @@ function drawColTab(x,x0,y0){const D_=colTabData(),cw=36*DK/40,rh=36*DK/40,hw=26
   D_.rows.forEach((r,j)=>{const ry=y0+hh+j*rh;x.lineWidth=0.3;x.beginPath();x.moveTo(x0,ry);x.lineTo(x0+W,ry);x.stroke();x.lineWidth=0.15;x.beginPath();x.moveTo(x0+hw,ry+rh*0.66);x.lineTo(x0+W,ry+rh*0.66);x.stroke();
     x.font=FONT('500',2.6);x.textAlign='center';x.fillText(r.name,x0+hw/2,ry+rh/2+1);
     r.cells.forEach((c,i)=>{const cx=x0+hw+i*cw+cw/2;if(!c){x.font=FONT('400',3);x.fillText('—',cx,ry+rh*0.36);return}sectionDraw(x,cx,ry+rh*0.34,c.w,c.d,DK,c.n,c.tie,c.bar);
-      x.font=FONT('400',2.15);x.textAlign='left';x.fillText(c.n+'-'+BTXT(c.bar),x0+hw+i*cw+1.5,ry+rh*0.66+4);x.fillText('ป-'+BTXT(c.tie)+'@'+f2(c.ts)+'ม.',x0+hw+i*cw+1.5,ry+rh*0.66+8.2);x.textAlign='center'})});x.restore()}
+      x.font=FONT('400',2.15);x.textAlign='left';x.fillText(c.lab1||(c.n+'-'+BTXT(c.bar)),x0+hw+i*cw+1.5,ry+rh*0.66+4);x.fillText(c.lab2||('ป-'+BTXT(c.tie)+'@'+f2(c.ts)+'ม.'),x0+hw+i*cw+1.5,ry+rh*0.66+8.2);x.textAlign='center'})});x.restore()}
 function beamTabData(){const M=markMaps(),bs=S.els.filter(e=>e.type==='beam'&&e.bm!=='steel'),mk=[...new Set(bs.map(e=>markOf(M,e)))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));return mk.map(m=>{const b=bs.find(e=>markOf(M,e)===m),R=rebarOf(b);return{mark:m,w:b.w,d:b.d,R}})}
 function beamTabSize(){const L=beamTabData(),cols=3,ch=Math.max(34,...L.map(b=>b.d*DK+20));return{w:cols*(36+DK*0.55),h:Math.ceil(L.length/cols)*ch,ch,cols,L}}
 function drawBeamTab(x,x0,y0){const Z=beamTabSize();x.save();Z.L.forEach((b,i)=>{const col=i%Z.cols,row=Math.floor(i/Z.cols),cx=x0+col*(36+DK*0.55)+14,cy=y0+row*Z.ch+Z.ch/2-3,W=b.w*DK,H=b.d*DK,cv=Math.max(1.2,0.03*DK);
@@ -3736,7 +3757,7 @@ function drawBeamTab(x,x0,y0){const Z=beamTabSize();x.save();Z.L.forEach((b,i)=>
     const row_=(n,yy,r)=>{const out=[];for(let k=0;k<n;k++){const px=n===1?cx:cx-W/2+cv+0.15+r+k*(W-2*(cv+0.15+r))/(n-1);x.beginPath();x.arc(px,yy,r,0,7);x.fill();out.push(px)}return out};
     const yt=cy-H/2+cv+0.15+dt,yb=cy+H/2-cv-0.15-dbb;row_(R_.tn,yt,dt);row_(R_.bn,yb,dbb);dimLn(x,{x:cx-W/2,y:cy-H/2},{x:cx+W/2,y:cy-H/2},f2(b.w),false,2.2);dimLn(x,{x:cx-W/2,y:cy-H/2},{x:cx-W/2,y:cy+H/2},f2(b.d),true,2.2);
     const tx=cx+W/2+7,lead=(yy,py,t)=>{x.lineWidth=0.15;x.beginPath();x.moveTo(cx+W/2-cv-0.4,py);x.lineTo(tx-1.5,yy);x.lineTo(tx-0.5,yy);x.stroke();x.font=FONT('400',2.1);x.textAlign='left';x.textBaseline='middle';x.fillText(t,tx,yy)};
-    lead(cy-H/2+1.2,yt,R_.tn+'-'+BTXT(R_.td));lead(cy,cy,'ป-'+BTXT(R_.sd)+'@'+f2(R_.ss)+'ม.');lead(cy+H/2-1.2,yb,R_.bn+'-'+BTXT(R_.bd));
+    lead(cy-H/2+1.2,yt,R_.lab1||(R_.tn+'-'+BTXT(R_.td)));lead(cy,cy,R_.lab2||('ป-'+BTXT(R_.sd)+'@'+f2(R_.ss)+'ม.'));lead(cy+H/2-1.2,yb,R_.lab3||(R_.bn+'-'+BTXT(R_.bd)));
     x.textBaseline='alphabetic';x.font=FONT('700',3);x.textAlign='center';x.fillText(b.mark,cx,cy+H/2+5.2);x.font=FONT('400',2);x.fillText(f2(b.w)+' × '+f2(b.d)+' ม.',cx,cy+H/2+8.4)});x.restore()}
 
 // ================= v8.4: roof plan covering hatch, realistic elevations from the 3D model, cover options
@@ -3758,7 +3779,53 @@ function elevRender(sec,E,wpx,hpx){if(!R||!scene||!cam)return null;const F=secFr
 function fit3D(ar){const b=new THREE.Box3();root.children.forEach(c=>{if(c.isMesh&&c.userData&&c.userData.id)b.expandByObject(c)});if(b.isEmpty())return;const c=new THREE.Vector3(),sp=new THREE.Sphere();b.getCenter(c);b.getBoundingSphere(sp);const v=cam.fov*Math.PI/180,hf=2*Math.atan(Math.tan(v/2)*ar),a=Math.min(v,hf);orb.tx=c.x;orb.ty=c.y;orb.tz=c.z;orb.d=sp.radius/Math.sin(a/2)*1.02}
 let DETONLY='';
 
+// ================= v8.5: section annotations, editable structural labels, detail grouping, CAD ribbon UI
+['beam','column','slab'].forEach(t=>{if(FIELDS[t])FIELDS[t].push(['เบอร์ชิ้นส่วน (แก้ได้ ใช้ทั้งกลุ่ม)','_mark','text'],['ข้อความป้ายในแปลน (เว้นว่าง = อัตโนมัติ)','tagtxt','text'])});
+if(FIELDS.footing)FIELDS.footing.push(['ข้อความป้ายในแปลน (เว้นว่าง = อัตโนมัติ)','tagtxt','text']);
+TEXTK.push('_mark','tagtxt');
+RF.column.push(['ข้อความเหล็กยืนในตาราง (เว้นว่าง = อัตโนมัติ)','lab1','text'],['ข้อความเหล็กปลอกในตาราง','lab2','text']);
+RF.beam.push(['ข้อความเหล็กบน (เว้นว่าง = อัตโนมัติ)','lab1','text'],['ข้อความเหล็กปลอก','lab2','text'],['ข้อความเหล็กล่าง','lab3','text']);
+RF.footing.push(['ข้อความเหล็กตะแกรง (เว้นว่าง = อัตโนมัติ)','lab1','text']);
+function secAnno(x,R,tf,sc,T_){const sec=R.sec,F=secFrame(sec),sg=sec.flip==='1'?-1:1,P=s=>add(F.A,mul(F.u,s*sg));const ivs=poly=>{try{const v=cutIntervals(poly,F);const out=[];for(let i=0;i+1<v.length;i+=2)out.push([Math.min(v[i][0]??v[i],v[i+1][0]??v[i+1]),Math.max(v[i][0]??v[i],v[i+1][0]??v[i+1])]);return Array.isArray(v[0])?v:out}catch(_){return[]}};
+  const ink=C['ink'],mut=C['muted'];
+  S.els.filter(e=>e.type==='clg'&&e.ct!=='none').forEach(c=>{const z=elevOf(c.level)+ceilH(c);ivs(c.pts).forEach(([a,b])=>{if(b-a<0.3)return;const A=tf({x:a,y:z}),B=tf({x:b,y:z});x.save();x.strokeStyle=ink;x.lineWidth=1.8;x.beginPath();x.moveTo(A.x,A.y);x.lineTo(B.x,B.y);x.stroke();x.lineWidth=0.5;x.setLineDash([3,2]);const hz=tf({x:a,y:z+0.25});x.beginPath();for(let s=a+0.3;s<b-0.1;s+=0.6){const q=tf({x:s,y:z});x.moveTo(q.x,q.y);x.lineTo(q.x,hz.y)}x.stroke();x.restore()})});
+  S.els.filter(e=>e.type==='room').forEach(r=>{const c=centroid(r.pts),z0=elevOf(r.level),f=zoneAt('flr',r.level,c),zf=z0+(f?(+f.dz||0):0),cz=zoneAt('clg',r.level,c);
+    ivs(r.pts).forEach(([a,b])=>{if(b-a<1.0)return;const wide=b-a>=1.8;const m=(a+b)/2,p=tf({x:m,y:zf+1.3});T_(r.name||'',p,{size:12.5,w:'600',c:ink});if(f)T_((FIN[f.fin]||{}).n||'',{x:p.x,y:p.y+15},{size:9.5,c:mut});
+      const q=tf({x:a+0.3,y:zf});x.save();x.fillStyle=ink;x.beginPath();x.moveTo(q.x,q.y);x.lineTo(q.x-4,q.y-6.5);x.lineTo(q.x+4,q.y-6.5);x.closePath();x.fill();x.restore();T_('FFL '+lvTxt(zf),{x:q.x+6,y:q.y-8},{size:9.5,al:'left',c:ink});
+      if(wide&&cz&&cz.ct!=='none'){const zc=z0+ceilH(cz),xm=m+(b-a)*0.28,d1=tf({x:xm,y:zf}),d2=tf({x:xm,y:zc});x.save();x.strokeStyle=C['cv-dim'];x.lineWidth=0.8;x.beginPath();x.moveTo(d1.x,d1.y);x.lineTo(d2.x,d2.y);[d1,d2].forEach(pp=>{x.moveTo(pp.x-4,pp.y+4);x.lineTo(pp.x+4,pp.y-4)});x.stroke();x.restore();
+        T_(f2(zc-zf),{x:d1.x-8,y:(d1.y+d2.y)/2},{size:10,c:C['cv-dim'],rot:-Math.PI/2});const qc=tf({x:b-0.3,y:zc});T_(((CEIL[cz.ct]||{}).n||'ฝ้า')+' สูง +'+f2(zc-zf),{x:qc.x,y:qc.y+10},{size:9,al:'right',c:mut})}})});
+  let li=0;S.els.filter(e=>e.type==='roof').forEach(e=>{const iv=ivs(roofOuter(e));let best=null;iv.forEach(([a,b])=>{for(let t=0.1;t<=0.9;t+=0.1){const s=a+(b-a)*t,pz=roofSurfZ(e,P(s));if(pz!=null){const z=roofBase(e)+pz;if(!best||z>best.z)best={s,z}}}});if(!best)return;
+    const xr=tf({x:R.ext.s1+0.6,y:best.z}).x,A=tf({x:best.s,y:best.z}),B={x:Math.max(A.x+40,xr),y:A.y-24-(li++)*30},M_=ROOFMAT[e.mat]||ROOFMAT.metal;x.save();x.strokeStyle=ink;x.lineWidth=0.7;x.beginPath();x.moveTo(A.x,A.y);x.lineTo(B.x,B.y);x.lineTo(B.x+10,B.y);x.stroke();x.beginPath();x.arc(A.x,A.y,2,0,7);x.fillStyle=ink;x.fill();x.restore();
+    T_((e.kind==='flat'?'หลังคาแบน':'หลังคา'+(RFKN[e.kind]||'')+' ลาด '+e.pitch+'°')+' • '+M_.n,{x:B.x+13,y:B.y},{size:10,al:'left',c:ink});
+    const ms=roofMembers(e),pick=k=>{const m=ms.find(q=>(q.kk||q.k)===k);return m&&m.s?m.s.n:''},rf=pick('rafter'),pu=pick('purlin')||pick('batten');if(rf||pu)T_('โครงหลังคา: '+[rf&&'จันทัน '+rf,pu&&'แป '+pu].filter(Boolean).join(' • '),{x:B.x+13,y:B.y+13},{size:9,al:'left',c:mut})})}
+function secHatch(x,pts,m,sc){if(m!=='conc'&&m!=='wall')return;const P_=pts,xs=P_.map(q=>q.x),ys=P_.map(q=>q.y),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);if(x1-x0<2||y1-y0<2)return;x.save();x.beginPath();P_.forEach((q,i)=>i?x.lineTo(q.x,q.y):x.moveTo(q.x,q.y));x.closePath();x.clip();
+  const col=C===PC?'#4a4a4a':C['muted'];x.strokeStyle=col;x.fillStyle=col;x.lineWidth=0.45;
+  if(m==='wall'){const sp=Math.max(3,0.05*sc);x.beginPath();for(let X=x0-(y1-y0);X<x1;X+=sp){x.moveTo(X,y1);x.lineTo(X+(y1-y0),y0)}x.stroke()}
+  else{let sd=17;const unit=Math.max(2.5,0.025*sc),n=Math.min(900,(x1-x0)*(y1-y0)/(unit*unit)*1.6);for(let i=0;i<n;i++){sd=(sd*9301+49297)%233280;const r1=sd/233280;sd=(sd*9301+49297)%233280;const r2=sd/233280;const px=x0+r1*(x1-x0),py=y0+r2*(y1-y0);
+      if(i%5===0){const t=Math.max(1.6,0.014*sc);x.beginPath();x.moveTo(px,py);x.lineTo(px+t,py+t*0.35);x.lineTo(px+t*0.3,py+t);x.closePath();x.stroke()}else{x.beginPath();x.arc(px,py,Math.max(0.35,0.0035*sc),0,7);x.fill()}}}x.restore()}
+// ----- detail sheet grouping & moving viewports between sheets
+const isDetVp=v=>['coltab','beamtab','detail'].includes(v.kind);
+function renumberSheets(){const cnt={};S.sheets.forEach(s=>{const m=String(s.no||'').match(/^([A-Z]+)-\d+$/);if(!m)return;const p=m[1];cnt[p]=cnt[p]==null?(p==='A'?0:1):cnt[p]+1;s.no=p+'-'+pad2(cnt[p])})}
+function regroupDetails(mode){const det=S.sheets.filter(s=>s.vps.length&&s.vps.every(isDetVp));if(!det.length)return 0;const vps=det.flatMap(s=>s.vps),idx=S.sheets.indexOf(det[0]),size=det[0].size||'A3';S.sheets=S.sheets.filter(s=>!det.includes(s));
+  const mkS=(title,v,sz)=>({id:'sh'+Math.random().toString(36).slice(2,8),no:'S-99',title,size:sz||size,vps:v});let ns=[];
+  if(mode==='one')ns=[mkS('แบบขยายโครงสร้าง',vps,vps.length>4?'A2':size)];
+  else if(mode==='each')ns=vps.map(v=>mkS(v.title||'แบบขยาย',[v]));
+  else{const g=(f,t)=>{const L=vps.filter(f);if(L.length)ns.push(mkS(t,L))};g(v=>v.kind==='coltab'||v.kind==='beamtab','แบบขยายเสาและคาน');g(v=>v.kind==='detail'&&v.ref==='fdn','แบบขยายฐานรากและเสาเข็ม');g(v=>v.kind==='detail'&&(v.ref==='col'||v.ref==='beam'),'แบบขยายหน้าตัดเสาและคาน');g(v=>v.kind==='detail'&&(v.ref==='slab'||v.ref==='stair'),'แบบขยายพื้นและบันได')}
+  S.sheets.splice(idx,0,...ns);ns.forEach(s=>{layoutSheet(s);fitSheet(s)});renumberSheets();return ns.length}
+function moveVpTo(vp,sh,target){let t=null;mutate(()=>{sh.vps=sh.vps.filter(x=>x!==vp);t=S.sheets.find(s=>s.id===target);if(!t){t={id:'sh'+Math.random().toString(36).slice(2,8),no:(String(sh.no).split('-')[0]||'S')+'-99',title:vp.title||'แผ่นงานใหม่',size:sh.size,vps:[]};S.sheets.splice(S.sheets.indexOf(sh)+1,0,t)}
+    t.vps.push(vp);layoutSheet(t);if(t.vps.length>1)fitSheet(t);if(sh.vps.length)layoutSheet(sh);else S.sheets=S.sheets.filter(s=>s!==sh);renumberSheets()});shCur=t.id;hSel=vp.id;fitH();renderSide();toast('ย้ายไปแผ่น '+t.no+' แล้ว')}
+// ----- ribbon
+let RTAB=(()=>{try{return localStorage.getItem('yothacad-rtab')||'สถาปัตย์'}catch(_){return'สถาปัตย์'}})();
+function buildTools(){const tl=$('#tools'),app=$('#app'),main=$('#main');if(tl.parentElement===main)app.insertBefore(tl,main);const g0=[...new Set(TOOLS.map(t=>t[4]).filter(Boolean))],ord=['สถาปัตย์','โครงสร้าง','งานระบบ','ตกแต่ง','เขียนแบบ','แก้ไข'],grps=ord.filter(g=>g0.includes(g)).concat(g0.filter(g=>!ord.includes(g)));
+  let h='<div class="rtabs">'+grps.map(g=>`<button class="rtab" data-grp="${g}" data-rt="${g}">${g}</button>`).join('')+'<span class="rfill"></span><button class="rtab rmin" id="rMin" title="ย่อ/ขยายแถบเครื่องมือ">ย่อแถบ ▴</button></div><div class="rbody">';
+  TOOLS.forEach(t=>{if(!t[4])h+=`<button class="tool rsel" data-tool="${t[0]}" title="${t[1]} — พิมพ์ ${t[2]}"><svg viewBox="0 0 24 24">${t[3]}</svg>${t[1]}</button><span class="rsep"></span>`});
+  TOOLS.forEach(t=>{if(t[4])h+=`<button class="tool" data-grp="${t[4]}" data-tool="${t[0]}" title="${t[1]} — พิมพ์ ${t[2]}"><svg viewBox="0 0 24 24">${t[3]}</svg><span>${t[1]}</span><kbd>${t[2]}</kbd></button>`});
+  tl.innerHTML=h+'</div>';tl.addEventListener('click',e=>{const r=e.target.closest('[data-rt]');if(r){showRTab(r.dataset.rt);return}if(e.target.closest('#rMin')){tl.classList.toggle('rcol');$('#rMin').textContent=tl.classList.contains('rcol')?'ขยายแถบ ▾':'ย่อแถบ ▴';setTimeout(()=>{resize2();resize3()},30);return}const b=e.target.closest('.tool');if(b)setTool(b.dataset.tool)});showRTab(RTAB)}
+function showRTab(g){const tabs=[...document.querySelectorAll('#tools .rtab[data-rt]')];tabs.forEach(t=>{t.style.display=[...document.querySelectorAll('#tools .tool[data-grp="'+t.dataset.rt+'"]')].some(b=>b.style.display!=='none')?'':'none'});
+  const vis=tabs.filter(t=>t.style.display!=='none');if(!vis.some(t=>t.dataset.rt===g)&&vis.length)g=vis[0].dataset.rt;RTAB=g;try{localStorage.setItem('yothacad-rtab',g)}catch(_){}tabs.forEach(t=>t.classList.toggle('on',t.dataset.rt===g));document.querySelectorAll('#tools .tool[data-grp]').forEach(b=>b.classList.toggle('rh',b.dataset.grp!==g))}
+
 // ================= Boot
+{let th=null;try{th=localStorage.getItem('yothacad-theme')}catch(_){}document.documentElement.dataset.theme=th||'cad'}
 readColors();buildTools();
 bootProjects();
 if(innerWidth<=820){$('#side').classList.add('hide');setView('m2d')}
