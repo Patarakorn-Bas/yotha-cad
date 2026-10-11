@@ -2467,7 +2467,7 @@ $('#rbIn').onchange=async()=>{const f=$('#rbIn').files[0];if(!f)return;try{const
       v.src=d.app||d.source||'Civil Toolkit';S.rebar[k]={...(S.rebar[k]||{}),...v};n++})});toast('นำเข้าผลออกแบบ '+n+' รายการ'+(nsz?' • ปรับขนาดชิ้นส่วน '+nsz+' กลุ่ม':'')+' • แปลนและตารางโครงสร้างอัปเดตแล้ว');}catch(e){toast('ไฟล์นี้ไม่ใช่ผลออกแบบเหล็กเสริม')}$('#rbIn').value=''};
 
 // ================= App shell: version, sync, manual, install, service worker
-const APP_VER='v9.5';$('#verL').textContent=APP_VER;
+const APP_VER='v9.6';$('#verL').textContent=APP_VER;
 const isEmbedded=/claude\.ai|claudeusercontent|anthropic/.test(location.host)||location.protocol==='blob:';
 const LSK={sync:'yothacad-sync',saved:'yothacad-savedAt',last:'yothacad-lastSync',dev:'yothacad-device'};
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -4647,9 +4647,9 @@ const PORTDEF={tank:tankP(.5),tank500:tankP(.42),tank2k:tankP(.72),tankSS:[PRT('
   ptank:[PRT('io','ต่อเข้าระบบ','cw',0,0,.66,'io','1″')],hwt:[PRT('in','น้ำเย็นเข้า','cw',-.08,0,1.7,'in','1/2″'),PRT('out','น้ำร้อนออก','hw',.08,0,1.7,'out','1/2″')],
   hp:[PRT('in','น้ำเย็นเข้า','cw',.2,.3,.2,'in','3/4″'),PRT('out','น้ำร้อนออก','hw',.3,.3,.2,'out','3/4″')],solarWH:[PRT('in','น้ำเย็นเข้า','cw',-.45,1.1,.2,'in','3/4″'),PRT('out','น้ำร้อนออก','hw',.45,1.1,.2,'out','3/4″')],
   lpg:[PRT('out','แก๊สออก','gas',.3,0,.7,'out','1/2″')],filt:[PRT('in','น้ำเข้า','cw',-.2,0,.72,'in','3/4″'),PRT('out','น้ำออก','cw',.2,0,.72,'out','3/4″')],ro:[PRT('in','น้ำเข้า','cw',-.22,0,.2,'in','1/2″'),PRT('out','น้ำ RO ออก','cw',.22,0,.2,'out','1/4″')],
-  wm:[PRT('in','น้ำประปาเข้า','cw,irr,fp',-.3,0,.12,'in','3/4″'),PRT('out','น้ำออก','cw,irr,fp',.3,0,.12,'out','3/4″')],hb:[PRT('in','น้ำเข้า','cw,irr',0,.05,.55,'in','1/2″')],fvalve:[PRT('io','ต่อลูกลอย','cw',0,0,.05,'io','1/2″')],
+  wm:[Object.assign(PRT('in','น้ำประปาเข้า (จากท่อประปาหลวง)','cw,irr,fp',-.3,0,.12,'in','3/4″'),{opt:1}),PRT('out','น้ำออก','cw,irr,fp',.3,0,.12,'out','3/4″')],hb:[PRT('in','น้ำเข้า','cw,irr',0,.05,.55,'in','1/2″')],fvalve:[PRT('io','ต่อลูกลอย','cw',0,0,.05,'io','1/2″')],
   fd:[PRT('out','ระบายลง','ws,sl,cd',0,0,0,'out','2″')],co:[PRT('io','ต่อท่อ','ws,sl',0,0,0,'io','4″')],fdl:[PRT('out','ระบายลง','ws,rw',0,0,0,'out','3″')],rain:[PRT('out','ปลายท่อน้ำฝน','rw',0,-.18,0,'out','3″')],vtr:[PRT('io','ต่อท่ออากาศ','vt',0,0,0,'io','2″')],
-  ic:[PRT('in','ท่อเข้าบ่อ','ws,sl,rw,cd',-.3,0,-.3,'in','4″'),PRT('out','ท่อออกบ่อ','ws,sl,rw',.3,0,-.35,'out','4″')],grease:[PRT('in','น้ำทิ้งครัวเข้า','ws',-.3,0,-.3,'in','2″'),PRT('out','ท่อออก','ws',.3,0,-.35,'out','2″')],
+  ic:[PRT('in','ท่อเข้าบ่อ','ws,sl,rw,cd',-.3,0,-.3,'in','4″'),Object.assign(PRT('out','ท่อออกบ่อ (สู่ท่อสาธารณะ/บ่อถัดไป)','ws,sl,rw',.3,0,-.35,'out','4″'),{opt:1})],grease:[PRT('in','น้ำทิ้งครัวเข้า','ws',-.3,0,-.3,'in','2″'),PRT('out','ท่อออก','ws',.3,0,-.35,'out','2″')],
   septic:[PRT('in','ท่อโสโครกเข้า','sl,ws',-.33,0,-.3,'in','4″'),PRT('out','ท่อน้ำทิ้งออก','ws',.33,0,-.35,'out','4″'),PRT('vent','ท่ออากาศ','vt',.23,0,.6,'io','2″')],
   sump:[PRT('in','ท่อเข้า','rw,ws',-.4,0,-.3,'in','4″')],soak:[PRT('in','ท่อเข้า','ws,rw',-.45,0,-.3,'in','4″')],utank:[PRT('io','ท่อเข้า-ออก','cw',.21,.21,.56,'io','1″')]};
 ['gv','cv','prv'].forEach(k=>PORTDEF[k]=[PRT('a','ด้าน A','cw,hw,irr,fp',-.2,0,.3,'in','3/4″'),PRT('b','ด้าน B','cw,hw,irr,fp',.2,0,.3,'out','3/4″')]);
@@ -4756,7 +4756,7 @@ function drawPorts(){if(PRINT||!g)return;const tl=['pipe','conn','wire'].include
   DN={tank:['out','in','ovf'],tank500:['out','in','ovf'],tank2k:['out','in','ovf'],tankSS:['out','in'],pump:['in'],pumpCv:['in'],pumpSq:['in'],pumpInv:['in'],pumpCf:['in'],solarWH:['in','out'],fd:['out'],co:['io'],fdl:['out'],rain:['out'],vtr:['io'],fvalve:['io']};
   Object.entries(PORTDEF).forEach(([k,L])=>L.forEach(p=>{p.v=(UP[k]||[]).includes(p.k)?'up':(DN[k]||[]).includes(p.k)?'down':'h';if(p.k==='ovf'||p.k==='vent')p.opt=1}));
   Object.values(EPORT).forEach(L=>L.forEach(p=>p.v='h'))}
-{const _fp=furnPorts;furnPorts=function(e){const r=_fp(e);r.forEach(p=>{p.v='any';if(p.k==='hw')p.opt=1});return r}}
+{const _fp=furnPorts;furnPorts=function(e){const r=_fp(e);r.forEach(p=>{p.v='any';if(p.k==='hw')p.opt=1;if(p.k==='gas'&&!S.els.some(q=>q.level===e.level&&q.type==='plumb'&&q.kind==='lpg'))p.opt=1});return r}}
 const INLINE=['gv','cv','gasv','prv','wm','filt','ro'];
 // ---- flow roles: water flows from a lower role to a higher one (supply), fixtures drain toward treatment (drainage)
 const SUPR={wm:0,lpg:0,tank:1,tank500:1,tank2k:1,tankSS:1,utank:1,fvalve:1,pump:2,pumpCv:2,pumpSq:2,pumpInv:2,pumpCf:2,pumpSub:2,ptank:3,filt:3,ro:3,prv:3,gv:3,cv:3,gasv:3,hwt:4,hp:4,solarWH:4,cdu:4,cass:5};
@@ -4868,14 +4868,14 @@ function connGo(id,x,y){const e=byId(id);if(!e)return;setTool('select');sel.clea
   <li>โหมดประปา (ไม่ได้เลือกอะไร) มีรายการ <b>ตรวจการเชื่อมต่อ</b> บอกปลายท่อที่ยังลอยและจุดต่อของอุปกรณ์/สุขภัณฑ์ที่ยังไม่ได้ต่อ คลิกเพื่อไปยังจุดนั้น</li></ul></details>`}}
 
 // ---- grid router (Dijkstra on an orthogonal visibility grid): routes around tanks, pumps, fixtures and columns with few bends
-function routeGrid(a,b,A,B){const lid=(A||B||{}).level??cur,own=[A&&A.id,B&&B.id];
+function routeGrid(a,b,A,B,noObs){const lid=(A||B||{}).level??cur,own=[A&&A.id,B&&B.id];
   const stub=(Dv,q)=>{if(!Dv||Dv.type==='furn')return null;const v=sub(q,Dv.p);if(len(v)<.05)return null;const u=Math.abs(v.x)>=Math.abs(v.y)?{x:Math.sign(v.x),y:0}:{x:0,y:Math.sign(v.y)};return add(q,mul(u,.22))};
   const s=stub(A,a)||a,t=stub(B,b)||b;
   const obs=S.els.filter(o=>o.level===lid&&o.p&&(o.type==='plumb'||o.type==='column'||(o.type==='furn'&&furnPorts(o).length))).map(o=>{const mine=own.includes(o.id);
-    let r=o.type==='column'?Math.hypot(+o.w||.2,+o.d||.2)/2+.03:mine?(o.type==='furn'?0:devR(o)*1.02):devR(o)*.85;if(mine)r=Math.min(r,dist(o.p,s)-.04,dist(o.p,t)-.04);return{c:o.p,r}}).filter(o=>o.r>0&&dist(o.c,s)>o.r&&dist(o.c,t)>o.r);
+    let r=o.type==='column'?Math.hypot(+o.w||.2,+o.d||.2)/2+.03:mine?(o.type==='furn'?0:devR(o)*1.02):devR(o)*.85;if(mine)r=Math.min(r,dist(o.p,s)-.04,dist(o.p,t)-.04);return{c:o.p,r}}).filter(o=>!noObs&&o.r>0&&dist(o.c,s)>o.r&&dist(o.c,t)>o.r);
   const pad=1.2,x0=Math.min(s.x,t.x)-pad,x1=Math.max(s.x,t.x)+pad,y0=Math.min(s.y,t.y)-pad,y1=Math.max(s.y,t.y)+pad,XS=new Set([r3(s.x),r3(t.x)]),YS=new Set([r3(s.y),r3(t.y)]);
   for(let x=x0;x<=x1;x+=.25)XS.add(r3(x));for(let y=y0;y<=y1;y+=.25)YS.add(r3(y));obs.forEach(o=>{[o.c.x-o.r-.1,o.c.x+o.r+.1].forEach(v=>{if(v>x0&&v<x1)XS.add(r3(v))});[o.c.y-o.r-.1,o.c.y+o.r+.1].forEach(v=>{if(v>y0&&v<y1)YS.add(r3(v))})});
-  const X=[...XS].sort((p,q)=>p-q),Y=[...YS].sort((p,q)=>p-q),nx=X.length,ny=Y.length;if(nx*ny>9000)return null;
+  const X=[...XS].sort((p,q)=>p-q),Y=[...YS].sort((p,q)=>p-q),nx=X.length,ny=Y.length;if(nx*ny>40000)return null;
   const si=X.indexOf(r3(s.x)),sj=Y.indexOf(r3(s.y)),ti=X.indexOf(r3(t.x)),tj=Y.indexOf(r3(t.y));if(si<0||sj<0||ti<0||tj<0)return null;
   const PS=[];S.els.forEach(q=>{if(q.type==='pipe'&&q.level===lid)for(let m=0;m<q.pts.length-1;m++)PS.push([q.pts[m],q.pts[m+1]])});
   const ovl=(i,j,k,l)=>{let c=0;const p0={x:X[i],y:Y[j]},p1={x:X[k],y:Y[l]},hz=Math.abs(p0.y-p1.y)<1e-6;PS.forEach(([u,v])=>{if(hz&&Math.abs(u.y-v.y)<1e-3&&Math.abs(u.y-p0.y)<.07){const o=Math.min(Math.max(p0.x,p1.x),Math.max(u.x,v.x))-Math.max(Math.min(p0.x,p1.x),Math.min(u.x,v.x));if(o>0)c+=o*3}else if(!hz&&Math.abs(u.x-v.x)<1e-3&&Math.abs(u.x-p0.x)<.07){const o=Math.min(Math.max(p0.y,p1.y),Math.max(u.y,v.y))-Math.max(Math.min(p0.y,p1.y),Math.min(u.y,v.y));if(o>0)c+=o*3}});return c};
@@ -4887,7 +4887,7 @@ function routeGrid(a,b,A,B){const lid=(A||B||{}).level??cur,own=[A&&A.id,B&&B.id
     DIR.forEach(([di,dj],nd)=>{const k=i+di,l=j+dj;if(k<0||l<0||k>=nx||l>=ny)return;if(!free(i,j,k,l))return;const c=dc+Math.abs(X[k]-X[i])+Math.abs(Y[l]-Y[j])+(nd!==d&&!(i===si&&j===sj)?.45:0)+ovl(i,j,k,l),v=id(k,l,nd);if(c<dist_[v]-1e-9){dist_[v]=c;prev[v]=u;push(c,v)}})}
   if(end<0)return null;const path=[];for(let u=end;u>=0;u=prev[u]){const ij=u>>2;path.push({x:X[Math.floor(ij/ny)],y:Y[ij%ny]})}path.reverse();
   return simplifyP([a,...path,b])}
-{const _rs=routeSmart;routeSmart=function(a,b,A,B){try{const r=routeGrid(a,b,A,B);if(r&&r.length>=2)return r}catch(err){console.warn(err)}return _rs(a,b,A,B)};routeL=routeSmart}
+{const _rs=routeSmart;routeSmart=function(a,b,A,B){try{const r=routeGrid(a,b,A,B)||routeGrid(a,b,A,B,true);if(r&&r.length>=2)return r}catch(err){console.warn(err)}const r2=_rs(a,b,A,B);if(r2.every((q,i)=>!i||Math.abs(q.x-r2[i-1].x)<.02||Math.abs(q.y-r2[i-1].y)<.02))return r2;return simplifyP([a,{x:b.x,y:a.y},b])};routeL=routeSmart}
 
 {const _hh4=helpHTML;helpHTML=function(){return _hh4()+`<details><summary>ใหม่ใน v9.4: การคลิกเลือกวัตถุ</summary><ul>
   <li><b>คลิกซ้ำที่เดิมเพื่อสลับเลือก</b> วัตถุที่ซ้อนกัน เช่น ผนัง → คาน → ฐานราก → พื้น หรือ เฟอร์นิเจอร์ → ท่อที่ลอดใต้ (มุมล่างจะบอกลำดับ 1/3, 2/3 …) กดค้างแล้วลากจะย้ายชิ้นที่เลือกอยู่</li>
@@ -4972,6 +4972,107 @@ function rbSummary(d,R){let dl=$('#rbSum');if(!dl){dl=document.createElement('di
   <li>ฐานราก: จับคู่ทีละต้นด้วยพิกัด (คลาดได้ไม่เกิน 5 ซม.) ใช้เครื่องหมาย F1, F2, F3… จากผลออกแบบ วาดฐานแผ่ หรือฐานเข็มตามจำนวนเข็ม ขนาด และระยะห่างเข็ม พร้อมตอม่อและเหล็กของแต่ละต้น ถ้ามีเสาแต่ยังไม่มีฐานราก จะสร้างให้</li>
   <li>พื้น: แบ่งพื้นเดิมเป็นช่องตามผลออกแบบ พื้นสำเร็จรูป (PS) วาดลายแผ่นตามช่วงสั้น พื้นหล่อในที่ใช้เครื่องหมาย S1, S2…</li>
   <li>เสา/คานที่ออกแบบแล้วปรับขนาดจริง ใช้เหล็กของตัวเอง และใช้เครื่องหมายจาก Civil Toolkit (C1, B1, GB1…) หลังนำเข้าจะแสดงสรุปจำนวนที่เปลี่ยน</li></ul></details>`}}
+// ================= v9.6: automatic plumbing layout (supply tree, hot water, soil / grey water, rain, gas, A/C) with risers & stacks between floors
+Object.assign(PLIB,{
+  riser:{n:'ท่อน้ำดีขึ้น-ลงชั้น (Riser)',p:[['c',0,0,.09,0],['c',0,0,.035,1],['l',.09,0,.2,.1],['t',.28,.12,.08,'R']],b:[['c',0,0,.03,.03,-.5,.4,'pipe']]},
+  stack:{n:'ท่อโสโครก/น้ำทิ้งลงชั้นล่าง (Stack)',p:[['c',-.08,0,.06,0],['c',.08,0,.05,0],['t',0,.16,.07,'SK']],b:[['c',-.08,0,.05,.05,-.6,.4,'pipe'],['c',.08,0,.04,.04,-.6,.4,'pipe']]}});
+PLOPT.length=0;Object.entries(PLIB).forEach(([k,v])=>PLOPT.push([k,v.n]));{const g=PGRP.find(x=>x[0]==='น้ำดี');if(g&&!g[1].includes('riser'))g[1].push('riser');const h=PGRP.find(x=>x[0]==='ระบายน้ำ');if(h&&!h[1].includes('stack'))h[1].push('stack')}
+Object.assign(PLP,{riser:[1500,600],stack:[2500,900]});
+PORTDEF.riser=[Object.assign(PRT('io','ท่อน้ำดีขึ้น/ลงชั้น','cw',0,0,0,'io','1″'),{v:'down'})];
+PORTDEF.stack=[Object.assign(PRT('sl','ท่อโสโครกลง','sl',-.08,0,-.45,'io','4″'),{v:'h'}),Object.assign(PRT('ws','ท่อน้ำทิ้งลง','ws',.08,0,-.3,'io','3″'),{v:'h'})];
+FIXZ91.riser=0;FIXZ91.stack=-.3;SUPR.riser=3;DRR.stack=1.5;
+{const _m4=mep3D;mep3D=function(e,el,zb,dh){if(e.type==='plumb'&&(e.kind==='riser'||e.kind==='stack')){const K=kitX(mepKit(e,el)),ix=S.levels.findIndex(l=>l.id===e.level),up=ix<S.levels.length-1?(+lvl(e.level).height||3):.4;
+    if(e.kind==='riser'){const m=MK3.pvc();K.cyl(.017,up+.5,m,0,0,-.5,16);if(up>1)K.ring(.03,.008,MK3.brass(),0,0,.6)}else{K.cyl(.057,up+.6,MK3.pvcW(),-.08,0,-.6,20);K.cyl(.045,up+.6,MK3.pvcW(),.08,0,-.6,20);[.4,1.6].forEach(z=>{if(z<up)K.box(.3,.06,.03,MK3.steel(),0,.05,z)})}K.done();return true}return _m4(e,el,zb,dh)}}
+// ---- helpers
+function apFree(lid){const used=new Set(),pipes=S.els.filter(e=>e.type==='pipe'&&e.level===lid&&e.pts&&e.pts.length>1);
+  pipes.forEach(e=>[0,e.pts.length-1].forEach((ix,k)=>{const rf=k?e.cb:e.ca;let pn=rf&&!rf.tee?portRef(rf):null;if(!pn&&!(rf&&rf.tee))pn=portNear(lid,e.pts[ix],e.sys);if(pn)used.add(pn.dev.id+'|'+pn.pt.k)}));return used}
+function apPort(dev,sys,pref){const P=portsOf(dev).filter(p=>p.sys.includes(sys));return(pref&&P.find(p=>p.k===pref))||P.find(p=>p.dir!=='in')||P[0]||null}
+function apPortIn(dev,sys){const P=portsOf(dev).filter(p=>p.sys.includes(sys));return P.find(p=>p.dir==='in'||p.dir==='io')||P[0]||null}
+function apNet(lid,hub,sys){const ids=new Set();let grow=true;const P=S.els.filter(e=>e.type==='pipe'&&e.level===lid&&(e.sys||'cw')===sys);
+  P.forEach(e=>{if([e.ca,e.cb].some(r=>r&&r.id===hub.dev.id&&r.k===hub.pt.k))ids.add(e.id)});while(grow){grow=false;P.forEach(e=>{if(!ids.has(e.id)&&e.branchOf&&ids.has(e.branchOf)){ids.add(e.id);grow=true}})}return P.filter(e=>ids.has(e.id))}
+// add one device port to the network that starts (supply) or ends (drainage) at the hub port — tees off the nearest run
+function apAdd(lid,hub,item,sys,z,drain,R){const hw=portW(hub.dev,hub.pt),iw=portW(item.dev,item.pt),net=apNet(lid,hub,sys);let host=null,tp=null,best=1e9;
+  net.forEach(q=>{for(let i=0;i<q.pts.length-1;i++){const s0=q.pts[i],s1=q.pts[i+1],L=dist(s0,s1);if(L<.35)continue;const t=Math.max(.15/L,Math.min(1-.15/L,segDist(iw,s0,s1).t)),pt=lerp(s0,s1,t),c=Math.abs(pt.x-iw.x)+Math.abs(pt.y-iw.y);if(c<best){best=c;host=q;tp=pt}}});
+  const direct=Math.abs(hw.x-iw.x)+Math.abs(hw.y-iw.y),di=item.pt.dia||hub.pt.dia||PSYS[sys].dia,hubRef={id:hub.dev.id,k:hub.pt.k},itRef={id:item.dev.id,k:item.pt.k};
+  let e;if(host&&best<direct*.85){const pts=(drain?routeSmart(iw,tp,item.dev,null):routeSmart(tp,iw,null,item.dev)).map(q=>({x:r3(q.x),y:r3(q.y)}));
+    e={id:nid(),type:'pipe',level:lid,sys,dia:di,z:host.z,pts,branchOf:host.id,autoP:1,ca:drain?itRef:{...hubRef,tee:1},cb:drain?{...hubRef,tee:1}:itRef};R.tee++}
+  else{const big=inchMM(hub.pt.dia||di)>=inchMM(item.pt.dia||di)?(hub.pt.dia||di):(item.pt.dia||di),pts=(drain?routeSmart(iw,hw,item.dev,hub.dev):routeSmart(hw,iw,hub.dev,item.dev)).map(q=>({x:r3(q.x),y:r3(q.y)}));
+    e={id:nid(),type:'pipe',level:lid,sys,dia:big,z:String(r3(z)),pts,auto:1,autoP:1,ca:drain?itRef:hubRef,cb:drain?hubRef:itRef};R.main++}
+  S.els.push(e);R.len+=e.pts.reduce((a,q,i)=>i?a+dist(e.pts[i-1],q):a,0);R.sys[sys]=(R.sys[sys]||0)+1;return e}
+function apConnect(lid,hub,items,sys,z,drain,R,used){if(!hub)return;const hw=portW(hub.dev,hub.pt);const todo=items.filter(it=>!used.has(it.dev.id+'|'+it.pt.k));
+  // Prim-like order: always attach the item closest to the network built so far
+  const pts=()=>{const N=apNet(lid,hub,sys);return[hw,...N.flatMap(q=>q.pts)]};while(todo.length){const P=pts();let bi=0,bd=1e9;todo.forEach((it,i)=>{const w=portW(it.dev,it.pt),d=Math.min(...P.map(q=>Math.abs(q.x-w.x)+Math.abs(q.y-w.y)));if(d<bd){bd=d;bi=i}});
+    const it=todo.splice(bi,1)[0];apAdd(lid,hub,it,sys,z,drain,R);used.add(it.dev.id+'|'+it.pt.k)}}
+function apLink(lid,a,b,sys,z,R,used){if(!a||!b||used.has(b.dev.id+'|'+b.pt.k)||used.has(a.dev.id+'|'+a.pt.k))return;const A=portW(a.dev,a.pt),B=portW(b.dev,b.pt);
+  const e={id:nid(),type:'pipe',level:lid,sys,dia:inchMM(a.pt.dia||'1/2″')>=inchMM(b.pt.dia||'1/2″')?a.pt.dia:b.pt.dia,z:String(r3(z)),pts:routeSmart(A,B,a.dev,b.dev).map(q=>({x:r3(q.x),y:r3(q.y)})),ca:{id:a.dev.id,k:a.pt.k},cb:{id:b.dev.id,k:b.pt.k},auto:1,autoP:1};
+  S.els.push(e);used.add(a.dev.id+'|'+a.pt.k);used.add(b.dev.id+'|'+b.pt.k);R.main++;R.sys[sys]=(R.sys[sys]||0)+1;R.len+=e.pts.reduce((s,q,i)=>i?s+dist(e.pts[i-1],q):s,0)}
+const isK=(d,...k)=>d.type==='plumb'&&k.includes(d.kind);
+const fname=d=>(LIB[d.kind]||{}).n||'';
+// ---- risers & stacks so upper floors connect to the systems below
+function apRisers(R){for(let ix=1;ix<S.levels.length;ix++){const L=S.levels[ix],lid=L.id,below=S.levels[ix-1].id,wet=S.els.filter(e=>e.level===lid&&e.type==='furn'&&furnPorts(e).some(p=>p.sys.includes('cw')||p.sys.includes('sl')||p.sys.includes('ws')));if(!wet.length)continue;
+    const has=(k,l)=>S.els.find(e=>e.level===l&&isK(e,k));const srcBelow=S.els.find(e=>S.levels.findIndex(l=>l.id===e.level)<ix&&isK(e,'pump','pumpCv','pumpSq','pumpInv','pumpCf','tank','tank500','tank2k','tankSS','wm'))||null;
+    const rooms=S.els.filter(r=>r.type==='room'&&r.level===lid&&r.pts);let room=null,bn=0;rooms.forEach(r=>{const n=wet.filter(f=>inPoly(f.p,r.pts)).length;if(n>bn){bn=n;room=r}});
+    const ref=srcBelow?srcBelow.p:wet[0].p;let corner;if(room){const B=bbox(room.pts),cs=[{x:B.x0+.2,y:B.y0+.2},{x:B.x1-.2,y:B.y0+.2},{x:B.x1-.2,y:B.y1-.2},{x:B.x0+.2,y:B.y1-.2}];corner=cs.sort((a,b)=>dist(a,ref)-dist(b,ref))[0]}else{const c=centroid(wet.map(f=>f.p).concat([wet[0].p]));corner={x:r3(c.x),y:r3(c.y)}}
+    const place=(k,l,p)=>{let d=S.els.find(e=>e.level===l&&isK(e,k)&&dist(e.p,p)<.6);if(!d){d={id:nid(),type:'plumb',kind:k,level:l,p:{x:r3(p.x),y:r3(p.y)},rot:0};S.els.push(d);R.dev.push(PLIB[k].n+' ('+lvl(l).name+')')}return d};
+    const r0=has('riser',lid)||place('riser',lid,corner);place('riser',below,r0.p);const sp={x:r0.p.x+(room&&r0.p.x>centroid(room.pts).x?-.3:.3),y:r0.p.y};const s0=has('stack',lid)||place('stack',lid,sp);place('stack',below,s0.p)}}
+// ---- one level
+function apLevel(lid,R,opt){const ix=S.levels.findIndex(l=>l.id===lid),D_=S.els.filter(e=>e.level===lid&&e.p),used=apFree(lid);
+  const zS=opt.zs!=null?opt.zs:(ix===0?-.15:-.25),zH=zS+.08,zWS=PSYS.ws.z,zSL=PSYS.sl.z;
+  const first=(...k)=>D_.find(d=>isK(d,...k));
+  const pump=first('pump','pumpCv','pumpSq','pumpInv','pumpCf'),tank=first('tank','tank2k','tank500','tankSS','utank'),wm=first('wm'),riser=first('riser'),heater=first('hwt','solarWH','hp'),
+    sept=first('septic'),ic=first('ic'),grease=first('grease'),soak=first('soak','sump'),stack=first('stack'),lpg=first('lpg'),vtr=first('vtr');
+  const P=(d,s,k)=>{const p=d&&apPort(d,s,k);return p?{dev:d,pt:p}:null},Pin=(d,s)=>{const p=d&&apPortIn(d,s);return p?{dev:d,pt:p}:null};
+  // source chain: meter → tank → pump
+  if(wm&&tank)apLink(lid,P(wm,'cw','out'),P(tank,'cw','in'),'cw',zS,R,used);
+  if(tank&&pump)apLink(lid,P(tank,'cw','out'),P(pump,'cw','in'),'cw',r3(Math.min(portsOf(tank).find(p=>p.k==='out').z,.06)),R,used);
+  if(!tank&&wm&&pump)apLink(lid,P(wm,'cw','out'),P(pump,'cw','in'),'cw',zS,R,used);
+  const cwHub=pump?P(pump,'cw','out'):tank?P(tank,'cw','out'):wm?P(wm,'cw','out'):riser?P(riser,'cw','io'):null;
+  // consumers of cold water
+  const cwItems=[];D_.forEach(d=>{if(cwHub&&d===cwHub.dev)return;if(d.type==='furn'){portsOf(d).filter(p=>p.k==='cw').forEach(pt=>cwItems.push({dev:d,pt}))}
+    else if(isK(d,'hwt','solarWH','hp','hb','ro')){const pt=apPortIn(d,'cw');if(pt)cwItems.push({dev:d,pt})}else if(isK(d,'riser')&&d!==(riser&&cwHub&&cwHub.dev)){cwItems.push({dev:d,pt:apPort(d,'cw')})}});
+  if(cwHub)apConnect(lid,cwHub,cwItems,'cw',zS,false,R,used);else if(cwItems.length)R.warn.push(lvl(lid).name+': ไม่มีปั๊ม ถังเก็บน้ำ มิเตอร์ หรือท่อขึ้นชั้น จึงไม่ได้เดินท่อน้ำดี');
+  // hot water from a central heater
+  if(heater){const hub=P(heater,'hw','out'),items=[];D_.forEach(d=>{if(d.type==='furn')portsOf(d).filter(p=>p.k==='hw').forEach(pt=>items.push({dev:d,pt}))});apConnect(lid,hub,items,'hw',zH,false,R,used)}
+  // soil (WC) → septic tank (or stack down)
+  const slHub=sept?Pin(sept,'sl'):stack&&ix>0?{dev:stack,pt:portsOf(stack).find(p=>p.k==='sl')}:null;
+  const slItems=D_.filter(d=>d.type==='furn').flatMap(d=>portsOf(d).filter(p=>p.k==='sl').map(pt=>({dev:d,pt})));if(stack&&ix===0)slItems.push({dev:stack,pt:portsOf(stack).find(p=>p.k==='sl')});
+  if(slHub)apConnect(lid,slHub,slItems.filter(i=>i.dev!==slHub.dev),'sl',zSL,true,R,used);else if(slItems.length)R.warn.push(lvl(lid).name+': ไม่มีถังบำบัด จึงไม่ได้เดินท่อโสโครก');
+  // grey water: kitchen → grease trap; the rest → inspection chamber (or soak pit / septic) ; floor drains join
+  const ics=D_.filter(d=>isK(d,'ic'));let icF=ic;if(ics.length>1){const cen=centroid(S.els.filter(e=>e.level===lid&&e.type==='wall').flatMap(w=>[w.a,w.b]).concat([{x:0,y:0}]));icF=ics.sort((a,b)=>dist(b.p,cen)-dist(a.p,cen))[0]}
+  const greyHub=ix>0&&stack?{dev:stack,pt:portsOf(stack).find(p=>p.k==='ws')}:icF?Pin(icF,'ws'):soak?Pin(soak,'ws'):sept?Pin(sept,'ws'):null;
+  const kitchen=d=>d.type==='furn'&&/ซิงค์|ล้างจาน/.test(fname(d));
+  const wsItems=[];D_.forEach(d=>{if(greyHub&&d===greyHub.dev)return;if(d.type==='furn'){if(grease&&kitchen(d))return;portsOf(d).filter(p=>p.k==='ws').forEach(pt=>wsItems.push({dev:d,pt}))}else if(isK(d,'fd','fdl')){wsItems.push({dev:d,pt:apPort(d,'ws')})}else if(isK(d,'stack')&&ix===0){wsItems.push({dev:d,pt:portsOf(d).find(p=>p.k==='ws')})}});
+  if(grease){const gIn=Pin(grease,'ws');apConnect(lid,gIn,D_.filter(kitchen).flatMap(d=>portsOf(d).filter(p=>p.k==='ws').map(pt=>({dev:d,pt}))),'ws',zWS,true,R,used);if(greyHub&&greyHub.dev!==grease)wsItems.push({dev:grease,pt:portsOf(grease).find(p=>p.k==='out')})}
+  if(sept&&(ic||soak)&&greyHub&&greyHub.dev!==sept)wsItems.push({dev:sept,pt:portsOf(sept).find(p=>p.k==='out')});ics.forEach(c=>{if(greyHub&&c!==greyHub.dev)wsItems.push({dev:c,pt:portsOf(c).find(p=>p.k==='out')})});
+  if(greyHub)apConnect(lid,greyHub,wsItems.filter(i=>i.pt),'ws',zWS,true,R,used);else if(wsItems.length)R.warn.push(lvl(lid).name+': ไม่มีบ่อพัก/บ่อดักไขมัน/ถังบำบัด จึงไม่ได้เดินท่อน้ำทิ้ง');
+  if(greyHub&&greyHub.dev===sept&&ix===0)R.warn.push(lvl(lid).name+': ไม่มีบ่อพัก (IC) น้ำทิ้งจึงต่อเข้าถังบำบัด — ควรเพิ่มบ่อพักก่อนระบายออก');
+  // septic vent, rain water, gas, air-conditioning
+  if(sept&&vtr)apLink(lid,P(sept,'vt','vent'),P(vtr,'vt'),'vt',.3,R,used);
+  const rwHub=icF?Pin(icF,'rw'):soak?Pin(soak,'rw'):null;if(rwHub)apConnect(lid,rwHub,D_.filter(d=>isK(d,'rain')).map(d=>({dev:d,pt:apPort(d,'rw')})),'rw',PSYS.rw.z,true,R,used);
+  if(lpg)apConnect(lid,P(lpg,'gas','out'),D_.filter(d=>d.type==='furn').flatMap(d=>portsOf(d).filter(p=>p.k==='gas').map(pt=>({dev:d,pt}))),'gas',.3,false,R,used);
+  const acs=D_.filter(d=>(d.type==='furn'&&portsOf(d).some(p=>p.k==='ref'))||isK(d,'cass')||(d.type==='elec'&&d.kind==='cass')),cdus=D_.filter(d=>d.type==='elec'&&d.kind==='cdu');
+  acs.forEach(a=>{const pa=portsOf(a).find(p=>p.k==='ref');if(!pa||used.has(a.id+'|ref'))return;const c=cdus.filter(u=>!used.has(u.id+'|ref')).sort((x,y)=>dist(x.p,a.p)-dist(y.p,a.p))[0];if(c){apLink(lid,{dev:a,pt:pa},{dev:c,pt:portsOf(c).find(p=>p.k==='ref')},'ref',Math.max(pa.z,1.2),R,used)}
+    const pc=portsOf(a).find(p=>p.k==='cd'),fd=D_.filter(d=>isK(d,'fd')).sort((x,y)=>dist(x.p,a.p)-dist(y.p,a.p))[0];if(pc&&fd&&!used.has(a.id+'|cd'))apLink(lid,{dev:a,pt:pc},{dev:fd,pt:portsOf(fd)[0]},'cd',.1,R,{has:k=>k===fd.id+'|out'?false:used.has(k),add:k=>used.add(k)})})}
+function autoPlumb(scope,reset){const R={main:0,tee:0,len:0,sys:{},warn:[],dev:[]},lv=scope==='all'?S.levels.map(l=>l.id):[cur];
+  mutate(()=>{if(reset){const n0=S.els.length;S.els=S.els.filter(e=>!(e.autoP&&lv.includes(e.level)));R.removed=n0-S.els.length}apRisers(R);lv.forEach(l=>apLevel(l,R,{}))});
+  let dl=$('#apDlg');if(!dl){dl=document.createElement('dialog');dl.id='apDlg';document.body.appendChild(dl)}const row=(a,b)=>`<div class="ro"><span>${a}</span><b>${b}</b></div>`;
+  dl.innerHTML=`<h3>เดินท่ออัตโนมัติ — ${scope==='all'?'ทุกชั้น':esc(lvl(cur).name)}</h3><p class="hint">ต่อเข้าจุดต่อที่ตรงระบบของอุปกรณ์และสุขภัณฑ์ เดินแนวฉาก หลบอุปกรณ์ แยกสามทางจากท่อหลัก</p>`+
+    (R.removed?row('ลบท่ออัตโนมัติเดิม',R.removed+' เส้น'):'')+row('ท่อหลัก / ท่อแยก (สามทาง)',R.main+' / '+R.tee+' เส้น')+row('ความยาวรวม',f2(R.len)+' ม.')+
+    Object.entries(R.sys).map(([s,n])=>row((PSYS[s]||{n:s}).n,n+' เส้น')).join('')+(R.dev.length?row('เพิ่มท่อขึ้น-ลงชั้นอัตโนมัติ',R.dev.length+' จุด'):'')+
+    (R.warn.length?`<p class="hint">⚠ ${R.warn.map(esc).join('<br>⚠ ')}</p>`:'')+(R.main+R.tee===0?'<p class="hint">ไม่มีจุดต่อที่ยังว่าง — ทุกอุปกรณ์ต่อครบแล้ว หรือยังไม่ได้วางสุขภัณฑ์/อุปกรณ์</p>':'')+
+    `<p class="hint">ตรวจผลที่ "ตรวจการเชื่อมต่อ" ในแผงประปา ท่อที่สร้างอัตโนมัติจะถูกลบและเดินใหม่ได้ด้วยปุ่ม "ล้างแล้วเดินท่อใหม่" ส่วนท่อที่วาดเองจะไม่ถูกแตะ</p><div class="acts" style="justify-content:flex-end"><button class="btn pri" id="apX">ปิด</button></div>`;
+  $('#apX').onclick=()=>dl.close();dl.showModal?dl.showModal():dl.setAttribute('open','')}
+{const _pp2=plumbPanelHTML;plumbPanelHTML=function(){const h=_pp2(),i=h.indexOf('<h3 style="margin-top:14px">ตรวจการเชื่อมต่อ');
+  const btn=`<h3 style="margin-top:14px">เดินท่ออัตโนมัติ</h3><div class="row" style="flex-wrap:wrap;gap:6px"><button class="btn pri" onclick="autoPlumb('cur')">เดินท่ออัตโนมัติ (ชั้นนี้)</button><button class="btn" onclick="autoPlumb('all')">ทุกชั้น</button><button class="btn" onclick="autoPlumb('cur',true)">ล้างแล้วเดินท่อใหม่</button></div>
+    <p class="hint">น้ำดี: มิเตอร์ → ถัง → ปั๊ม → สุขภัณฑ์ (แยกสามทางจากท่อหลัก) • น้ำร้อนจากเครื่องทำน้ำร้อน • ชักโครก → ถังบำบัด • น้ำทิ้ง/ฟลอร์เดรน → บ่อพัก (ซิงค์ผ่านบ่อดักไขมัน) • น้ำฝน → บ่อพัก • แก๊ส • ท่อน้ำยาแอร์ • ชั้นบนต่อผ่านท่อขึ้น-ลงชั้นให้อัตโนมัติ เฉพาะจุดต่อที่ยังว่าง</p>`;
+  return i>=0?h.slice(0,i)+btn+h.slice(i):h+btn}}
+{const _hh6=helpHTML;helpHTML=function(){return _hh6()+`<details><summary>ใหม่ใน v9.6: เดินท่อประปาอัตโนมัติ</summary><ul>
+  <li>โหมดประปา (ไม่ได้เลือกอะไร) → <b>เดินท่ออัตโนมัติ (ชั้นนี้ / ทุกชั้น)</b> ต่อเฉพาะจุดต่อที่ยังว่าง ท่อที่วาดเองไม่ถูกแตะ</li>
+  <li>น้ำดี: มิเตอร์ → ถังเก็บน้ำ → ปั๊ม แล้วเดินท่อหลักจากปั๊มไปยังสุขภัณฑ์ที่ใกล้ที่สุดก่อน จุดถัดไปแยกสามทางจากท่อที่มีอยู่ (แบบต้นไม้ ไม่ลากซ้ำจากปั๊มทุกจุด) ขนาดท่อหลักตามปั๊ม ท่อแยกตามสุขภัณฑ์ ชั้นล่างเดินใต้พื้น ชั้นบนเดินใต้พื้น (ในฝ้าชั้นล่าง)</li>
+  <li>น้ำร้อน: จากเครื่องทำน้ำร้อนส่วนกลาง (ถ้ามี) ไปยังอ่างล้างหน้า ฝักบัว อ่างอาบน้ำ ซิงค์</li>
+  <li>ระบายน้ำ: ชักโครก → ถังบำบัด (ท่อ 4″) • อ่างล้างหน้า ฝักบัว เครื่องซักผ้า ฟลอร์เดรน → บ่อพัก • ซิงค์ครัว → บ่อดักไขมัน → บ่อพัก • ถังบำบัด → บ่อพัก/บ่อซึม • น้ำฝน → บ่อพัก • ท่ออากาศถังบำบัด</li>
+  <li>ชั้นบน: วางท่อน้ำดีขึ้นชั้น (R) และท่อโสโครก/น้ำทิ้งลงชั้นล่าง (SK) ที่มุมห้องน้ำให้เองทั้งชั้นบนและชั้นล่าง แล้วต่อทั้งสองชั้นเข้าระบบ</li>
+  <li>แก๊ส: ถังแก๊ส → เตา • แอร์: แอร์ ↔ คอยล์ร้อนที่ใกล้ที่สุด และท่อน้ำทิ้งแอร์ลงฟลอร์เดรน • สรุปผลและคำเตือน (เช่น ไม่มีบ่อพัก) หลังเดินท่อ</li></ul></details>`}}
 
 // ================= Boot
 {let th=null;try{th=localStorage.getItem('yothacad-theme')}catch(_){}document.documentElement.dataset.theme=th||'cad'}
