@@ -1,5 +1,5 @@
 // โยธาแคด service worker — เปลี่ยนเลขเวอร์ชันทุกครั้งที่อัปโหลดไฟล์ชุดใหม่
-const CACHE = 'yothacad-v9.0';
+const CACHE = 'yothacad-v9.1';
 const CORE = ['./', './index.html', './three.min.js', './manifest.json', './yc-icon-32.png', './yc-icon-180.png', './yc-icon-192.png', './yc-icon-512.png', './exceljs.min.js'];
 const FONTS = 'yothacad-fonts';
 
