@@ -895,7 +895,7 @@ function drawEl(e,mode){const ov=mode==='s',ul=mode==='u';const col=k=>ov?C['sel
       if(!ul){if(!fr&&e.kind!=='flat'&&!(S.viewopt&&S.viewopt.rhatch==='0')){g.save();g.globalAlpha=0.45;g.strokeStyle=col('cv-roof');g.lineWidth=0.45;roofPatternSegs(e).forEach(([a,b])=>seg(a,b));g.restore();g.strokeStyle=col('cv-roof')}
         if(fr&&!ov)drawRoofFrame(e);else{g.lineWidth=ov?2:0.9;roofPlanLines(e).forEach(([a,b])=>seg(a,b))}
         const lp=isRectPts(e.pts)?(F=>F.P(F.Lu/2,F.Lv*0.28))(roofFrame(e)):centroid(e.pts);txt('หลังคา'+(ROOFK[e.kind]||'')+(e.kind==='flat'?'':' '+e.pitch+'°')+' • '+RM.n+((+e.dz)?' • ระดับ '+(e.dz>0?'+':'')+f2(+e.dz):''),ws(lp),{size:11,c:col('cv-roof')})}break}
-    case 'elec':case 'plumb':{const L=(e.type==='elec'?ELIB:PLIB)[e.kind];if(!L)break;const r=rad(e.rot||0),cs=Math.cos(r),sn=Math.sin(r),K=SYMK;const tf=(x,y)=>ws({x:e.p.x+(x*cs-y*sn)*K,y:e.p.y+(x*sn+y*cs)*K});
+    case 'elec':case 'plumb':{const L=(e.type==='elec'?ELIB:PLIB)[e.kind];if(!L)break;const r=rad(e.rot||0),cs=Math.cos(r),sn=Math.sin(r),K=symK(e);const tf=(x,y)=>ws({x:e.p.x+(x*cs-y*sn)*K,y:e.p.y+(x*sn+y*cs)*K});
       const cl=ov?C['sel']:ul?C['cv-under']:e.type==='elec'?(C===PC?'#111':'#c27a00'):(C===PC?'#111':'#1f6fd0');g.strokeStyle=cl;g.lineWidth=ov?1.8:1;drawPrims(g,L.p,tf,view.s*K,cl,C['cv-bg']);
       if(e.type==='elec'&&e.ckt&&!ul&&view.s>25)txt(e.ckt,(q=>({x:q.x+12,y:q.y+12}))(ws(e.p)),{size:9,c:cl,al:'left'});break}
     case 'wire':{g.strokeStyle=ov?C['sel']:ul?C['cv-under']:(C===PC?'#333':'#c27a00');g.lineWidth=ov?2:0.9;g.beginPath();e.pts.forEach((q,i)=>{const s=ws(q);if(!i){g.moveTo(s.x,s.y);return}const a=e.pts[i-1],m=lerp(a,q,.5),n=perp(nrm(sub(q,a))),c=ws(add(m,mul(n,dist(a,q)*0.18)));g.quadraticCurveTo(c.x,c.y,s.x,s.y)});g.stroke();
@@ -1787,8 +1787,8 @@ function dxfFor(lid){const o=[];const P=(...a)=>o.push(...a);const n=v=>(+v).toF
     case 'roof':{roofMembers(e).forEach(m=>LN({x:m.a[0],y:m.a[1]},{x:m.b[0],y:m.b[1]},'S-ROOF'));PG(roofOuter(e),'A-ROOF');roofPlanLines(e).forEach(([a,b])=>LN(a,b,'A-ROOF'));break}
     case 'furn':{const ly=(LIB[e.kind]||{}).c==='สุขภัณฑ์'?'P-FIXT':'I-FURN';furnShapes(e).forEach(sh=>PG(sh.poly,ly,!sh.closed));break}
     case 'section':{const F=secFrame(e);if(e.kind!=='elev')LN(e.a,e.b,'A-SECT');(e.kind==='elev'?[lerp(e.a,e.b,.5)]:[e.a,e.b]).forEach(p=>{LN(p,add(p,mul(F.n,0.8)),'A-SECT');CI(add(p,mul(F.n,-0.4)),0.35,'A-SECT');TX(add(p,mul(F.n,-0.4)),0.25,e.tag||'','A-SECT')});break}
-    case 'elec':case 'plumb':{const L=(e.type==='elec'?ELIB:PLIB)[e.kind];if(!L)break;const ly=e.type==='elec'?'E-DEVC':'P-DEVC',r=rad(e.rot||0),cs=Math.cos(r),sn=Math.sin(r),X=(x,y)=>({x:e.p.x+(x*cs-y*sn)*SYMK,y:e.p.y+(x*sn+y*cs)*SYMK});
-      L.p.forEach(pr=>{if(pr[0]==='c')CI(X(pr[1],pr[2]),pr[3]*SYMK,ly);else if(pr[0]==='l')LN(X(pr[1],pr[2]),X(pr[3],pr[4]),ly);else if(pr[0]==='r')PG([X(pr[1],pr[2]),X(pr[3],pr[2]),X(pr[3],pr[4]),X(pr[1],pr[4])],ly);else if(pr[0]==='t')TX(X(pr[1],pr[2]),pr[3]*SYMK,pr[4],ly)});if(e.ckt)TX(add(e.p,{x:.35,y:-.3}),0.15,e.ckt,ly);break}
+    case 'elec':case 'plumb':{const L=(e.type==='elec'?ELIB:PLIB)[e.kind];if(!L)break;const ly=e.type==='elec'?'E-DEVC':'P-DEVC',r=rad(e.rot||0),cs=Math.cos(r),sn=Math.sin(r),X=(x,y)=>({x:e.p.x+(x*cs-y*sn)*symK(e),y:e.p.y+(x*sn+y*cs)*symK(e)});
+      L.p.forEach(pr=>{if(pr[0]==='c')CI(X(pr[1],pr[2]),pr[3]*symK(e),ly);else if(pr[0]==='l')LN(X(pr[1],pr[2]),X(pr[3],pr[4]),ly);else if(pr[0]==='r')PG([X(pr[1],pr[2]),X(pr[3],pr[2]),X(pr[3],pr[4]),X(pr[1],pr[4])],ly);else if(pr[0]==='t')TX(X(pr[1],pr[2]),pr[3]*symK(e),pr[4],ly)});if(e.ckt)TX(add(e.p,{x:.35,y:-.3}),0.15,e.ckt,ly);break}
     case 'wire':for(let i=0;i<e.pts.length-1;i++){const a=e.pts[i],b=e.pts[i+1],m=lerp(a,b,.5),n2=perp(nrm(sub(b,a))),c=add(m,mul(n2,dist(a,b)*0.09));LN(a,c,'E-WIRE');LN(c,b,'E-WIRE')}break;
     case 'porch':PG(e.pts,'A-EXT');porchSteps(e).forEach(q=>PG(q.poly,'A-EXT'));TX(centroid(e.pts),0.2,'PORCH '+lvTxt(porchZ(e)),'A-EXT');break;
     case 'steps':stepsPieces(e).forEach(q=>PG(q.poly,'A-EXT'));break;
@@ -2443,7 +2443,7 @@ $('#rbIn').onchange=async()=>{const f=$('#rbIn').files[0];if(!f)return;try{const
       v.src=d.app||d.source||'Civil Toolkit';S.rebar[k]={...(S.rebar[k]||{}),...v};n++})});toast('นำเข้าผลออกแบบ '+n+' รายการ'+(nsz?' • ปรับขนาดชิ้นส่วน '+nsz+' กลุ่ม':'')+' • แปลนและตารางโครงสร้างอัปเดตแล้ว');}catch(e){toast('ไฟล์นี้ไม่ใช่ผลออกแบบเหล็กเสริม')}$('#rbIn').value=''};
 
 // ================= App shell: version, sync, manual, install, service worker
-const APP_VER='v9.2';$('#verL').textContent=APP_VER;
+const APP_VER='v9.3';$('#verL').textContent=APP_VER;
 const isEmbedded=/claude\.ai|claudeusercontent|anthropic/.test(location.host)||location.protocol==='blob:';
 const LSK={sync:'yothacad-sync',saved:'yothacad-savedAt',last:'yothacad-lastSync',dev:'yothacad-device'};
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -2744,6 +2744,8 @@ $('#projB').onclick=openProjects;$('#pjClose').onclick=()=>$('#pjDlg').close();
 
 // ================= v6.2: MEP (ceiling, electrical, plumbing)
 const SYMK=1.4;
+// plumbing equipment (tanks, pumps, heaters, pits) is drawn to true scale so its connection ports sit on the symbol
+function symK(e){return e&&e.type==='plumb'&&!/^(fd|co|gv|cv|gasv|prv|hb|fvalve|vtr|rain)$/.test(e.kind)?1:SYMK}
 function ceilH(r){const v=parseFloat(r.ch);if(isFinite(v)&&v>0)return v;const LH=+lvl(r.level).height;return LH>=3?Math.max(2.4,Math.round((LH-0.6)*20)/20):Math.max(0.1,LH-0.05)}
 function ceilAt(e){const r=S.els.find(x=>x.type==='clg'&&x.level===e.level&&inPoly(e.p,x.pts));return r&&r.ct!=='none'?ceilH(r):+lvl(e.level).height-0.05}
 function inchMM(s){s=String(s||'').replace(/["″]/g,'').trim();const m=s.match(/^(\d+)?\s*(½|¼|¾|(\d+)\/(\d+))?$/);let v=0;if(m){v=+(m[1]||0);if(m[2]==='½')v+=.5;else if(m[2]==='¼')v+=.25;else if(m[2]==='¾')v+=.75;else if(m[3])v+=m[3]/m[4]}if(!v)v=parseFloat(s)||1;return v>12?v:v*25.4}
@@ -4724,6 +4726,144 @@ function drawPorts(){if(PRINT||!g)return;const tl=['pipe','conn','wire'].include
   <li>รองรับทุกระบบ: น้ำดี น้ำร้อน น้ำทิ้ง โสโครก ท่ออากาศ น้ำฝน แก๊ส ท่อน้ำทิ้งแอร์ ท่อน้ำยาแอร์ (คอยล์ร้อน ↔ แอร์) ดับเพลิง รดน้ำต้นไม้ และสายไฟ (สวิตช์ → โคม ตู้ไฟ → เต้ารับ)</li>
   <li>ทุกอุปกรณ์มี<b>จุดต่อ</b> (วงกลมสีตามระบบ) แสดงเมื่อเลือกอุปกรณ์ หรือใช้เครื่องมือท่อ ขณะวาดท่อเคอร์เซอร์จะดูดเข้าจุดต่อพร้อมบอกชื่อและขนาด</li>
   <li>ท่อและสายไฟที่เชื่อมไว้จะ<b>ขยับตาม</b>เมื่อย้ายหรือหมุนอุปกรณ์ ใน 3D ท่อจะต่อเข้าปลายท่อของอุปกรณ์พอดี ปลดการเชื่อมได้ที่แผงคุณสมบัติของท่อ</li></ul></details>`}}
+// ================= v9.3: detailed connections — flow-aware pairing, smart routing, pipe-tool linking, port editing, connection audit
+// stub direction of every port: 'up' = stub rises to the port, 'down' = stub drops to it, 'h' = horizontal end, 'any' = wall/floor outlet
+{const UP={pump:['out'],pumpCv:['out'],pumpSq:['out'],pumpInv:['out'],pumpCf:['out'],pumpSub:['out'],ptank:['io'],hwt:['in','out'],septic:['vent'],utank:['io']},
+  DN={tank:['out','in','ovf'],tank500:['out','in','ovf'],tank2k:['out','in','ovf'],tankSS:['out','in'],pump:['in'],pumpCv:['in'],pumpSq:['in'],pumpInv:['in'],pumpCf:['in'],solarWH:['in','out'],fd:['out'],co:['io'],fdl:['out'],rain:['out'],vtr:['io'],fvalve:['io']};
+  Object.entries(PORTDEF).forEach(([k,L])=>L.forEach(p=>{p.v=(UP[k]||[]).includes(p.k)?'up':(DN[k]||[]).includes(p.k)?'down':'h';if(p.k==='ovf'||p.k==='vent')p.opt=1}));
+  Object.values(EPORT).forEach(L=>L.forEach(p=>p.v='h'))}
+{const _fp=furnPorts;furnPorts=function(e){const r=_fp(e);r.forEach(p=>{p.v='any';if(p.k==='hw')p.opt=1});return r}}
+const INLINE=['gv','cv','gasv','prv','wm','filt','ro'];
+// ---- flow roles: water flows from a lower role to a higher one (supply), fixtures drain toward treatment (drainage)
+const SUPR={wm:0,lpg:0,tank:1,tank500:1,tank2k:1,tankSS:1,utank:1,fvalve:1,pump:2,pumpCv:2,pumpSq:2,pumpInv:2,pumpCf:2,pumpSub:2,ptank:3,filt:3,ro:3,prv:3,gv:3,cv:3,gasv:3,hwt:4,hp:4,solarWH:4,cdu:4,cass:5};
+const DRR={pumpSub:.5,fd:1,co:1,fdl:1,rain:1,vtr:1,grease:2,ic:3,septic:4,sump:5,soak:5,tank:.2,tank500:.2,tank2k:.2,tankSS:.2};
+function roleOf(e,sys){const dr=DRAINS.includes(sys);if(e.type==='furn')return dr?0:5;return dr?(DRR[e.kind]??2):(SUPR[e.kind]??3)}
+function portUsed(dev,pt,exId){return S.els.some(q=>q.type==='pipe'&&q.id!==exId&&[q.ca,q.cb].some(r=>r&&!r.tee&&r.id===dev.id&&r.k===pt.k))}
+function pickPairX(A,B,only){const PA=portsOf(A),PB=portsOf(B);let best=null,bs=1e9;
+  PA.forEach(pa=>PB.forEach(pb=>pa.sys.filter(s=>pb.sys.includes(s)&&(!only||s===only)).forEach(s=>{const rA=roleOf(A,s),rB=roleOf(B,s),up=rA<=rB?'A':'B',u=up==='A'?pa:pb,d=up==='A'?pb:pa;
+    let sc=dist(portW(A,pa),portW(B,pb));if(u.dir==='in')sc+=6;if(d.dir==='out')sc+=6;if(portUsed(A,pa))sc+=.8;if(portUsed(B,pb))sc+=1.5;if(pa.opt||pb.opt)sc+=2;if(D.pipe&&s===D.pipe.sys)sc-=.2;
+    if(sc<bs){bs=sc;best={pa,pb,sys:s,up}}})));return best}
+pickPair=(A,B)=>pickPairX(A,B);
+function connZ(pa,pb,sys){const drain=DRAINS.includes(sys);if(Math.abs(pa.z-pb.z)<.15)return(pa.z+pb.z)/2;if(sys==='ref')return Math.max(pa.z,pb.z);
+  if(drain)return Math.min(pa.z,pb.z,PSYS[sys].z<0?PSYS[sys].z:99);return pa.dir==='out'?pa.z:pb.dir==='out'?pb.z:Math.max(pa.z,pb.z)}
+// ---- smart orthogonal routing: tries L / Z shapes with short stubs and avoids equipment, fixtures and columns
+function simplifyP(P){const o=[];P.forEach(q=>{if(o.length&&dist(o[o.length-1],q)<.01)return;o.push({x:q.x,y:q.y})});for(let i=1;i<o.length-1;i++){if(Math.abs(crs(sub(o[i],o[i-1]),sub(o[i+1],o[i])))<1e-7){o.splice(i,1);i--}}return o}
+function routeSmart(a,b,A,B){const lid=(A||B||{}).level??cur,ex=[A&&A.id,B&&B.id];
+  const stub=(Dv,q)=>{if(!Dv||Dv.type==='furn')return null;const v=sub(q,Dv.p);if(len(v)<.05)return null;const u=Math.abs(v.x)>=Math.abs(v.y)?{x:Math.sign(v.x),y:0}:{x:0,y:Math.sign(v.y)};return add(q,mul(u,.22))};
+  const a2=stub(A,a),b2=stub(B,b),heads=[[a]],tails=[[b]];if(a2)heads.push([a,a2]);if(b2)tails.push([b2,b]);
+  const obs=S.els.filter(t=>t.level===lid&&t.p&&(t.type==='plumb'||t.type==='column'||(t.type==='furn'&&furnPorts(t).length)));
+  const cands=[];heads.forEach(h=>tails.forEach(t=>{const p=h[h.length-1],q=t[0],mids=[];if(Math.abs(p.x-q.x)<.02||Math.abs(p.y-q.y)<.02)mids.push([]);
+    else{const mx=(p.x+q.x)/2,my=(p.y+q.y)/2;mids.push([{x:q.x,y:p.y}],[{x:p.x,y:q.y}],[{x:mx,y:p.y},{x:mx,y:q.y}],[{x:p.x,y:my},{x:q.x,y:my}])}mids.forEach(m=>cands.push(simplifyP([...h,...m,...t])))}));
+  let best=null,bs=1e9;cands.forEach(P=>{let sc=.3*(P.length-2);for(let i=0;i<P.length-1;i++){const s0=P[i],s1=P[i+1];sc+=dist(s0,s1);if(Math.abs(s0.x-s1.x)>.02&&Math.abs(s0.y-s1.y)>.02)sc+=50;
+      obs.forEach(o=>{let a0=s0,a1=s1;const L0=dist(s0,s1),u=L0>1e-6?mul(sub(s1,s0),1/L0):{x:0,y:0};if(o.id===ex[0]&&i===0){if(L0<.14)return;a0=add(s0,mul(u,.12))}if(o.id===ex[1]&&i===P.length-2){if(L0<.14)return;a1=sub(s1,mul(u,.12))}
+        const r=o.type==='column'?Math.max(+o.w||.2,+o.d||.2)/2+.03:devR(o)*(ex.includes(o.id)?.6:.8);if(segDist(o.p,a0,a1).d<r)sc+=ex.includes(o.id)?8:4})}
+    if(sc<bs){bs=sc;best=P}});return best||[cp(a),cp(b)]}
+routeL=routeSmart;
+// ---- connect tool: flow-aware (order of clicks no longer matters), branches with tees, smart route
+connect=function(A,B){if(A.type==='elec'&&B.type==='elec'&&!(EPORT[A.kind]&&EPORT[B.kind])){const ckt=A.ckt||B.ckt||(D.elec&&D.elec.ckt)||'';
+    addEl({id:nid(),type:'wire',level:A.level,ckt,ct:'pvc',pts:[cp(A.p),cp(B.p)],ca:{id:A.id},cb:{id:B.id}});toast('ต่อสายไฟ '+connLabel(A)+' → '+connLabel(B)+(ckt?' (วงจร '+ckt+')':''));return true}
+  let pr=pickPairX(A,B);if(!pr){toast('สองชิ้นนี้ไม่มีจุดต่อระบบเดียวกัน (เช่น น้ำดี น้ำทิ้ง แก๊ส ท่อน้ำยาแอร์)');return false}
+  if(pr.up==='B'){[A,B]=[B,A];pr={pa:pr.pb,pb:pr.pa,sys:pr.sys,up:'A'}}
+  {const fresh=d=>d.type==='plumb'&&!/^(fd|co|fdl|rain|vtr|gv|cv|gasv|prv|hb|fvalve)$/.test(d.kind)&&!S.els.some(q=>(q.type==='pipe')&&[q.ca,q.cb].some(r=>r&&r.id===d.id));
+   const aim=(d,pt,tgt)=>{const ang=deg(Math.atan2(tgt.y-d.p.y,tgt.x-d.p.x))-deg(Math.atan2(pt.y,pt.x)),st=/^tank|septic|sump|soak/.test(d.kind)?45:90;const nr=((Math.round(ang/st)*st)%360+360)%360;if(nr!==(+d.rot||0)%360){mutate(()=>{d.rot=nr});return true}return false};
+   let turned=[];if(fresh(A)&&aim(A,pr.pa,B.p))turned.push(connLabel(A));if(fresh(B)&&aim(B,pr.pb,portW(A,pr.pa)))turned.push(connLabel(B));
+   if(turned.length){const p2=pickPairX(A,B,pr.sys);if(p2&&p2.up==='A')pr=p2;toast('หมุน '+turned.join(' และ ')+' ให้จุดต่อหันเข้าหากัน')}}
+  const{pa,pb,sys}=pr,a=portW(A,pa),b=portW(B,pb),dia=pa.dia&&pb.dia?(inchMM(pa.dia)>=inchMM(pb.dia)?pa.dia:pb.dia):(pa.dia||pb.dia||PSYS[sys].dia);
+  let host=null,hp=null,hb=1e9;S.els.forEach(q=>{if(q.type!=='pipe'||q.level!==A.level||(q.sys||'cw')!==sys)return;if(![q.ca,q.cb].some(r=>r&&r.id===A.id&&r.k===pa.k))return;
+    for(let i=0;i<q.pts.length-1;i++){const s0=q.pts[i],s1=q.pts[i+1],L=dist(s0,s1);if(L<.3)continue;const t=Math.max(.15/L,Math.min(1-.15/L,segDist(b,s0,s1).t)),pt=lerp(s0,s1,t),sc=Math.abs(pt.x-b.x)+Math.abs(pt.y-b.y);if(sc<hb){hb=sc;host=q;hp={pt,hz:Math.abs(s0.y-s1.y)<1e-3}}}});
+  if(host&&hb<dist(a,b)-.05){const t0=hp.pt,c=hp.hz?{x:t0.x,y:b.y}:{x:b.x,y:t0.y},pts=(Math.abs(t0.x-b.x)<.02||Math.abs(t0.y-b.y)<.02)?[t0,b]:[t0,c,b];
+    addEl({id:nid(),type:'pipe',level:A.level,sys,dia:pb.dia||dia,z:host.z,pts:pts.map(q=>({x:r3(q.x),y:r3(q.y)})),ca:{id:A.id,k:pa.k,tee:1},cb:{id:B.id,k:pb.k},branchOf:host.id});
+    toast('แยกสามทาง'+PSYS[sys].n+' จากท่อเดิม → '+connLabel(B)+' ('+pb.n+') '+(pb.dia||dia));return B}
+  addEl({id:nid(),type:'pipe',level:A.level,sys,dia,z:String(r3(connZ(pa,pb,sys))),pts:routeSmart(a,b,A,B).map(q=>({x:r3(q.x),y:r3(q.y)})),ca:{id:A.id,k:pa.k},cb:{id:B.id,k:pb.k},auto:1});
+  toast('ต่อ'+PSYS[sys].n+' '+dia+' : '+connLabel(A)+' ('+pa.n+') → '+connLabel(B)+' ('+pb.n+')');return B};
+connClick=function(){const h=connHit(raw||mouse);if(!h){toast('คลิกที่อุปกรณ์ สุขภัณฑ์ หรือเครื่องจักร');return}
+  if(!T.ref||!byId(T.ref)){T.ref=h.id;updatePrompt();draw2();return}if(h.id===T.ref)return;const A=byId(T.ref),r=connect(A,h);
+  if(r&&!(A.type==='elec'&&h.type==='elec'))T.ref=(r&&r.id)||h.id;updatePrompt();draw2()};
+// after a connection the downstream device becomes the new source (chain) for plumbing; switches keep feeding (star) for wiring
+// ---- pipe tool: ends drawn on equipment / fixtures are linked to the right port, snapped and squared up
+let PORTSNAP=null;
+{const _sa3=snapAt;snapAt=function(p,base){const r=_sa3(p,base);PORTSNAP=null;if(r.k==='port'){S.els.some(t=>{if(!onLevel(t)||!t.p)return false;const pt=portsOf(t).find(q=>dist(portW(t,q),r.p)<1e-6);if(pt){PORTSNAP={dev:t,pt};return true}return false})}return r}}
+{const _c3=click2;click2=function(p){if(T.name==='pipe'&&!T.pts.length&&snapK==='port'&&PORTSNAP&&D.pipe&&!PORTSNAP.pt.sys.includes(D.pipe.sys)){D.pipe.sys=PORTSNAP.pt.sys[0];D.pipe.dia=PORTSNAP.pt.dia||'';toast('เปลี่ยนระบบท่อเป็น '+PSYS[D.pipe.sys].n+' '+(D.pipe.dia||'')+' ตามจุดต่อ');renderSide()}return _c3(p)}}
+function endDev(lid,p,sys,exId){let best=null,bd=1e9;S.els.forEach(t=>{if(t.level!==lid||!t.p||t.id===exId||!['plumb','furn','elec'].includes(t.type))return;const P=portsOf(t).filter(q=>sysOK(q,sys));if(!P.length)return;
+  const inside=t.type==='furn'?(()=>{const l=rotP(p,t.p,-rad(t.rot||0));return Math.abs(l.x-t.p.x)<=(+t.w||.5)/2+.05&&Math.abs(l.y-t.p.y)<=(+t.d||.5)/2+.05})():dist(p,t.p)<=devR(t)+.05;
+  P.forEach(pt=>{const w=portW(t,pt),d=dist(p,w);if(d<.15||inside){const sc=d<.03?-1:d+(inside?0:.5);if(sc<bd){bd=sc;best={dev:t,pt,w}}}})});return best}
+function squareEnd(P,i,j,orig){const a=P[i],b=P[j];if(Math.abs(a.x-b.x)<.02||Math.abs(a.y-b.y)<.02)return;const horiz=Math.abs(orig.y-b.y)<=Math.abs(orig.x-b.x),c=horiz?{x:a.x,y:b.y}:{x:b.x,y:a.y};P.splice(Math.max(i,j),0,c)}
+function linkPipeEnds(e){const n=e.pts.length,sys=e.sys||'cw',ra=endDev(e.level,e.pts[0],sys),rb=endDev(e.level,e.pts[n-1],sys,ra&&ra.dev.id);if(!ra&&!rb)return;
+  if(ra&&rb){const pr=pickPairX(ra.dev,rb.dev,sys);if(pr){ra.pt=pr.pa;ra.w=portW(ra.dev,pr.pa);rb.pt=pr.pb;rb.w=portW(rb.dev,pr.pb)}
+    if(n===2){e.pts=routeSmart(ra.w,rb.w,ra.dev,rb.dev).map(q=>({x:r3(q.x),y:r3(q.y)}));e.auto=1}}
+  if(!e.auto){const P=e.pts.map(cp);if(ra){const o=P[0];P[0]=ra.w;if(P.length>1)squareEnd(P,0,1,o)}if(rb){const k=P.length-1,o=P[k];P[k]=rb.w;if(P.length>1)squareEnd(P,k,k-1,o)}e.pts=simplifyP(P).map(q=>({x:r3(q.x),y:r3(q.y)}))}
+  if(ra)e.ca={id:ra.dev.id,k:ra.pt.k};if(rb)e.cb={id:rb.dev.id,k:rb.pt.k};
+  if(ra&&rb&&(e.z===''||e.z==null))e.z=String(r3(connZ(ra.pt,rb.pt,sys)));
+  if(!e.dia&&(ra||rb))e.dia=(ra||rb).pt.dia||'';
+  toast('ต่อท่อเข้า '+[ra,rb].filter(Boolean).map(r=>connLabel(r.dev)+' ('+r.pt.n+')').join(' → '))}
+function linkWireEnds(e){const n=e.pts.length,f=p=>{let b=null,bd=.35;S.els.forEach(t=>{if(t.type!=='elec'||t.level!==e.level)return;const d=dist(p,t.p);if(d<bd){bd=d;b=t}});return b},A=f(e.pts[0]),B=f(e.pts[n-1]);
+  if(A){e.pts[0]=cp(A.p);e.ca={id:A.id}}if(B&&B!==A){e.pts[n-1]=cp(B.p);e.cb={id:B.id}}}
+{const _ae=addEl;addEl=function(e){try{if(e&&e.type==='pipe'&&e.pts&&e.pts.length>=2&&!e.ca&&!e.cb&&!e.branchOf)linkPipeEnds(e);if(e&&e.type==='wire'&&e.pts&&e.pts.length>=2&&!e.ca&&!e.cb)linkWireEnds(e)}catch(err){console.warn(err)}return _ae(e)}}
+// ---- 3D: approach every port cleanly (never fold back over a stub, square corners in plan)
+function endPath(p,prev,pn,zz,el){const q=pn.w,zt=el+pn.pt.z,v=pn.pt.v||'any',out=[];let q1=q;
+  if((v==='up'&&zz<zt-.03)||(v==='down'&&zz>zt+.03)){let d=dist(p,q)>.1?sub(p,q):sub(q,pn.dev.p);if(len(d)<.01)d={x:1,y:0};const ax=Math.abs(d.x)>=Math.abs(d.y)?{x:Math.sign(d.x)||1,y:0}:{x:0,y:Math.sign(d.y)||1};q1=add(q,mul(ax,.14))}
+  if(dist(p,q1)>.02){if(Math.abs(p.x-q1.x)>.02&&Math.abs(p.y-q1.y)>.02){const c=prev&&Math.abs(prev.y-p.y)<1e-3?{x:q1.x,y:p.y}:{x:p.x,y:q1.y};out.push({x:c.x,y:c.y,z:zz})}out.push({x:q1.x,y:q1.y,z:zz})}
+  if(Math.abs(zt-zz)>.03)out.push({x:q1.x,y:q1.y,z:zt});if(q1!==q)out.push({x:q.x,y:q.y,z:zt});return out}
+pipe3D=function(e,el){const Y_=PSYS[e.sys]||PSYS.cw,r=Math.max(0.006,inchMM(e.dia||Y_.dia)/2000),zz=el+(isFinite(parseFloat(e.z))?parseFloat(e.z):Y_.z),
+  mt=e.pm&&PIPEMAT[e.pm]!=null?mm(PIPEMAT[e.pm],e.pm==='gi'?{metalness:.6,roughness:.35}:{roughness:.45}):e.sys==='ref'?mm(0x222324,{roughness:.85}):(MAT['p_'+(e.sys||'cw')]||MAT.f_white);
+  let P=e.pts.map(q=>({x:q.x,y:q.y,z:zz}));if(e.fit==='0'){for(let i=0;i<P.length-1;i++)addBeam3([P[i].x,P[i].y,0],[P[i+1].x,P[i+1].y,0],{b:r*2,h:r*2},sel.has(e.id)?MAT.sel:mt,zz,e.id);return}
+  const o={cpl:e.pm==='gi'?6:4,hang:zz-el>1.6?el+(+lvl(e.level).height||3):0},n=e.pts.length;
+  [0,n-1].forEach((ix,k)=>{const p=e.pts[ix],prev=e.pts[k?n-2:1],rf=k?e.cb:e.ca,key=k?'endB':'endA';
+    let pn=rf&&!rf.tee?portRef(rf):null;
+    if(!pn){let host=null;S.els.forEach(q=>{if(host||q===e||q.type!=='pipe'||q.level!==e.level||(q.sys||'cw')!==(e.sys||'cw'))return;for(let i=0;i<q.pts.length-1;i++){const sd=segDist(p,q.pts[i],q.pts[i+1]);if(sd.d<.06&&sd.t>.02&&sd.t<.98){host=sub(q.pts[i+1],q.pts[i]);break}}});
+      if(host){o[key]={tee:host};return}pn=portNear(e.level,p,e.sys)}
+    if(pn){const path=endPath(p,prev,pn,zz,el);if(k===0)P=[...path.reverse(),...P];else P=P.concat(path);o[key]=pn.dev.type==='furn'&&pn.pt.dir==='in'&&!DRAINS.includes(e.sys||'')?'valve':'open';return}
+    const f=fixNear(e.level,p,['plumb','furn']);if(f){const zt=el+fixZ(e.sys,f);if(Math.abs(zt-zz)>.05){const v={x:p.x,y:p.y,z:zt};if(k===0)P.unshift(v);else P.push(v)}o[key]='open';return}
+    const cont=S.els.some(q=>q!==e&&q.type==='pipe'&&q.level===e.level&&(q.sys||'cw')===(e.sys||'cw')&&(dist(q.pts[0],p)<.06||dist(q.pts[q.pts.length-1],p)<.06));o[key]=cont?'open':'cap'});
+  run3D(e.id,P,r,mt,o)};
+// ---- properties: choose which port each end uses
+{const _ff3=fieldsFor;fieldsFor=function(e){const F=_ff3(e);if(e.type!=='pipe')return F;const opt=r=>{const t=r&&!r.tee&&byId(r.id);if(!t)return null;return portsOf(t).filter(q=>sysOK(q,e.sys)).map(q=>[q.k,q.n+' · '+(q.dia||'')+(q.opt?' (ไม่บังคับ)':'')])};
+  const a=opt(e.ca),b=opt(e.cb),add_=[];if(a&&a.length>1)add_.push(['จุดต่อต้นทาง ('+connLabel(byId(e.ca.id))+')','_pa','sel',a]);if(b&&b.length>1)add_.push(['จุดต่อปลายทาง ('+connLabel(byId(e.cb.id))+')','_pb','sel',b]);return F.concat(add_)}}
+{const _gf=getF;getF=function(e,k){if(k==='_pa')return e.ca&&e.ca.k||'';if(k==='_pb')return e.cb&&e.cb.k||'';return _gf(e,k)}}
+{const _sf3=setF;setF=function(e,k,v){if(k==='_pa'||k==='_pb'){const r=k==='_pa'?e.ca:e.cb;if(!r)return;r.k=v;const A=e.ca&&byId(e.ca.id),B=e.cb&&byId(e.cb.id);
+    if(e.auto&&A&&B){const pa=portsOf(A).find(q=>q.k===e.ca.k),pb=portsOf(B).find(q=>q.k===e.cb.k);if(pa&&pb){e.pts=routeSmart(portW(A,pa),portW(B,pb),A,B).map(q=>({x:r3(q.x),y:r3(q.y)}));e.z=String(r3(connZ(pa,pb,e.sys||'cw')))}}return}return _sf3.apply(this,arguments)}}
+// ---- connection audit (plumbing panel): open pipe ends and equipment / fixture ports still unconnected
+function connAudit(lid){const issues=[],used=new Set(),pipes=S.els.filter(e=>e.type==='pipe'&&e.level===lid&&e.pts&&e.pts.length>1);
+  const onRun=(p,e)=>pipes.some(q=>q!==e&&(q.sys||'cw')===(e.sys||'cw')&&q.pts.some((_,i)=>i<q.pts.length-1&&segDist(p,q.pts[i],q.pts[i+1]).d<.06));
+  pipes.forEach(e=>{[0,e.pts.length-1].forEach((ix,k)=>{const rf=k?e.cb:e.ca,p=e.pts[ix];let pn=rf&&!rf.tee?portRef(rf):null;if(!pn){if((rf&&rf.tee)||onRun(p,e))return;pn=portNear(lid,p,e.sys)}
+    if(pn)used.add(pn.dev.id+'|'+pn.pt.k);else issues.push({id:e.id,p,t:'ปลาย'+(PSYS[e.sys||'cw']||PSYS.cw).n+' '+(e.dia||'')+' ยังไม่ได้ต่อกับอุปกรณ์หรือท่ออื่น'})})});
+  S.els.forEach(t=>{if(t.level!==lid||!t.p)return;const P=portsOf(t);if(!P.length)return;
+    if(INLINE.includes(t.kind)&&pipes.some(q=>q.pts.some((_,i)=>i<q.pts.length-1&&segDist(t.p,q.pts[i],q.pts[i+1]).d<.15)))return;
+    P.forEach(pt=>{if(pt.opt||used.has(t.id+'|'+pt.k))return;issues.push({id:t.id,p:portW(t,pt),t:connLabel(t)+' — '+pt.n+' ('+pt.sys.map(s=>(PSYS[s]||{}).code||s).join('/')+') ยังไม่ได้ต่อ'})})});return issues}
+function unlinkedPipes(lid){return S.els.filter(e=>e.type==='pipe'&&e.level===lid&&!e.ca&&!e.cb&&!e.branchOf&&e.pts&&e.pts.length>1&&(endDev(lid,e.pts[0],e.sys||'cw')||endDev(lid,e.pts[e.pts.length-1],e.sys||'cw')))}
+function linkAllPipes(){const L=unlinkedPipes(cur);if(!L.length){toast('ไม่มีท่อเดิมที่ต้องเชื่อม');return}mutate(()=>{L.forEach(e=>{try{linkPipeEnds(e)}catch(_){}})});toast('เชื่อมท่อเดิม '+L.length+' เส้นเข้าจุดต่อของอุปกรณ์แล้ว')}
+function connGo(id,x,y){const e=byId(id);if(!e)return;setTool('select');sel.clear();sel.add(id);view.x=+x;view.y=+y;view.s=Math.max(view.s,90);onSel();draw2()}
+{const _pp=plumbPanelHTML;plumbPanelHTML=function(){let h=_pp();try{const I=connAudit(cur);const U=unlinkedPipes(cur);h+=`<h3 style="margin-top:14px">ตรวจการเชื่อมต่อ</h3>`+(U.length?`<p class="hint">มีท่อที่วาดไว้ก่อน ${U.length} เส้น ปลายอยู่บนอุปกรณ์แต่ยังไม่ได้เชื่อม</p><button class="btn pri" onclick="linkAllPipes()" style="margin-bottom:8px">เชื่อมท่อเดิมเข้าจุดต่ออัตโนมัติ</button>`:'')+(I.length?`<p class="hint">พบ ${I.length} จุดที่ยังไม่ต่อ — คลิกเพื่อไปยังจุดนั้น แล้วใช้เครื่องมือ <b>เชื่อมต่อ</b> (cn) หรือ <b>ท่อ</b> ลากจากจุดต่อ</p><div class="cnL">`+
+  I.slice(0,60).map(i=>`<button class="cnI" onclick="connGo('${i.id}',${i.p.x},${i.p.y})">${esc(i.t)}</button>`).join('')+(I.length>60?`<p class="hint">… และอีก ${I.length-60} จุด</p>`:'')+`</div>`:`<p class="hint">✓ ทุกท่อและจุดต่อที่จำเป็นในชั้นนี้ต่อครบแล้ว</p>`)}catch(err){console.warn(err)}return h}}
+{const st=document.createElement('style');st.textContent='.cnL{display:flex;flex-direction:column;gap:3px;max-height:320px;overflow:auto}.cnI{text-align:left;font-size:12.5px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);cursor:pointer;line-height:1.35}.cnI:hover{border-color:var(--acc,#3d9be9)}';document.head.appendChild(st)}
+{const _hh3=helpHTML;helpHTML=function(){return _hh3()+`<details><summary>ใหม่ใน v9.3: เชื่อมต่องานระบบแบบละเอียด</summary><ul>
+  <li>คลิกอุปกรณ์ลำดับไหนก่อนก็ได้ แอปรู้ทิศทางการไหล: มิเตอร์ → ถังเก็บน้ำ → ปั๊ม (ท่อดูด) → ปั๊ม (ท่อจ่าย) → เครื่องทำน้ำอุ่น → สุขภัณฑ์ และสุขภัณฑ์ → ฟลอร์เดรน → บ่อพัก/บ่อดักไขมัน → ถังบำบัด → บ่อซึม</li>
+  <li>เดินท่ออัตโนมัติแบบฉาก หลบถัง ปั๊ม สุขภัณฑ์ และเสา มีท่อสั้นออกจากอุปกรณ์ก่อนเลี้ยว ต่อหลายจุดจากท่อจ่ายเดียวกันจะแยกสามทางให้</li>
+  <li>วาดท่อด้วยเครื่องมือ <b>ท่อ</b>: เริ่มหรือจบบนอุปกรณ์ แอปจะต่อเข้าจุดต่อที่ตรงระบบ จัดมุมให้ฉาก และเปลี่ยนระบบ/ขนาดท่อตามจุดต่อให้เอง สายไฟที่จบบนอุปกรณ์ก็เชื่อมและขยับตามเช่นกัน</li>
+  <li>เลือกท่อแล้วเปลี่ยน "จุดต่อต้นทาง/ปลายทาง" ได้ที่แผงคุณสมบัติ ท่อจะเดินใหม่ให้</li>
+  <li>โหมดประปา (ไม่ได้เลือกอะไร) มีรายการ <b>ตรวจการเชื่อมต่อ</b> บอกปลายท่อที่ยังลอยและจุดต่อของอุปกรณ์/สุขภัณฑ์ที่ยังไม่ได้ต่อ คลิกเพื่อไปยังจุดนั้น</li></ul></details>`}}
+
+// ---- grid router (Dijkstra on an orthogonal visibility grid): routes around tanks, pumps, fixtures and columns with few bends
+function routeGrid(a,b,A,B){const lid=(A||B||{}).level??cur,own=[A&&A.id,B&&B.id];
+  const stub=(Dv,q)=>{if(!Dv||Dv.type==='furn')return null;const v=sub(q,Dv.p);if(len(v)<.05)return null;const u=Math.abs(v.x)>=Math.abs(v.y)?{x:Math.sign(v.x),y:0}:{x:0,y:Math.sign(v.y)};return add(q,mul(u,.22))};
+  const s=stub(A,a)||a,t=stub(B,b)||b;
+  const obs=S.els.filter(o=>o.level===lid&&o.p&&(o.type==='plumb'||o.type==='column'||(o.type==='furn'&&furnPorts(o).length))).map(o=>{const mine=own.includes(o.id);
+    let r=o.type==='column'?Math.hypot(+o.w||.2,+o.d||.2)/2+.03:mine?(o.type==='furn'?0:devR(o)*1.02):devR(o)*.85;if(mine)r=Math.min(r,dist(o.p,s)-.04,dist(o.p,t)-.04);return{c:o.p,r}}).filter(o=>o.r>0&&dist(o.c,s)>o.r&&dist(o.c,t)>o.r);
+  const pad=1.2,x0=Math.min(s.x,t.x)-pad,x1=Math.max(s.x,t.x)+pad,y0=Math.min(s.y,t.y)-pad,y1=Math.max(s.y,t.y)+pad,XS=new Set([r3(s.x),r3(t.x)]),YS=new Set([r3(s.y),r3(t.y)]);
+  for(let x=x0;x<=x1;x+=.25)XS.add(r3(x));for(let y=y0;y<=y1;y+=.25)YS.add(r3(y));obs.forEach(o=>{[o.c.x-o.r-.1,o.c.x+o.r+.1].forEach(v=>{if(v>x0&&v<x1)XS.add(r3(v))});[o.c.y-o.r-.1,o.c.y+o.r+.1].forEach(v=>{if(v>y0&&v<y1)YS.add(r3(v))})});
+  const X=[...XS].sort((p,q)=>p-q),Y=[...YS].sort((p,q)=>p-q),nx=X.length,ny=Y.length;if(nx*ny>9000)return null;
+  const si=X.indexOf(r3(s.x)),sj=Y.indexOf(r3(s.y)),ti=X.indexOf(r3(t.x)),tj=Y.indexOf(r3(t.y));if(si<0||sj<0||ti<0||tj<0)return null;
+  const PS=[];S.els.forEach(q=>{if(q.type==='pipe'&&q.level===lid)for(let m=0;m<q.pts.length-1;m++)PS.push([q.pts[m],q.pts[m+1]])});
+  const ovl=(i,j,k,l)=>{let c=0;const p0={x:X[i],y:Y[j]},p1={x:X[k],y:Y[l]},hz=Math.abs(p0.y-p1.y)<1e-6;PS.forEach(([u,v])=>{if(hz&&Math.abs(u.y-v.y)<1e-3&&Math.abs(u.y-p0.y)<.07){const o=Math.min(Math.max(p0.x,p1.x),Math.max(u.x,v.x))-Math.max(Math.min(p0.x,p1.x),Math.min(u.x,v.x));if(o>0)c+=o*3}else if(!hz&&Math.abs(u.x-v.x)<1e-3&&Math.abs(u.x-p0.x)<.07){const o=Math.min(Math.max(p0.y,p1.y),Math.max(u.y,v.y))-Math.max(Math.min(p0.y,p1.y),Math.min(u.y,v.y));if(o>0)c+=o*3}});return c};
+  const free=(i,j,k,l)=>{const p={x:X[i],y:Y[j]},q={x:X[k],y:Y[l]};return obs.every(o=>segDist(o.c,p,q).d>=o.r)};
+  const N=nx*ny*4,dist_=new Float64Array(N).fill(1e18),prev=new Int32Array(N).fill(-1),H=[];const push=(d,id)=>{H.push([d,id]);let i=H.length-1;while(i>0){const p=(i-1)>>1;if(H[p][0]<=H[i][0])break;[H[p],H[i]]=[H[i],H[p]];i=p}};
+  const pop=()=>{const top=H[0],last=H.pop();if(H.length){H[0]=last;let i=0;for(;;){const l=2*i+1,r=l+1;let m=i;if(l<H.length&&H[l][0]<H[m][0])m=l;if(r<H.length&&H[r][0]<H[m][0])m=r;if(m===i)break;[H[m],H[i]]=[H[i],H[m]];i=m}}return top};
+  const DIR=[[1,0],[-1,0],[0,1],[0,-1]],id=(i,j,d)=>((i*ny+j)<<2)|d;for(let d=0;d<4;d++){dist_[id(si,sj,d)]=0;push(0,id(si,sj,d))}let end=-1;
+  while(H.length){const[dc,u]=pop();if(dc>dist_[u])continue;const d=u&3,ij=u>>2,i=Math.floor(ij/ny),j=ij%ny;if(i===ti&&j===tj){end=u;break}
+    DIR.forEach(([di,dj],nd)=>{const k=i+di,l=j+dj;if(k<0||l<0||k>=nx||l>=ny)return;if(!free(i,j,k,l))return;const c=dc+Math.abs(X[k]-X[i])+Math.abs(Y[l]-Y[j])+(nd!==d&&!(i===si&&j===sj)?.45:0)+ovl(i,j,k,l),v=id(k,l,nd);if(c<dist_[v]-1e-9){dist_[v]=c;prev[v]=u;push(c,v)}})}
+  if(end<0)return null;const path=[];for(let u=end;u>=0;u=prev[u]){const ij=u>>2;path.push({x:X[Math.floor(ij/ny)],y:Y[ij%ny]})}path.reverse();
+  return simplifyP([a,...path,b])}
+{const _rs=routeSmart;routeSmart=function(a,b,A,B){try{const r=routeGrid(a,b,A,B);if(r&&r.length>=2)return r}catch(err){console.warn(err)}return _rs(a,b,A,B)};routeL=routeSmart}
 
 // ================= Boot
 {let th=null;try{th=localStorage.getItem('yothacad-theme')}catch(_){}document.documentElement.dataset.theme=th||'cad'}
