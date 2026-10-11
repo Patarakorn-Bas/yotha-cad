@@ -1018,6 +1018,9 @@ function drawPreview(){if(!mouse)return;const t=T.name,P=T.pts,m=mouse;
   if(t==='array'&&D.array.mode==='polar'){const s=ws({x:+D.array.cx,y:+D.array.cy});g.strokeStyle=C['sel'];g.lineWidth=1.5;g.beginPath();g.arc(s.x,s.y,7,0,7);g.moveTo(s.x-10,s.y);g.lineTo(s.x+10,s.y);g.moveTo(s.x,s.y-10);g.lineTo(s.x,s.y+10);g.stroke()}}
 
 // ================= Hit test & grips
+// wires are drawn as arcs (quadratic curves bulging 18% of each span), so hit-test the curve itself, not the straight chord
+function wireDist(p,e){let d=1e9;for(let i=0;i<e.pts.length-1;i++){const a=e.pts[i],q=e.pts[i+1],m=lerp(a,q,.5),n=perp(nrm(sub(q,a))),c=add(m,mul(n,dist(a,q)*0.18));let prev=a;
+  for(let k=1;k<=20;k++){const t=k/20,u=1-t,b={x:u*u*a.x+2*u*t*c.x+t*t*q.x,y:u*u*a.y+2*u*t*c.y+t*t*q.y};d=Math.min(d,segDist(p,prev,b).d);prev=b}}return d}
 function hitTest(p,tolPx=7,filter){const tol=tolPx/view.s;let best=null,bd=1e9,pri=9;
   for(const e of S.els){if(!onLevel(e)||discLocked(e))continue;if(filter&&!filter(e))continue;let d=1e9,pr=5;
     switch(e.type){
@@ -1025,8 +1028,9 @@ function hitTest(p,tolPx=7,filter){const tol=tolPx/view.s;let best=null,bd=1e9,p
       case 'column':{if(e.shape==='circle')d=dist(p,e.p)-e.w/2;else{const l=rotP(p,e.p,-rad(e.rot||0));d=Math.max(Math.abs(l.x-e.p.x)-e.w/2,Math.abs(l.y-e.p.y)-e.d/2)}pr=1;break}
       case 'footing':{const l=rotP(p,e.p,-rad(e.rot||0));d=Math.max(Math.abs(l.x-e.p.x)-e.w/2,Math.abs(l.y-e.p.y)-e.d/2);pr=4;break}
       case 'text':{const l=rotP(p,e.p,-rad(e.rot||0)),b=textBox(e);d=Math.max(Math.abs(l.x-e.p.x)-b.w/2,Math.abs(l.y-e.p.y)-b.h/2);pr=1;break}
-      case 'elec':case 'plumb':{d=dist(p,e.p)-(e.kind==='tank'||e.kind==='septic'?0.6:0.2);pr=0.5;break}
-      case 'wire':case 'pipe':{for(let i=0;i<e.pts.length-1;i++)d=Math.min(d,segDist(p,e.pts[i],e.pts[i+1]).d);pr=2;break}
+      case 'elec':case 'plumb':{d=dist(p,e.p)-(e.type==='plumb'&&typeof devR==='function'&&symK(e)===1?Math.max(.2,Math.min(devR(e),.9)):(e.kind==='tank'||e.kind==='septic'?0.6:0.2));pr=-0.1;break}
+      case 'pipe':{for(let i=0;i<e.pts.length-1;i++)d=Math.min(d,segDist(p,e.pts[i],e.pts[i+1]).d);pr=1.5;break}
+      case 'wire':{d=wireDist(p,e);pr=1.5;break}
       case 'furn':{const l=rotP(p,e.p,-rad(e.rot||0));d=Math.max(Math.abs(l.x-e.p.x)-e.w/2,Math.abs(l.y-e.p.y)-e.d/2);pr=1;break}
       case 'section':d=segDist(p,e.a,e.b).d;pr=4;break;
       case 'rmem':d=(dist(e.a,e.b)<1e-3?dist(p,e.a):segDist(p,e.a,e.b).d)-(SECLIB[e.sec]||{b:.05}).b/2;pr=1.5;break;
@@ -1036,7 +1040,7 @@ function hitTest(p,tolPx=7,filter){const tol=tolPx/view.s;let best=null,bd=1e9,p
       case 'grid':d=segDist(p,e.a,e.b).d;pr=4;break;
       case 'dim':{const q=dimGeom(e);d=segDist(p,q.p1,q.p2).d;pr=2;break}
       case 'stair':d=stairFoot(e).some(pl=>inPoly(p,pl))?0:1e9;pr=3;break;
-      case 'pline':{const n=e.pts.length,m=e.closed?n:n-1;for(let i=0;i<m;i++)d=Math.min(d,segDist(p,e.pts[i],e.pts[(i+1)%n]).d);pr=2;break}
+      case 'pline':{const n=e.pts.length,m=e.closed?n:n-1;for(let i=0;i<m;i++)d=Math.min(d,segDist(p,e.pts[i],e.pts[(i+1)%n]).d);pr=2;if(d>tol&&e.closed&&(e.hatch||e.cloud)&&inPoly(p,e.pts)){d=0;pr=5.2}if(d>tol&&e.leader&&e.pts.length&&dist(p,e.pts[e.pts.length-1])<Math.max(.35,(+e.tsz||.18)*3)){d=0;pr=1}break}
       case 'circle':d=Math.abs(dist(p,e.c)-e.r);pr=2;break;
       case 'arc':{const a=deg(Math.atan2(p.y-e.c.y,p.x-e.c.x));d=angIn(a,e.a0,e.a1)?Math.abs(dist(p,e.c)-e.r):1e9;pr=2;break}
       case 'roof':{const pts=roofOuter(e);for(let i=0;i<pts.length;i++)d=Math.min(d,segDist(p,pts[i],pts[(i+1)%pts.length]).d);pr=3;break}
@@ -1046,10 +1050,28 @@ function hitTest(p,tolPx=7,filter){const tol=tolPx/view.s;let best=null,bd=1e9,p
       case 'callout':{const B=calloutBox(e),P4=[{x:B.x0,y:B.y0},{x:B.x1,y:B.y0},{x:B.x1,y:B.y1},{x:B.x0,y:B.y1}];for(let i=0;i<4;i++)d=Math.min(d,segDist(p,P4[i],P4[(i+1)%4]).d);pr=1.5;break}
       case 'steps':d=stepsPieces(e).some(q=>inPoly(p,q.poly))?0:1e9;pr=3;break;
       case 'rail':{for(let i=0;i<e.pts.length-1;i++)d=Math.min(d,segDist(p,e.pts[i],e.pts[i+1]).d);pr=1.8;break}
-      case 'clg':d=inPoly(p,e.pts)?0:1e9;pr=5.3;break;
+      case 'clg':d=inPoly(p,e.pts)?0:1e9;pr=isMEP()?4.8:5.3;break;
       case 'slab':d=inPoly(p,e.pts)?0:1e9;pr=6;break}
+    if(d<=tol&&THINLN.includes(e.type)&&d<3/view.s&&!((e.type==='pipe'||e.type==='wire')&&e.pts&&(dist(p,e.pts[0])<.25||dist(p,e.pts[e.pts.length-1])<.25)))pr=Math.min(pr,.95);
+    {const tg=tagHit(e,p);if(tg!=null&&tg<=tol){d=Math.min(d,tg);pr=Math.min(pr,e.type==='slab'?1:e.type==='room'?1.2:.2)}}
     if(d<=tol&&(pr<pri||(pr===pri&&d<bd))){best=e;bd=d;pri=pr}}
   return best}
+// thin drawn lines win when the cursor is right on them; labels/tags select their owner
+const THINLN=['wire','pipe','line','pline','circle','arc','dim','rail'];
+function tagHit(e,p){const r=10/view.s;
+  if((e.type==='door'||e.type==='window')&&(DISC==='all'||DISC==='arch')&&!(S.viewopt&&S.viewopt.otag==='0')){const F=openingFrame(e);if(!F)return null;const sd=e.type==='door'?(e.side==='1'?1:-1):1;return dist(p,add(F.c,mul(F.n,sd*(F.w.t/2+0.34))))-r}
+  if(e.type==='slab'&&DISC==='struct'&&e.pts)return dist(p,centroid(e.pts))-r;
+  if(e.type==='beam'&&DISC==='struct'){const u=nrm(sub(e.b,e.a)),n=perp(u);return dist(p,add(lerp(e.a,e.b,.5),mul(n,e.w/2+0.13)))-r*1.4}
+  if(e.type==='column'&&DISC==='struct')return dist(p,add(e.p,{x:-e.w/2+.1,y:e.d/2+0.14}))-r;
+  if(e.type==='dim'){const d_=dimGeom(e);return dist(p,add(lerp(d_.p1,d_.p2,.5),mul(d_.n,Math.sign(+e.off||1)*8/view.s)))-r}
+  if(e.type==='room'&&e.pts)return dist(p,centroid(e.pts))-r*2;
+  return null}
+// all candidates under the cursor, best first (used for click-cycling through overlapped objects)
+function hitAll(p,tolPx,filter){const out=[],ex=new Set();for(let i=0;i<12;i++){const h=hitTest(p,tolPx,e=>!ex.has(e.id)&&(!filter||filter(e)));if(!h)break;out.push(h);ex.add(h.id)}return out}
+let CYC=null;
+function pickCycle(p,tolPx){const L=hitAll(p,tolPx);if(!L.length){CYC=null;return null}const sp=ws(p);
+  if(CYC&&Math.hypot(sp.x-CYC.x,sp.y-CYC.y)<5&&sel.size===1&&L.some(e=>sel.has(e.id))&&L.length>1){const i=L.findIndex(e=>sel.has(e.id));CYC={x:sp.x,y:sp.y};const n=L[(i+1)%L.length];return{h:n,cyc:true,msg:'เลือก '+(typeNameOf(n)||n.type)+' ('+((i+1)%L.length+1)+'/'+L.length+') — คลิกซ้ำที่เดิมเพื่อสลับ'}}
+  CYC={x:sp.x,y:sp.y};if(L.length>1&&!sel.has(L[0].id)&&Date.now()-(pickCycle.t||0)>15000){pickCycle.t=Date.now();setTimeout(()=>toast('มีวัตถุซ้อนกัน '+L.length+' ชิ้น — คลิกซ้ำที่เดิมเพื่อสลับเลือก'),0)}return{h:L[0],cyc:false}}
 function nearestWall(p,tolPx=14){const tol=tolPx/view.s;let best=null,bd=1e9;
   for(const e of S.els){if(e.type!=='wall'||e.level!==cur||discLocked(e))continue;const d=segDist(p,wA(e),wB(e)).d-e.t/2;if(d<tol&&d<bd){bd=d;best=e}}return best}
 function placeOpening(w,p,ghost){const L=dist(w.a,w.b),dd=D[T.name];if(!dd||L<dd.w)return null;const s=segDist(p,w.a,w.b);
@@ -1299,7 +1321,8 @@ cv2.addEventListener('pointerdown',e=>{cv2.setPointerCapture(e.pointerId);const 
   if(pan||!isSelecting())return;
   if(T.name==='select'&&sel.size){const tol=(touch?16:8)/view.s;const gp=gripsAll().find(q=>dist(q.p,raw)<tol);
     if(gp){press.mode='gripcand';press.grip=gp;press.startP=cp(gp.p);press.snap=snapshot();press.orig=clone(byId(gp.id));return}}
-  const h=hitTest(raw,touch?14:7);
+  const pc=T.name==='select'&&T.phase!=='pick'&&!e.shiftKey?pickCycle(raw,touch?14:7):null,h=pc?pc.h:hitTest(raw,touch?14:7);
+  if(pc&&pc.cyc){press.mode='movecand';press.cycleNext=h;press.cycMsg=pc.msg;press.startP=snapAt(raw,null).p;press.snap=snapshot();press.orig=clone(S.els.filter(x=>sel.has(x.id)));return}
   if(T.phase==='pick'){if(h){sel.has(h.id)?sel.delete(h.id):sel.add(h.id);onSel();press.mode='none'}else{press.mode='boxcand';press.startW=raw;press.hit=null}return}
   if(h&&(h.type!=='slab'&&h.type!=='room'||sel.has(h.id))){if(!sel.has(h.id)){if(!e.shiftKey)sel.clear();sel.add(h.id);onSel()}else if(e.shiftKey){sel.delete(h.id);onSel();press.mode='none';return}
     press.mode='movecand';press.startP=snapAt(raw,null).p;press.snap=snapshot();press.orig=clone(S.els.filter(x=>sel.has(x.id)))}
@@ -1327,7 +1350,8 @@ cv2.addEventListener('pointermove',e=>{const sp=evPos(e);if(ptrs.has(e.pointerId
   draw2();if(press&&(press.mode==='move'||press.mode==='grip'))req3()});
 function endPtr(e){ptrs.delete(e.pointerId);if(gest){if(ptrs.size<2)gest=null;press=null;return}
   if(!press)return;const p=press;press=null;
-  if(!p.moved){if(p.mode==='pending')click2(mouse);else if(p.mode==='boxcand'&&T.phase!=='pick'){if(p.hit){if(!p.shift)sel.clear();sel.add(p.hit.id)}else if(!p.shift)sel.clear();onSel()}}
+  if(!p.moved&&p.cycleNext){sel.clear();sel.add(p.cycleNext.id);onSel();toast(p.cycMsg||'');draw2()}
+  else if(!p.moved){if(p.mode==='pending')click2(mouse);else if(p.mode==='boxcand'&&T.phase!=='pick'){if(p.hit){if(!p.shift)sel.clear();sel.add(p.hit.id)}else if(!p.shift)sel.clear();onSel()}}
   else if(p.mode==='move'||p.mode==='grip'){hist.push(p.snap);fut=[];changed()}
   else if(p.mode==='box'&&boxSel){const x0=Math.min(boxSel.a.x,boxSel.b.x),x1=Math.max(boxSel.a.x,boxSel.b.x),y0=Math.min(boxSel.a.y,boxSel.b.y),y1=Math.max(boxSel.a.y,boxSel.b.y);
     if(!p.shift&&T.phase!=='pick')sel.clear();S.els.filter(x=>onLevel(x)&&!discLocked(x)).forEach(el=>{const k=keyPts(el);if(k.length&&k.every(q=>q.x>=x0&&q.x<=x1&&q.y>=y0&&q.y<=y1))sel.add(el.id)});boxSel=null;onSel()}
@@ -2443,7 +2467,7 @@ $('#rbIn').onchange=async()=>{const f=$('#rbIn').files[0];if(!f)return;try{const
       v.src=d.app||d.source||'Civil Toolkit';S.rebar[k]={...(S.rebar[k]||{}),...v};n++})});toast('นำเข้าผลออกแบบ '+n+' รายการ'+(nsz?' • ปรับขนาดชิ้นส่วน '+nsz+' กลุ่ม':'')+' • แปลนและตารางโครงสร้างอัปเดตแล้ว');}catch(e){toast('ไฟล์นี้ไม่ใช่ผลออกแบบเหล็กเสริม')}$('#rbIn').value=''};
 
 // ================= App shell: version, sync, manual, install, service worker
-const APP_VER='v9.3';$('#verL').textContent=APP_VER;
+const APP_VER='v9.4';$('#verL').textContent=APP_VER;
 const isEmbedded=/claude\.ai|claudeusercontent|anthropic/.test(location.host)||location.protocol==='blob:';
 const LSK={sync:'yothacad-sync',saved:'yothacad-savedAt',last:'yothacad-lastSync',dev:'yothacad-device'};
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -2701,7 +2725,7 @@ function opLibHTML(kind){const d=D[kind];return`<h3>${kind==='door'?'ประ�
   `</div><h3 style="margin-top:14px">ค่าตั้งต้นของแบบที่เลือก</h3>`+FIELDS[kind].filter(f=>!['pos','st'].includes(f[1])).map(f=>fieldHTML(f,d[f[1]]??'','def')).join('')}
 // ----- discipline
 let DISC='all';const CAT={porch:'arch',steps:'arch',rail:'arch',flr:'arch',clg:'arch',rmem:'struct',elec:'mep',wire:'mep',pipe:'mep',plumb:'mep',wall:'arch',door:'arch',window:'arch',room:'arch',furn:'arch',roof:'arch',column:'struct',beam:'struct',footing:'struct',slab:'struct',stair:'struct'};
-function discLocked(e){if(isMEP()&&CAT[e.type]==='mep')return !PRINT&&(DISC==='elec'?(e.type==='plumb'||e.type==='pipe'):DISC==='plumb'?(e.type==='elec'||e.type==='wire'):false);if((e.type==='room'||e.type==='clg')&&isMEP())return false;if(e.type==='clg'&&!isMEP()&&!PRINT)return true;if(e.type==='flr'&&isMEP())return true;return !PRINT&&DISC!=='all'&&!!CAT[e.type]&&CAT[e.type]!==DISC}
+function discLocked(e){if(isMEP()&&e.type==='furn'&&!PRINT&&typeof furnPorts==='function'&&furnPorts(e).length)return DISC==='elec'?!/แอร์/.test((LIB[e.kind]||{}).n||''):false;if(isMEP()&&CAT[e.type]==='mep')return !PRINT&&(DISC==='elec'?(e.type==='plumb'||e.type==='pipe'):DISC==='plumb'?(e.type==='elec'||e.type==='wire'):false);if((e.type==='room'||e.type==='clg')&&isMEP())return false;if(e.type==='clg'&&!isMEP()&&!PRINT)return true;if(e.type==='flr'&&isMEP())return true;return !PRINT&&DISC!=='all'&&!!CAT[e.type]&&CAT[e.type]!==DISC}
 function setDisc(d){DISC=d;document.querySelectorAll('#discSeg button').forEach(b=>b.classList.toggle('on',b.dataset.d===d));const hide=d==='arch'?['โครงสร้าง','งานระบบ']:d==='struct'?['สถาปัตย์','ตกแต่ง','งานระบบ']:isMEP()?['โครงสร้าง','สถาปัตย์','ตกแต่ง']:[],hideT=d==='elec'?['plumb','pipe']:d==='plumb'?['elec','wire']:[];
   document.querySelectorAll('#tools [data-grp]').forEach(el=>{el.style.display=(hide.includes(el.dataset.grp)&&el.dataset.tool!=='grid')||hideT.includes(el.dataset.tool)?'none':''});showRTab({arch:'สถาปัตย์',struct:'โครงสร้าง',elec:'งานระบบ',plumb:'งานระบบ'}[d]||RTAB);
   const tl=TOOLS.find(t=>t[0]===T.name);if(tl&&((hide.includes(tl[4])&&tl[0]!=='grid')||hideT.includes(tl[0])))setTool('select');[...sel].forEach(id=>{const e=byId(id);if(e&&discLocked(e))sel.delete(id)});
@@ -4864,6 +4888,12 @@ function routeGrid(a,b,A,B){const lid=(A||B||{}).level??cur,own=[A&&A.id,B&&B.id
   if(end<0)return null;const path=[];for(let u=end;u>=0;u=prev[u]){const ij=u>>2;path.push({x:X[Math.floor(ij/ny)],y:Y[ij%ny]})}path.reverse();
   return simplifyP([a,...path,b])}
 {const _rs=routeSmart;routeSmart=function(a,b,A,B){try{const r=routeGrid(a,b,A,B);if(r&&r.length>=2)return r}catch(err){console.warn(err)}return _rs(a,b,A,B)};routeL=routeSmart}
+
+{const _hh4=helpHTML;helpHTML=function(){return _hh4()+`<details><summary>ใหม่ใน v9.4: การคลิกเลือกวัตถุ</summary><ul>
+  <li><b>คลิกซ้ำที่เดิมเพื่อสลับเลือก</b> วัตถุที่ซ้อนกัน เช่น ผนัง → คาน → ฐานราก → พื้น หรือ เฟอร์นิเจอร์ → ท่อที่ลอดใต้ (มุมล่างจะบอกลำดับ 1/3, 2/3 …) กดค้างแล้วลากจะย้ายชิ้นที่เลือกอยู่</li>
+  <li>คลิกบนเส้นสายไฟ ท่อ เส้นเขียนแบบ และเส้นบอกระยะได้ตรงแนวเส้นที่เห็น เส้นบางจะถูกเลือกก่อนเมื่อคลิกตรงเส้นพอดี</li>
+  <li>คลิกป้ายได้: ป้ายประตู/หน้าต่าง ป้ายพื้น ป้ายคาน ป้ายเสา ตัวเลขระยะ ชื่อห้อง และข้อความของลูกศรชี้ ภายในพื้นที่แฮตช์/เมฆแก้ไขก็คลิกเลือกได้</li>
+  <li>โหมดประปาเลือกสุขภัณฑ์ได้ โหมดไฟฟ้าเลือกแอร์ได้ (งานอื่นยังล็อกไว้ตามหมวดงาน)</li></ul></details>`}}
 
 // ================= Boot
 {let th=null;try{th=localStorage.getItem('yothacad-theme')}catch(_){}document.documentElement.dataset.theme=th||'cad'}
