@@ -265,7 +265,7 @@ dialog.boqdlg{max-width:none;width:min(1180px,97vw);overflow:hidden;max-height:9
       <div class="vlabel">3D — ลากเพื่อหมุน • ลากขวาหรือสองนิ้วเพื่อเลื่อน</div>
       <div class="v3bar">
         <button class="btn" data-cam="iso">ไอโซ</button><button class="btn" data-cam="top">บน</button><button class="btn" data-cam="front">หน้า</button><button class="btn" data-cam="side">ขวา</button><button class="btn" data-cam="left">ซ้าย</button><button class="btn" data-cam="back">หลัง</button><button class="btn" data-cam="fit">พอดีจอ</button>
-        <button class="btn" id="tgLv3">ชั้น: ทั้งหมด</button><button class="btn" id="tgRoof3">หลังคา: แสดง</button><button class="btn pri" id="rpBtn">✨ Prompt เรนเดอร์ AI</button><button class="btn" id="tgGrid3">กริด: แสดง</button><button class="btn" id="tgCeil3">ฝ้า: แสดง</button><button class="btn" id="tgLite3" title="ซ่อน/แสดงดวงไฟและอุปกรณ์ติดฝ้าใน 3D (อัตโนมัติ = ซ่อนเมื่อซ่อนหลังคาหรือฝ้า)">ดวงไฟ: อัตโนมัติ</button><button class="btn" id="tgUnder3">ใต้ดิน: แสดง</button>
+        <button class="btn" id="tgLv3">ชั้น: ทั้งหมด</button><button class="btn" id="tgRoof3">หลังคา: แสดง</button><button class="btn pri" id="rpBtn">✨ Prompt เรนเดอร์ AI</button><button class="btn" id="tgGrid3">กริด: แสดง</button><button class="btn" id="tgCeil3">ฝ้า: แสดง</button><button class="btn" id="tgLite3" title="ซ่อน/แสดงดวงไฟและอุปกรณ์ติดฝ้าใน 3D (อัตโนมัติ = ซ่อนเมื่อซ่อนหลังคาหรือฝ้า)">ดวงไฟ: อัตโนมัติ</button><button class="btn" id="tgUnder3">ใต้ดิน: แสดง</button><button class="btn" id="tgUg3" title="แสดง/ซ่อนตัวถังบำบัด บ่อพัก บ่อดักไขมัน และท่อที่ฝังใต้ดิน">ระบบใต้ดิน: แสดง</button>
       </div>
     </div>
     <div id="vHwrap">
@@ -904,7 +904,7 @@ function drawEl(e,mode){const ov=mode==='s',ul=mode==='u';const col=k=>ov?C['sel
       g.lineWidth=(ov?1.5:0)+({ridge:2.2,hip:2.2,plate:2,tie:1.6,sbeam:1.4,rafter:1.1,strut:1.1,fascia:1.6}[e.k]||0.7);g.setLineDash(e.k==='sbeam'?[9,3,2,3]:(e.k==='purlin'||e.k==='batten')?[4,3]:e.k==='strut'?[2,2]:[]);seg(e.a,e.b);g.setLineDash([]);break}
     case 'pipe':{const Y=PSYS[e.sys]||PSYS.cw;g.strokeStyle=ov?C['sel']:ul?C['cv-under']:Y.c;g.lineWidth=ov?2.6:1.8;g.setLineDash(Y.dash);polyPath(e.pts,true);g.stroke();g.setLineDash([]);
       if(!ul&&e.pts.length>1){let bi=0,bl=0;for(let i=0;i<e.pts.length-1;i++){const l=dist(e.pts[i],e.pts[i+1]);if(l>bl){bl=l;bi=i}}const a=e.pts[bi],b=e.pts[bi+1],s=ws(lerp(a,b,.5));let ang=-Math.atan2(b.y-a.y,b.x-a.x);if(ang>Math.PI/2)ang-=Math.PI;if(ang<-Math.PI/2)ang+=Math.PI;
-        txt(Y.code+' Ø'+(e.dia||Y.dia),{x:s.x+Math.sin(ang)*-9,y:s.y-Math.cos(ang)*9},{size:9.5,c:Y.c,rot:ang,w:'600'})}break}
+        if(!ul)pipeDeco(e,ov);if(!ov)queuePipeLabel(e)}break}
     case 'furn':{g.lineWidth=ov?2:0.8;g.strokeStyle=ov?C['sel']:ul?C['cv-under']:C['cv-line'];furnShapes(e).forEach(sh=>{polyPath(sh.poly,!sh.closed);if(sh.closed&&!ul){g.fillStyle=C['cv-bg'];g.fill()}g.stroke()});break}
     case 'section':{drawSecMark(e,ov);break}
     case 'line':{g.strokeStyle=col('cv-line');g.lineWidth=ov?2.5:1;seg(e.a,e.b);break}
@@ -963,7 +963,7 @@ function draw2(){WOFF.clear();applyFont();g.setTransform(DPR,0,0,DPR,0,0);g.fill
   if(below&&!PRINT){const bl=S.els.filter(e=>e.level===below);drawWalls(bl.filter(e=>e.type==='wall'),'u');bl.filter(e=>e.type==='column').forEach(e=>drawEl(e,'u'))}
   const L=(PRINT?planList(cur,PRINT):S.els.filter(onLevel)).filter(e=>!hiddenInDisc(e)&&!(ENLV&&e.type==='callout')&&layOn(e));
   const drawT=t=>{const list=L.filter(e=>e.type===t),lk=list.filter(discLocked),un=list.filter(e=>!discLocked(e)),dr=ls=>layDraw(ls,q=>t==='wall'?drawWalls(q,'n'):t==='beam'?drawBeamsMerged(q):q.forEach(e=>drawEl(e,'n')));if(lk.length){g.globalAlpha=t==='column'?0.8:(DISC==='struct'&&t==='wall')?0.16:0.28;dr(lk);g.globalAlpha=1}dr(un)};
-  ORDER.forEach(t=>{if(t!=='roof')drawT(t)});drawT('roof');try{drawRoomLabels(L)}catch(err){console.warn(err)}
+  ORDER.forEach(t=>{if(t!=='roof')drawT(t)});drawT('roof');try{drawRoomLabels(L)}catch(err){console.warn(err)}try{drawPipeLabels()}catch(err){console.warn(err)}
   if((PRINT&&PRINT!=='roofs'&&!ENLV)||(!PRINT&&!(S.viewopt&&S.viewopt.adim===false)))drawGridDims(L);
   if(PRINT){drawTags(L);if(PRINT==='roofs')drawRoofLabels(L);return}
   if((DISC==='all'||DISC==='arch')&&!(S.viewopt&&S.viewopt.otag==='0')){const svP=PRINT;PRINT='arch';try{drawTags(L.filter(e=>(e.type==='door'||e.type==='window')&&!discLocked(e)))}finally{PRINT=svP}}
@@ -2467,7 +2467,7 @@ $('#rbIn').onchange=async()=>{const f=$('#rbIn').files[0];if(!f)return;try{const
       v.src=d.app||d.source||'Civil Toolkit';S.rebar[k]={...(S.rebar[k]||{}),...v};n++})});toast('นำเข้าผลออกแบบ '+n+' รายการ'+(nsz?' • ปรับขนาดชิ้นส่วน '+nsz+' กลุ่ม':'')+' • แปลนและตารางโครงสร้างอัปเดตแล้ว');}catch(e){toast('ไฟล์นี้ไม่ใช่ผลออกแบบเหล็กเสริม')}$('#rbIn').value=''};
 
 // ================= App shell: version, sync, manual, install, service worker
-const APP_VER='v9.8';$('#verL').textContent=APP_VER;
+const APP_VER='v9.9';$('#verL').textContent=APP_VER;
 const isEmbedded=/claude\.ai|claudeusercontent|anthropic/.test(location.host)||location.protocol==='blob:';
 const LSK={sync:'yothacad-sync',saved:'yothacad-savedAt',last:'yothacad-lastSync',dev:'yothacad-device'};
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -5081,7 +5081,7 @@ function aabb(P){const B=bbox(P);return{x0:B.x0,y0:B.y0,x1:B.x1,y1:B.y1}}
 function boxOv(a,b){const w=Math.min(a.x1,b.x1)-Math.max(a.x0,b.x0),h=Math.min(a.y1,b.y1)-Math.max(a.y0,b.y0);return w>0&&h>0?w*h:0}
 function annObstacles(lid){const O=[];S.els.forEach(e=>{if(e.level!==lid||hiddenInDisc(e)||!layOn(e))return;
   if(e.type==='furn'||e.type==='column')O.push({...aabb(rectPts(e.p,+e.w||.4,+e.d||.4,e.rot)),k:e.type});
-  else if((e.type==='elec'||e.type==='plumb')&&isMEP())O.push({x0:e.p.x-.18,y0:e.p.y-.18,x1:e.p.x+.18,y1:e.p.y+.18,k:'dev'});
+  else if(e.type==='elec'||e.type==='plumb'){const rr=e.type==='plumb'&&typeof devR==='function'?Math.min(.9,devR(e)*symK(e)):.18;O.push({x0:e.p.x-rr,y0:e.p.y-rr,x1:e.p.x+rr,y1:e.p.y+rr,k:'dev'})}
   else if(e.type==='stair'){stairFoot(e).forEach(p=>O.push({...aabb(p),k:'stair'}))}
   else if(e.type==='door'||e.type==='window'){const F=openingFrame(e);if(!F)return;const r=e.type==='door'?Math.max(.4,+e.w||.9)*.9:.18,h=(+e.w||.9)/2;O.push({...aabb([add(add(F.c,mul(F.u,-h)),mul(F.n,-r)),add(add(F.c,mul(F.u,h)),mul(F.n,r))]),k:e.type})}
   else if(e.type==='text'&&e.p){const b=textBox(e);O.push({x0:e.p.x-b.w/2,y0:e.p.y-b.h/2,x1:e.p.x+b.w/2,y1:e.p.y+b.h/2,k:'text'})}});return O}
@@ -5163,6 +5163,72 @@ function apEquip(R){const lid=S.levels[0].id,all=S.els,walls=all.filter(e=>e.typ
   _ap(scope,reset);const dl=$('#apDlg');if(on&&dl&&R0.dev.length){const h3=dl.querySelector('h3');if(h3)h3.insertAdjacentHTML('afterend',`<div class="ro"><span>เพิ่มอุปกรณ์หลักที่ยังไม่มี</span><b>${esc(R0.dev.join(', '))}</b></div>`)}}}
 {const _pp3=plumbPanelHTML;plumbPanelHTML=function(){const h=_pp3(),on=!(S.viewopt&&S.viewopt.apEquip===false);const box=`<label style="display:flex;gap:6px;align-items:center;font-size:13px;margin:6px 0"><input type="checkbox" ${on?'checked':''} onchange="S.viewopt=S.viewopt||{};S.viewopt.apEquip=this.checked"> เพิ่มมิเตอร์ ถังเก็บน้ำ ปั๊ม ถังบำบัด บ่อพัก บ่อดักไขมัน ที่ยังไม่มีให้อัตโนมัติ (วางนอกอาคาร ย้ายได้ภายหลัง)</label>`;
   const k='<p class="hint">น้ำดี: มิเตอร์';const i=h.indexOf(k);return i>=0?h.slice(0,i)+box+h.slice(i):h}}
+// ================= v9.9: buried services drawn below grade (septic tank, chambers, pipes) with a show/hide switch, neater pipe runs, cleaner plumbing symbols & pipe labels
+show3.ugm=true;
+{const b=$('#tgUg3');if(b)b.onclick=ev=>{show3.ugm=!show3.ugm;ev.target.textContent='ระบบใต้ดิน: '+(show3.ugm?'แสดง':'ซ่อน');dirty3=true;req3()}}
+const FPK=new Map();
+function inFoot(lid,p){const k=lid+'|'+modelVer;let P=FPK.get(k);if(!P){P=S.els.filter(e=>e.level===lid&&e.pts&&['slab','room','porch','flr'].includes(e.type)).map(e=>e.pts);FPK.clear();FPK.set(k,P)}return P.some(q=>inPoly(p,q))}
+function gradeMode(lid,el){const ix=S.levels.findIndex(l=>l.id===lid);return ix===0&&isFinite(GROUND)&&GROUND<el-.05}
+// equipment standing outside the building sits on the ground, not on the raised floor level
+function devBase(d,el){if(!d||d.type!=='plumb'||!d.p)return el;return gradeMode(d.level,el)&&!inFoot(d.level,d.p)?GROUND:el}
+const UGK=['septic','ic','grease','sump','soak','utank'];
+function ug3D(e,base){const k=e.kind,K=kitX(mepKit(e,base)),show=show3.ugm!==false,lidC=MK3.conc(),concD=MK3.concD();
+  if(k==='septic'){const R=.6,green=mm(0x2f7d4a,{roughness:.45});K.cyl(R+.08,.05,lidC,0,0,-.01,40);K.cyl(.28,.03,green,0,0,.04,32);K.cyl(.24,.012,mm(0x245f39),0,0,.07,32);[-1,1].forEach(s=>K.ring(.03,.006,MK3.steel(),s*.12,0,.085));
+    if(show){K.cyl(R,1.45,green,0,0,-1.6,40);K.sph(R,green,0,0,-1.6,.25);K.cyl(.3,.1,green,0,0,-.15,32);[0,1,2,3].forEach(i=>K.ring(R+.004,.012,mm(0x276b3e),0,0,-1.45+i*.38));K.cylX(.06,.18,MK3.pvcW(),-R-.05,0,-.3);K.cylX(.06,.18,MK3.pvcW(),R+.05,0,-.35);K.cyl(.03,.75,MK3.pvc(),.23,0,-.15,16)}
+    else K.cyl(.03,.6,MK3.pvc(),.23,0,0,16);K.done();return true}
+  if(k==='ic'||k==='grease'||k==='utank'){const w=k==='utank'?.9:.6,d=k==='utank'?1.2:k==='grease'?.5:.6,D=k==='utank'?1.2:k==='grease'?.5:.65,mat=k==='grease'?mm(0x6b7279,{roughness:.6}):k==='utank'?mm(0x2f6fb0,{roughness:.5}):concD;
+    K.box(w+.12,d+.12,.05,lidC,0,0,-.01);K.box(w-.08,d-.08,.02,k==='grease'?MK3.steel():lidC,0,0,.04);[-1,1].forEach(s=>K.box(.07,.015,.012,MK3.steel(),s*w*.25,0,.06));
+    if(show){const t=.06;K.box(w,t,D,mat,0,-d/2+t/2,-D);K.box(w,t,D,mat,0,d/2-t/2,-D);K.box(t,d,D,mat,-w/2+t/2,0,-D);K.box(t,d,D,mat,w/2-t/2,0,-D);K.box(w,d,.06,mat,0,0,-D-.06);
+      if(k!=='utank'){K.box(w-.12,d-.12,.01,mm(0x4f6f7d,{transparent:true,opacity:.75,roughness:.1}),0,0,-D*.55)}if(k==='grease')K.box(.02,d-.12,D*.7,mat,0,0,-D)}K.done();return true}
+  if(k==='soak'||k==='sump'){const R=k==='soak'?.5:.4,H=k==='soak'?1.5:1.0;K.cyl(R+.06,.05,lidC,0,0,-.01,40);K.cyl(R-.05,.02,concD,0,0,.04,32);
+    if(show){for(let z=0;z<H;z+=.5)K.lathe([[R,0],[R+.05,0],[R+.05,.48],[R,.48]],concD,0,0,-H+z,40);if(k==='soak')K.cyl(R,.3,mm(0x8a8578,{roughness:1}),0,0,-H,28);K.cyl(R-.01,.01,mm(0x4f6f7d,{transparent:true,opacity:.7}),0,0,-H*.45,32)}K.done();return true}
+  return false}
+{const _m5=mep3D;mep3D=function(e,el,zb,dh){if(e.type==='plumb'){const b=devBase(e,el);if(UGK.includes(e.kind))return ug3D(e,b);return _m5(e,b,b,dh)}return _m5(e,el,zb,dh)}}
+// pipes: outside a raised building, heights are measured from the ground (so drains are buried, pump links sit on the ground)
+function gradePath(e,el,zz){const n=e.pts.length,lid=e.level,rel=zz-el;if(!gradeMode(lid,el)||rel>1.0||['ref','vt','cd'].includes(e.sys))return e.pts.map(q=>({x:q.x,y:q.y,z:zz}));
+  const zOut=GROUND+Math.min(rel,DRAINS.includes(e.sys||'')?Math.min(rel,-.35):rel),inside=q=>inFoot(lid,q),P=[];
+  for(let i=0;i<n;i++){const q=e.pts[i],a=inside(q);if(i>0){const p=e.pts[i-1],b=inside(p);if(a!==b){let lo=0,hi=1;for(let k=0;k<14;k++){const m=(lo+hi)/2;inside(lerp(p,q,m))===b?lo=m:hi=m}const c=lerp(p,q,hi);P.push({x:c.x,y:c.y,z:b?zz:zOut},{x:c.x,y:c.y,z:a?zz:zOut})}}P.push({x:q.x,y:q.y,z:a?zz:zOut})}return P}
+function endPathZ(p,prev,pn,zz,el){const base=devBase(pn.dev,el);return endPath(p,prev,{...pn,pt:{...pn.pt,z:pn.pt.z+base-el}},zz,el)}
+pipe3D=function(e,el){const Y_=PSYS[e.sys]||PSYS.cw,r=Math.max(0.006,inchMM(e.dia||Y_.dia)/2000),zz=el+(isFinite(parseFloat(e.z))?parseFloat(e.z):Y_.z),
+  mt=e.pm&&PIPEMAT[e.pm]!=null?mm(PIPEMAT[e.pm],e.pm==='gi'?{metalness:.6,roughness:.35}:{roughness:.45}):e.sys==='ref'?mm(0x222324,{roughness:.85}):(MAT['p_'+(e.sys||'cw')]||MAT.f_white);
+  let P=gradePath(e,el,zz);if(show3.ugm===false&&P.every(q=>q.z<GROUND-.02))return;
+  if(e.fit==='0'){for(let i=0;i<P.length-1;i++)addBeam3([P[i].x,P[i].y,0],[P[i+1].x,P[i+1].y,0],{b:r*2,h:r*2},sel.has(e.id)?MAT.sel:mt,P[i].z,e.id);return}
+  const o={cpl:e.pm==='gi'?6:4,hang:zz-el>1.6?el+(+lvl(e.level).height||3):0},n=e.pts.length;
+  [0,n-1].forEach((ix,k)=>{const p=e.pts[ix],prev=e.pts[k?n-2:1],rf=k?e.cb:e.ca,key=k?'endB':'endA',zE=k?P[P.length-1].z:P[0].z;
+    let pn=rf&&!rf.tee?portRef(rf):null;
+    if(!pn){let host=null;S.els.forEach(q=>{if(host||q===e||q.type!=='pipe'||q.level!==e.level||(q.sys||'cw')!==(e.sys||'cw'))return;for(let i=0;i<q.pts.length-1;i++){const sd=segDist(p,q.pts[i],q.pts[i+1]);if(sd.d<.06&&sd.t>.02&&sd.t<.98){host=sub(q.pts[i+1],q.pts[i]);break}}});
+      if(host){o[key]={tee:host};return}pn=portNear(e.level,p,e.sys)}
+    if(pn){const path=endPathZ(p,prev,pn,zE,el);if(k===0)P=[...path.reverse(),...P];else P=P.concat(path);o[key]=pn.dev.type==='furn'&&pn.pt.dir==='in'&&!DRAINS.includes(e.sys||'')?'valve':'open';return}
+    const f=fixNear(e.level,p,['plumb','furn']);if(f){const zt=devBase(f,el)+fixZ(e.sys,f);if(Math.abs(zt-zE)>.05){const v={x:p.x,y:p.y,z:zt};if(k===0)P.unshift(v);else P.push(v)}o[key]='open';return}
+    const cont=S.els.some(q=>q!==e&&q.type==='pipe'&&q.level===e.level&&(q.sys||'cw')===(e.sys||'cw')&&(dist(q.pts[0],p)<.06||dist(q.pts[q.pts.length-1],p)<.06));o[key]=cont?'open':'cap'});
+  // tees on a buried run: the branch takes the host's height at that point
+  run3D(e.id,P,r,mt,o)};
+// ---- 2D: pipe labels placed after everything else — on the longest clear run, along the pipe, never on top of room names or each other
+let PIPELBL=[];
+{const _d3=draw2;draw2=function(){PIPELBL=[];return _d3()}}
+function queuePipeLabel(e){if(!e.pts||e.pts.length<2)return;const Y=PSYS[e.sys]||PSYS.cw;PIPELBL.push({e,t:Y.code+' Ø'+(e.dia||Y.dia),c:Y.c})}
+function drawPipeLabels(){if(!PIPELBL.length)return;g.save();g.font=FONT('600',9.5);const done=[];
+  PIPELBL.sort((a,b)=>inchMM(b.e.dia||'1')-inchMM(a.e.dia||'1')).forEach(L=>{const tw=g.measureText(L.t).width+8,segs=[];const P=L.e.pts;for(let i=0;i<P.length-1;i++){const A=ws(P[i]),B=ws(P[i+1]),len_=Math.hypot(B.x-A.x,B.y-A.y);if(len_>tw+14)segs.push({A,B,len_})}
+    segs.sort((a,b)=>b.len_-a.len_);let ok=null;
+    for(const s of segs){let ang=Math.atan2(s.B.y-s.A.y,s.B.x-s.A.x);if(ang>Math.PI/2)ang-=Math.PI;if(ang<-Math.PI/2)ang+=Math.PI;const ux=Math.cos(ang),uy=Math.sin(ang);
+      for(const t of [.5,.3,.7,.15,.85])for(const sd of [-1,1]){const cx=s.A.x+(s.B.x-s.A.x)*t-uy*8*sd,cy=s.A.y+(s.B.y-s.A.y)*t+ux*8*sd,hw=Math.abs(ux)*tw/2+Math.abs(uy)*6,hh=Math.abs(uy)*tw/2+Math.abs(ux)*6;
+        const W={x0:sw(cx-hw,cy).x,x1:sw(cx+hw,cy).x,y0:Math.min(sw(cx,cy-hh).y,sw(cx,cy+hh).y),y1:Math.max(sw(cx,cy-hh).y,sw(cx,cy+hh).y)};
+        if(PLACED.some(b=>boxOv(W,b)>0))continue;if(done.some(d=>d.t===L.t&&Math.hypot(d.x-cx,d.y-cy)<tw*1.6))continue;ok={cx,cy,ang,W};break}if(ok)break}
+    if(!ok)return;PLACED.push(ok.W);done.push({t:L.t,x:ok.cx,y:ok.cy});g.save();g.translate(ok.cx,ok.cy);g.rotate(ok.ang);g.textAlign='center';g.textBaseline='middle';g.lineJoin='round';g.strokeStyle=C['cv-bg'];g.lineWidth=3;g.strokeText(L.t,0,0);g.fillStyle=L.c;g.fillText(L.t,0,0);g.restore()});g.restore()}
+// ---- legend: every symbol scaled to fit its row
+{const _lr=drawLegend;drawLegend=function(x,ref,x0,y0){const rows=legendRows(ref);x.save();x.lineWidth=0.25;x.strokeStyle='#111';rows.forEach((r,i)=>{const cy=y0+4+i*8,cx=x0+12;
+    if(r.line){x.strokeStyle=r.line.c;x.lineWidth=0.6;x.setLineDash(r.line.dash.map(v=>v*0.25));x.beginPath();x.moveTo(x0+2,cy);x.lineTo(x0+22,cy);x.stroke();x.setLineDash([]);x.strokeStyle='#111';x.lineWidth=0.25}
+    else{let ext=.05;(r.p||[]).forEach(q=>{if(q[0]==='c')ext=Math.max(ext,Math.abs(q[1])+q[3],Math.abs(q[2])+q[3]);else if(q[0]!=='t')ext=Math.max(ext,Math.abs(q[1]),Math.abs(q[2]),Math.abs(q[3]),Math.abs(q[4]))});const k=Math.min(18,3.3/ext);
+      drawPrims(x,r.p.filter(q=>q[0]!=='t'),(px,py)=>({x:cx+px*k,y:cy-py*k}),k,'#111','#fff');r.p.filter(q=>q[0]==='t').forEach(q=>{x.save();x.fillStyle='#111';x.font=FONT('600',Math.max(1.3,Math.min(2.2,q[3]*k)));x.textAlign='center';x.textBaseline='middle';x.fillText(q[4],cx+q[1]*k,cy-q[2]*k);x.restore()})}
+    x.fillStyle='#111';x.font=FONT('400',2.7);x.textAlign='left';x.textBaseline='middle';x.fillText(r.n,x0+28,cy+0.2)});x.lineWidth=0.3;x.strokeRect(x0,y0,110,Math.max(1,rows.length)*8+2);x.restore()}}
+
+// ---- 2D pipe detailing: flow arrows on connected runs, tee dots, rise (○) / drop (●) marks at fixtures
+function pipeDeco(e,ov){const Y=PSYS[e.sys]||PSYS.cw,col=ov?C['sel']:Y.c,P=e.pts,n=P.length;if(n<2)return;g.save();g.setLineDash([]);g.fillStyle=col;g.strokeStyle=col;g.lineWidth=1;
+  if(e.ca||e.cb){for(let i=0;i<n-1;i++){const A=ws(P[i]),B=ws(P[i+1]),L=Math.hypot(B.x-A.x,B.y-A.y);if(L<70)continue;const ux=(B.x-A.x)/L,uy=(B.y-A.y)/L,cx=A.x+(B.x-A.x)*.8,cy=A.y+(B.y-A.y)*.8;
+    g.beginPath();g.moveTo(cx+ux*5,cy+uy*5);g.lineTo(cx-ux*4-uy*3.2,cy-uy*4+ux*3.2);g.lineTo(cx-ux*4+uy*3.2,cy-uy*4-ux*3.2);g.closePath();g.fill()}}
+  [[e.ca,P[0]],[e.cb,P[n-1]]].forEach(([r,p])=>{if(!r)return;const s_=ws(p);if(r.tee){g.beginPath();g.arc(s_.x,s_.y,2.8,0,7);g.fill();return}const d=byId(r.id);if(!d||d.type!=='furn')return;
+    g.beginPath();g.arc(s_.x,s_.y,3.2,0,7);if(DRAINS.includes(e.sys||''))g.fill();else{g.fillStyle=C['cv-bg'];g.fill();g.stroke();g.fillStyle=col}});g.restore()}
+{const _lr2=legendRows;legendRows=function(ref){const r=_lr2(ref);if(ref==='plumb'&&S.els.some(e=>e.type==='pipe'))r.push({p:[['l',-.1,0,.1,0],['l',.1,0,.05,.035],['l',.1,0,.05,-.035]],n:'ทิศทางการไหล'},{p:[['c',0,0,.035,1]],n:'จุดแยกสามทาง (Tee)'},{p:[['c',0,0,.04,0]],n:'ท่อน้ำดีขึ้นเข้าสุขภัณฑ์'},{p:[['c',0,0,.04,1]],n:'ท่อน้ำทิ้ง/โสโครกลงจากสุขภัณฑ์'});return r}}
 
 // ================= Boot
 {let th=null;try{th=localStorage.getItem('yothacad-theme')}catch(_){}document.documentElement.dataset.theme=th||'cad'}
