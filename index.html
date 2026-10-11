@@ -899,7 +899,7 @@ function drawEl(e,mode){const ov=mode==='s',ul=mode==='u';const col=k=>ov?C['sel
       const cl=ov?C['sel']:ul?C['cv-under']:e.type==='elec'?(C===PC?'#111':'#c27a00'):(C===PC?'#111':'#1f6fd0');g.strokeStyle=cl;g.lineWidth=ov?1.8:1;drawPrims(g,L.p,tf,view.s*K,cl,C['cv-bg']);
       if(e.type==='elec'&&e.ckt&&!ul&&view.s>25)txt(e.ckt,(q=>({x:q.x+12,y:q.y+12}))(ws(e.p)),{size:9,c:cl,al:'left'});break}
     case 'wire':{g.strokeStyle=ov?C['sel']:ul?C['cv-under']:(C===PC?'#333':'#c27a00');g.lineWidth=ov?2:0.9;g.beginPath();e.pts.forEach((q,i)=>{const s=ws(q);if(!i){g.moveTo(s.x,s.y);return}const a=e.pts[i-1],m=lerp(a,q,.5),n=perp(nrm(sub(q,a))),c=ws(add(m,mul(n,dist(a,q)*0.18)));g.quadraticCurveTo(c.x,c.y,s.x,s.y)});g.stroke();
-      if(e.ckt&&!ul&&e.pts.length>1){const s=ws(lerp(e.pts[0],e.pts[1],.5));txt(e.ckt,{x:s.x,y:s.y-10},{size:9,c:g.strokeStyle})}break}
+      if(e.hr&&!ul)wireArrow(e);if(e.ckt&&!ul&&e.pts.length>1){if(e.autoW){if(e.hr)queueWireLabel(e,g.strokeStyle)}else{const s=ws(lerp(e.pts[0],e.pts[1],.5));txt(e.ckt,{x:s.x,y:s.y-10},{size:9,c:g.strokeStyle})}}break}
     case 'rmem':{const m=rmemM(e);g.strokeStyle=ov?C['sel']:ul?C['cv-under']:C['cv-roof'];if(dist(e.a,e.b)<1e-3){const q=ws(e.a),r=Math.max(3,m.s.b*view.s/2);g.fillStyle=g.strokeStyle;g.fillRect(q.x-r,q.y-r,2*r,2*r);break}
       g.lineWidth=(ov?1.5:0)+({ridge:2.2,hip:2.2,plate:2,tie:1.6,sbeam:1.4,rafter:1.1,strut:1.1,fascia:1.6}[e.k]||0.7);g.setLineDash(e.k==='sbeam'?[9,3,2,3]:(e.k==='purlin'||e.k==='batten')?[4,3]:e.k==='strut'?[2,2]:[]);seg(e.a,e.b);g.setLineDash([]);break}
     case 'pipe':{const Y=PSYS[e.sys]||PSYS.cw;g.strokeStyle=ov?C['sel']:ul?C['cv-under']:Y.c;g.lineWidth=ov?2.6:1.8;g.setLineDash(Y.dash);polyPath(e.pts,true);g.stroke();g.setLineDash([]);
@@ -963,7 +963,7 @@ function draw2(){WOFF.clear();applyFont();g.setTransform(DPR,0,0,DPR,0,0);g.fill
   if(below&&!PRINT){const bl=S.els.filter(e=>e.level===below);drawWalls(bl.filter(e=>e.type==='wall'),'u');bl.filter(e=>e.type==='column').forEach(e=>drawEl(e,'u'))}
   const L=(PRINT?planList(cur,PRINT):S.els.filter(onLevel)).filter(e=>!hiddenInDisc(e)&&!(ENLV&&e.type==='callout')&&layOn(e));
   const drawT=t=>{const list=L.filter(e=>e.type===t),lk=list.filter(discLocked),un=list.filter(e=>!discLocked(e)),dr=ls=>layDraw(ls,q=>t==='wall'?drawWalls(q,'n'):t==='beam'?drawBeamsMerged(q):q.forEach(e=>drawEl(e,'n')));if(lk.length){g.globalAlpha=t==='column'?0.8:(DISC==='struct'&&t==='wall')?0.16:0.28;dr(lk);g.globalAlpha=1}dr(un)};
-  ORDER.forEach(t=>{if(t!=='roof')drawT(t)});drawT('roof');try{drawRoomLabels(L)}catch(err){console.warn(err)}try{drawPipeLabels()}catch(err){console.warn(err)}
+  ORDER.forEach(t=>{if(t!=='roof')drawT(t)});drawT('roof');try{drawRoomLabels(L)}catch(err){console.warn(err)}try{drawPipeLabels()}catch(err){console.warn(err)}try{drawWireLabels()}catch(err){console.warn(err)}
   if((PRINT&&PRINT!=='roofs'&&!ENLV)||(!PRINT&&!(S.viewopt&&S.viewopt.adim===false)))drawGridDims(L);
   if(PRINT){drawTags(L);if(PRINT==='roofs')drawRoofLabels(L);return}
   if((DISC==='all'||DISC==='arch')&&!(S.viewopt&&S.viewopt.otag==='0')){const svP=PRINT;PRINT='arch';try{drawTags(L.filter(e=>(e.type==='door'||e.type==='window')&&!discLocked(e)))}finally{PRINT=svP}}
@@ -1813,7 +1813,7 @@ function dxfFor(lid){const o=[];const P=(...a)=>o.push(...a);const n=v=>(+v).toF
     case 'section':{const F=secFrame(e);if(e.kind!=='elev')LN(e.a,e.b,'A-SECT');(e.kind==='elev'?[lerp(e.a,e.b,.5)]:[e.a,e.b]).forEach(p=>{LN(p,add(p,mul(F.n,0.8)),'A-SECT');CI(add(p,mul(F.n,-0.4)),0.35,'A-SECT');TX(add(p,mul(F.n,-0.4)),0.25,e.tag||'','A-SECT')});break}
     case 'elec':case 'plumb':{const L=(e.type==='elec'?ELIB:PLIB)[e.kind];if(!L)break;const ly=e.type==='elec'?'E-DEVC':'P-DEVC',r=rad(e.rot||0),cs=Math.cos(r),sn=Math.sin(r),X=(x,y)=>({x:e.p.x+(x*cs-y*sn)*symK(e),y:e.p.y+(x*sn+y*cs)*symK(e)});
       L.p.forEach(pr=>{if(pr[0]==='c')CI(X(pr[1],pr[2]),pr[3]*symK(e),ly);else if(pr[0]==='l')LN(X(pr[1],pr[2]),X(pr[3],pr[4]),ly);else if(pr[0]==='r')PG([X(pr[1],pr[2]),X(pr[3],pr[2]),X(pr[3],pr[4]),X(pr[1],pr[4])],ly);else if(pr[0]==='t')TX(X(pr[1],pr[2]),pr[3]*symK(e),pr[4],ly)});if(e.ckt)TX(add(e.p,{x:.35,y:-.3}),0.15,e.ckt,ly);break}
-    case 'wire':for(let i=0;i<e.pts.length-1;i++){const a=e.pts[i],b=e.pts[i+1],m=lerp(a,b,.5),n2=perp(nrm(sub(b,a))),c=add(m,mul(n2,dist(a,b)*0.09));LN(a,c,'E-WIRE');LN(c,b,'E-WIRE')}break;
+    case 'wire':for(let i=0;i<e.pts.length-1;i++){const a=e.pts[i],b=e.pts[i+1],m=lerp(a,b,.5),n2=perp(nrm(sub(b,a))),c=add(m,mul(n2,dist(a,b)*0.09));LN(a,c,'E-WIRE');LN(c,b,'E-WIRE')}if(e.hr&&e.pts.length>1){const b=e.pts[e.pts.length-1],a=e.pts[e.pts.length-2],u=nrm(sub(b,a)),n2=perp(u);LN(b,add(sub(b,mul(u,.2)),mul(n2,.08)),'E-WIRE');LN(b,sub(sub(b,mul(u,.2)),mul(n2,.08)),'E-WIRE');if(e.ckt)TX(add(b,mul(u,.3)),0.15,e.ckt,'E-WIRE')}break;
     case 'porch':PG(e.pts,'A-EXT');porchSteps(e).forEach(q=>PG(q.poly,'A-EXT'));TX(centroid(e.pts),0.2,'PORCH '+lvTxt(porchZ(e)),'A-EXT');break;
     case 'steps':stepsPieces(e).forEach(q=>PG(q.poly,'A-EXT'));break;
     case 'rail':PG(e.pts,'A-RAIL',true);break;
@@ -2467,7 +2467,7 @@ $('#rbIn').onchange=async()=>{const f=$('#rbIn').files[0];if(!f)return;try{const
       v.src=d.app||d.source||'Civil Toolkit';S.rebar[k]={...(S.rebar[k]||{}),...v};n++})});toast('นำเข้าผลออกแบบ '+n+' รายการ'+(nsz?' • ปรับขนาดชิ้นส่วน '+nsz+' กลุ่ม':'')+' • แปลนและตารางโครงสร้างอัปเดตแล้ว');}catch(e){toast('ไฟล์นี้ไม่ใช่ผลออกแบบเหล็กเสริม')}$('#rbIn').value=''};
 
 // ================= App shell: version, sync, manual, install, service worker
-const APP_VER='v9.9';$('#verL').textContent=APP_VER;
+const APP_VER='v10.0';$('#verL').textContent=APP_VER;
 const isEmbedded=/claude\.ai|claudeusercontent|anthropic/.test(location.host)||location.protocol==='blob:';
 const LSK={sync:'yothacad-sync',saved:'yothacad-savedAt',last:'yothacad-lastSync',dev:'yothacad-device'};
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -4091,7 +4091,7 @@ function boqRaw(){WOFF.clear();const out=[],Sg=bqS(),put=(sub,code,name,unit,qty
   S.els.filter(e=>e.type==='rail').forEach(e=>{const k=e.kind||'steel',P_=RAILP[k]||RAILP.steel;let L=0;for(let i=0;i<e.pts.length-1;i++)L+=dist(e.pts[i],e.pts[i+1]);put('A8','A-RAIL-'+k,RAILK[k]||'ราวกันตก','ม.',L,P_[0],P_[1],lvN(e.level))});
   // --- MEP
   S.els.filter(e=>e.type==='elec').forEach(e=>{const L=ELIB[e.kind];if(!L)return;const p=ELP[e.kind]||[1000,300];put('E1','E-'+e.kind,L.n+(L.light?' พร้อมหลอดและเดินสาย':L.va||/sw|out/.test(e.kind)?' พร้อมเดินสายและท่อร้อยสาย':''),'จุด',1,p[0],p[1],lvN(e.level))});
-  S.els.filter(e=>e.type==='wire').forEach(e=>{let L=0;for(let i=0;i<e.pts.length-1;i++)L+=dist(e.pts[i],e.pts[i+1]);put('E2','E-WIRE','สายไฟ THW พร้อมท่อร้อยสาย (ตามแนวที่เขียน)','ม.',L*1.1,32,15,lvN(e.level))});
+  S.els.filter(e=>e.type==='wire').forEach(e=>{let L=0;for(let i=0;i<e.pts.length-1;i++)L+=dist(e.pts[i],e.pts[i+1]);put('E2','E-WIRE','สายไฟ THW พร้อมท่อร้อยสาย (ตามแนวที่เขียน)','ม.',(L+(+e.hrL||0))*1.1,32,15,lvN(e.level))});
   S.els.filter(e=>e.type==='pipe').forEach(e=>{const Y=PSYS[e.sys]||PSYS.cw,dia=e.dia||Y.dia;let L=0;for(let i=0;i<e.pts.length-1;i++)L+=dist(e.pts[i],e.pts[i+1]);const r=pipeRate(e.sys,dia);put('P1','P-'+(e.sys||'cw')+'-'+dia,Y.n+' Ø'+dia+' พร้อมข้อต่อ','ม.',L*1.15,r[0],r[1],lvN(e.level)+' '+f2(L)+' ม. + ข้อต่อ 15%')});
   S.els.filter(e=>e.type==='plumb').forEach(e=>{const L=PLIB[e.kind];if(!L)return;const p=PLP[e.kind]||[1500,400];put('P2','P-'+e.kind,L.n,'ชุด',1,p[0],p[1],lvN(e.level))});
   const ord=Object.keys(BQSUB);out.sort((a,b)=>ord.indexOf(a.sub)-ord.indexOf(b.sub));out.forEach(o=>o.qty=Math.round(o.qty*100)/100);return out}
@@ -5229,6 +5229,92 @@ function pipeDeco(e,ov){const Y=PSYS[e.sys]||PSYS.cw,col=ov?C['sel']:Y.c,P=e.pts
   [[e.ca,P[0]],[e.cb,P[n-1]]].forEach(([r,p])=>{if(!r)return;const s_=ws(p);if(r.tee){g.beginPath();g.arc(s_.x,s_.y,2.8,0,7);g.fill();return}const d=byId(r.id);if(!d||d.type!=='furn')return;
     g.beginPath();g.arc(s_.x,s_.y,3.2,0,7);if(DRAINS.includes(e.sys||''))g.fill();else{g.fillStyle=C['cv-bg'];g.fill();g.stroke();g.fillStyle=col}});g.restore()}
 {const _lr2=legendRows;legendRows=function(ref){const r=_lr2(ref);if(ref==='plumb'&&S.els.some(e=>e.type==='pipe'))r.push({p:[['l',-.1,0,.1,0],['l',.1,0,.05,.035],['l',.1,0,.05,-.035]],n:'ทิศทางการไหล'},{p:[['c',0,0,.035,1]],n:'จุดแยกสามทาง (Tee)'},{p:[['c',0,0,.04,0]],n:'ท่อน้ำดีขึ้นเข้าสุขภัณฑ์'},{p:[['c',0,0,.04,1]],n:'ท่อน้ำทิ้ง/โสโครกลงจากสุขภัณฑ์'});return r}}
+
+// ================= v10.0: automatic electrical wiring (like auto plumbing) — circuits by location, shortest runs per circuit, switch legs, home runs to the board
+const SWK=['sw1','sw2','sw3','dim','timer','swSmart','keycard'];
+function ewVA(e){return +e.va||+(ELIB[e.kind]||{}).va||0}
+function ewKind(e){const k=e.kind,L=ELIB[k]||{};if(!(ewVA(e)>0))return null;if(L.own)return'own';if(L.light||['fan','exh','bell','emer','exit','motion'].includes(k))return'lt';if(L.pw||['wifi','cctv','intc','siren'].includes(k))return'pw';return null}
+const ewSwitchable=k=>{const L=ELIB[k]||{};return !!L.light||k==='fan'||k==='exh'};
+function ewRooms(lid){return S.els.filter(e=>e.type==='room'&&e.level===lid&&e.pts&&e.pts.length>2)}
+function ewRoomOf(p,rooms){const r=rooms.find(r=>inPoly(p,r.pts));if(r)return r;let b=null,bd=.6;rooms.forEach(r=>{for(let i=0;i<r.pts.length;i++){const d=segDist(p,r.pts[i],r.pts[(i+1)%r.pts.length]).d;if(d<bd){bd=d;b=r}}});return b}
+function ewDB(lid){const P=S.els.filter(e=>e.type==='elec'&&(e.kind==='db'||e.kind==='sdb'));const h=P.filter(e=>e.level===lid).sort((a,b)=>(a.kind==='db'?0:1)-(b.kind==='db'?0:1))[0];if(h)return{d:h,same:true};
+  const m=P.filter(e=>e.kind==='db').sort((a,b)=>lvIdx(a.level)-lvIdx(b.level))[0]||P[0];return m?{d:m,same:false}:null}
+// circuits grouped by location: rooms visited outward from the board, a room is kept on one circuit when it fits
+function ewCircuits(lids,force){const all=S.els.filter(e=>e.type==='elec'&&ewKind(e));if(force)all.filter(e=>lids.includes(e.level)).forEach(e=>e.ckt='');
+  const used=new Set(S.els.filter(e=>e.type==='elec'&&e.ckt).map(e=>e.ckt));let n=0,made=0;const nx=()=>{let c;do{c='C'+(++n)}while(used.has(c));used.add(c);made++;return c};
+  S.levels.filter(l=>lids.includes(l.id)).forEach(l=>{const mine=all.filter(e=>e.level===l.id&&!e.ckt);if(!mine.length)return;const rooms=ewRooms(l.id),db=ewDB(l.id),o0=db?db.d.p:levelCenter(l.id);
+    const grp=new Map();mine.forEach(e=>{const r=ewRoomOf(e.p,rooms),k=r?r.id:'_out';if(!grp.has(k))grp.set(k,{r,list:[]});grp.get(k).list.push(e)});
+    const cen=G=>G.r?centroid(G.r.pts):centroid(G.list.map(e=>e.p));let pos=o0;const order=[],rest=[...grp.values()];
+    while(rest.length){rest.sort((a,b)=>dist(cen(a),pos)-dist(cen(b),pos));const G=rest.shift();order.push(G);pos=cen(G)}
+    const chain=(list,from)=>{const out=[],r=list.slice();let p=from;while(r.length){r.sort((a,b)=>dist(a.p,p)-dist(b.p,p));const e=r.shift();out.push(e);p=e.p}return out};
+    const kit=e=>{const r=ewRoomOf(e.p,rooms);return['outw','outh'].includes(e.kind)||!!(r&&/ครัว|อาหาร|ซัก/.test(r.name||''))};
+    const fill=(cls,cap,vaCap)=>{let c=null,cnt=0,va=0,last=o0;order.forEach(G=>{const L=chain(G.list.filter(cls),last);if(!L.length)return;const gva=L.reduce((s,e)=>s+ewVA(e),0);
+      if(c&&(cnt+L.length>cap||va+gva>vaCap))c=null;L.forEach(e=>{const v=ewVA(e);if(!c||cnt+1>cap||va+v>vaCap){c=nx();cnt=0;va=0}e.ckt=c;cnt++;va+=v});last=L[L.length-1].p})};
+    fill(e=>ewKind(e)==='lt',12,1800);fill(e=>ewKind(e)==='pw'&&!kit(e),8,1800);fill(e=>ewKind(e)==='pw'&&kit(e),6,1800);
+    chain(mine.filter(e=>ewKind(e)==='own'),o0).forEach(e=>e.ckt=nx())});return made}
+function ewHome(near,db,ckt,lid,mk,R){const d=dist(near.p,db.d.p);
+  if(db.same&&d<=1.8){mk(near,db.d,ckt,{hr:1});R.hr++;return}
+  let u=d>.3?nrm(sub(db.d.p,near.p)):{x:1,y:0};if((ELIB[near.kind]||{}).mount==='wall'){const rm=ewRoomOf(near.p,ewRooms(lid));if(rm){const v=nrm(sub(centroid(rm.pts),near.p));u=nrm(add(mul(u,.6),v))}}const len=db.same?Math.min(.9,Math.max(.4,d-.6)):.8,tip={x:r3(near.p.x+u.x*len),y:r3(near.p.y+u.y*len)};
+  const hz=Math.max(0,Math.abs(near.p.x-db.d.p.x)+Math.abs(near.p.y-db.d.p.y)-len),vert=db.same?0:Math.abs(elevOf(lid)-elevOf(db.d.level)),hrL=r3(hz+vert+.6);
+  S.els.push({id:nid(),type:'wire',level:lid,ckt,ct:'pvc',pts:[cp(near.p),tip],ca:{id:near.id},autoW:1,hr:1,to:db.d.id,hl:len,hrL});R.len+=len+hrL;R.hr++}
+function ewLevel(lid,R){const rooms=ewRooms(lid),E=S.els.filter(e=>e.type==='elec'&&e.level===lid),LN_=lvl(lid).name;
+  const par=new Map(),f=x=>{while(par.has(x))x=par.get(x);return x},un=(a,b)=>{const A=f(a),B=f(b);if(A===B)return false;par.set(A,B);return true};
+  const wired=new Set();S.els.forEach(w=>{if(w.type!=='wire'||w.level!==lid)return;[w.ca,w.cb].forEach(r=>r&&wired.add(r.id));if(w.ca&&w.cb)un(w.ca.id,w.cb.id)});
+  const roomOf=new Map();E.forEach(e=>roomOf.set(e.id,ewRoomOf(e.p,rooms)));
+  const mk=(A,B,ckt,x)=>{S.els.push({id:nid(),type:'wire',level:lid,ckt:ckt||'',ct:'pvc',pts:[cp(A.p),cp(B.p)],ca:{id:A.id},cb:{id:B.id},autoW:1,...(x||{})});R.len+=dist(A.p,B.p)};
+  const db=ewDB(lid),cks=new Map();E.forEach(e=>{if(!ewKind(e)||!e.ckt)return;if(!cks.has(e.ckt))cks.set(e.ckt,[]);cks.get(e.ckt).push(e)});
+  // 1) each circuit: shortest tree, finishing a room before crossing to the next
+  cks.forEach((L,ckt)=>{R.cks.add(ckt);const ed=[];for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++){const a=L[i],b=L[j];ed.push([dist(a.p,b.p)+(roomOf.get(a.id)!==roomOf.get(b.id)?2:0),a,b])}
+    ed.sort((x,y)=>x[0]-y[0]).forEach(([,a,b])=>{if(un(a.id,b.id)){mk(a,b,ckt);R.run++}});
+    if(!db)return;const comps=new Map();L.forEach(e=>{const r=f(e.id);if(!comps.has(r))comps.set(r,[]);comps.get(r).push(e)});
+    comps.forEach((G,root)=>{if(f(db.d.id)===root)return;const near=G.slice().sort((a,b)=>dist(a.p,db.d.p)-dist(b.p,db.d.p))[0];ewHome(near,db,ckt,lid,mk,R)})});
+  if(!db&&cks.size)R.warn.push(LN_+': ยังไม่มีตู้ควบคุมไฟฟ้า (DB) — ยังไม่ได้เดินสายกลับตู้ (Home run)');
+  // 2) switch legs: each switch to the nearest switchable load in its own room
+  const sws=E.filter(e=>SWK.includes(e.kind)),loads=E.filter(e=>ewSwitchable(e.kind)&&ewVA(e)>0);
+  sws.forEach(s=>{const r=roomOf.get(s.id);if(wired.has(s.id))return;const c=loads.filter(l=>r?roomOf.get(l.id)===r:(!roomOf.get(l.id)&&dist(l.p,s.p)<6)).sort((a,b)=>dist(a.p,s.p)-dist(b.p,s.p))[0];
+    if(!c){R.warn.push(LN_+': สวิตช์'+(r&&r.name?' ใน'+r.name:'')+' ไม่มีดวงโคมให้ควบคุม');return}mk(c,s,c.ckt,{sw:1});R.sw++});
+  rooms.forEach(r=>{const hasL=loads.some(l=>roomOf.get(l.id)===r),hasS=sws.some(s=>roomOf.get(s.id)===r);if(hasL&&!hasS)R.warn.push(LN_+': '+(r.name||'ห้อง')+' มีดวงโคมแต่ไม่มีสวิตช์')});
+  const outL=loads.filter(l=>!roomOf.get(l.id)),outS=sws.filter(s=>!roomOf.get(s.id));if(outL.length&&!outS.length)R.warn.push(LN_+': ไฟภายนอก '+outL.length+' จุดยังไม่มีสวิตช์ (วางสวิตช์ภายนอก หรือต่อสายเข้าสวิตช์เอง)');
+  R.lv++}
+function autoWire(scope,regroup){const lids=scope==='all'?S.levels.map(l=>l.id):[cur];const R={rm:0,ck:0,run:0,sw:0,hr:0,len:0,warn:[],lv:0,cks:new Set()};
+  mutate(()=>{const ids=new Set(S.els.map(e=>e.id)),n0=S.els.length;S.els=S.els.filter(e=>!(e.type==='wire'&&e.autoW&&(lids.includes(e.level)||(e.ca&&!ids.has(e.ca.id))||(e.cb&&!ids.has(e.cb.id)))));R.rm=n0-S.els.length;
+    R.ck=ewCircuits(lids,!!regroup);lids.forEach(l=>ewLevel(l,R))});
+  const ld=loadData();ld.rows.filter(r=>R.cks.has(r.ckt)).forEach(r=>{const own=S.els.some(e=>e.type==='elec'&&e.ckt===r.ckt&&ewKind(e)==='own');if(!own&&r.amp*1.25>16)R.warn.push('วงจร '+r.ckt+' โหลด '+Math.round(r.va)+' VA ('+r.amp.toFixed(1)+' A) สูงเกิน — ควรแยกวงจร')});
+  let dl=$('#ewDlg');if(!dl){dl=document.createElement('dialog');dl.id='ewDlg';document.body.appendChild(dl)}const row=(a,b)=>`<div class="ro"><span>${a}</span><b>${b}</b></div>`;
+  dl.innerHTML=`<h3>เดินสายไฟอัตโนมัติ — ${scope==='all'?'ทุกชั้น':esc(lvl(cur).name)}</h3><p class="hint">ดวงโคมและเต้ารับในวงจรเดียวกันต่อกันด้วยสายที่สั้นที่สุด (ครบในห้องก่อนข้ามห้อง) สวิตช์ต่อเข้าดวงโคมในห้องของตัวเอง และทุกวงจรมีลูกศรสายกลับตู้พร้อมเลขวงจร</p>`+
+    (R.rm?row('ลบสายอัตโนมัติเดิม',R.rm+' เส้น'):'')+(R.ck?row('จัดวงจรเพิ่ม/ใหม่ตามตำแหน่ง',R.ck+' วงจร'):'')+row('จำนวนวงจรที่เดินสาย',R.cks.size+' วงจร')+row('สายระหว่างอุปกรณ์',R.run+' เส้น')+row('สายสวิตช์ (Switch leg)',R.sw+' เส้น')+row('สายกลับตู้ (Home run)',R.hr+' วงจร')+row('ความยาวสายรวม (รวมสายกลับตู้)',f2(R.len)+' ม.')+
+    (R.warn.length?`<p class="hint">⚠ ${R.warn.map(esc).join('<br>⚠ ')}</p>`:'')+(R.run+R.sw+R.hr===0?'<p class="hint">ยังไม่มีอุปกรณ์ไฟฟ้าที่ต้องเดินสาย — กด "วางไฟฟ้าอัตโนมัติ" ก่อน หรือวางโคมไฟ/เต้ารับเอง</p>':'')+
+    `<p class="hint">สายที่วาดเองไม่ถูกแตะ และนับว่าต่อแล้ว ย้ายอุปกรณ์แล้วสายตามไปเอง กดเดินสายซ้ำได้ทุกเมื่อ (สายอัตโนมัติเดิมจะถูกแทนที่)</p><div class="acts" style="justify-content:flex-end"><button class="btn pri" id="ewX">ปิด</button></div>`;
+  $('#ewX').onclick=()=>dl.close();dl.showModal?dl.showModal():dl.setAttribute('open','');return R}
+// home-run stubs move with their device
+{const _sc=syncConn;syncConn=function(){_sc();S.els.forEach(e=>{if(e.type!=='wire'||!e.hr||e.cb||!e.ca||!e.pts||e.pts.length!==2)return;const a=byId(e.ca.id);if(!a||!a.p)return;const t=e.to&&byId(e.to);
+  const u=nrm(sub(e.pts[1],e.pts[0])),L=+e.hl||.8,q={x:r3(a.p.x+u.x*L),y:r3(a.p.y+u.y*L)};if(isFinite(q.x)&&dist(q,e.pts[1])>1e-3)e.pts[1]=q})}}
+// re-placing devices drops the auto wires that pointed at removed ones
+{const _ae2=autoElec;autoElec=function(lid){_ae2(lid);const ids=new Set(S.els.map(e=>e.id)),bad=e=>e.type==='wire'&&e.autoW&&((e.ca&&!ids.has(e.ca.id))||(e.cb&&!ids.has(e.cb.id)));if(S.els.some(bad))mutate(()=>{S.els=S.els.filter(e=>!bad(e))})}}
+// ---- 2D: home-run arrow and circuit number, placed clear of room names and other labels
+function wireArrow(e){const P=e.pts,n=P.length;if(n<2)return;const a=P[n-2],b=P[n-1],c=add(lerp(a,b,.5),mul(perp(nrm(sub(b,a))),dist(a,b)*0.18)),B=ws(b),Cc=ws(c);let ux=B.x-Cc.x,uy=B.y-Cc.y;const L=Math.hypot(ux,uy)||1;ux/=L;uy/=L;
+  g.save();g.setLineDash([]);g.fillStyle=g.strokeStyle;g.beginPath();g.moveTo(B.x,B.y);g.lineTo(B.x-ux*8-uy*3.4,B.y-uy*8+ux*3.4);g.lineTo(B.x-ux*8+uy*3.4,B.y-uy*8-ux*3.4);g.closePath();g.fill();g.restore()}
+let WIRELBL=[];
+{const _d4=draw2;draw2=function(){WIRELBL=[];return _d4()}}
+function queueWireLabel(e,c){WIRELBL.push({e,t:e.ckt,c})}
+function drawWireLabels(){if(!WIRELBL.length)return;g.save();g.font=FONT('700',9);WIRELBL.forEach(L=>{const P=L.e.pts,n=P.length,A=ws(P[n-2]),B=ws(P[n-1]);let ux=B.x-A.x,uy=B.y-A.y;const l=Math.hypot(ux,uy)||1;ux/=l;uy/=l;const tw=g.measureText(L.t).width+6,ext=Math.abs(ux)*tw/2+Math.abs(uy)*6+5;
+    const M={x:(A.x+B.x)/2,y:(A.y+B.y)/2},cand=[[B.x+ux*ext,B.y+uy*ext],[M.x-uy*12,M.y+ux*12],[M.x+uy*12,M.y-ux*12],[B.x-uy*12,B.y+ux*12],[B.x+uy*12,B.y-ux*12],[B.x+ux*(ext+10),B.y+uy*(ext+10)]];
+    const box=([cx,cy])=>({x0:sw(cx-tw/2,cy).x,x1:sw(cx+tw/2,cy).x,y0:sw(cx,cy+6).y,y1:sw(cx,cy-6).y});let pick=cand.find(q=>!PLACED.some(b=>boxOv(box(q),b)>0))||cand[0];PLACED.push(box(pick));
+    g.textAlign='center';g.textBaseline='middle';g.lineJoin='round';g.strokeStyle=C['cv-bg'];g.lineWidth=3;g.strokeText(L.t,pick[0],pick[1]);g.fillStyle=L.c;g.fillText(L.t,pick[0],pick[1])});g.restore()}
+// ---- legend rows for wiring
+{const _lr3=legendRows;legendRows=function(ref){const r=_lr3(ref);if(ref==='elec'&&S.els.some(e=>e.type==='wire')){r.push({line:{c:'#333',dash:[]},n:'สายไฟฟ้า THW ร้อยท่อ PVC เดินในฝ้า'});
+  if(S.els.some(e=>e.type==='wire'&&e.hr))r.push({p:[['l',-.1,0,.1,0],['l',.1,0,.05,.03],['l',.1,0,.05,-.03]],n:'สายกลับตู้ควบคุม (Home run) พร้อมเลขวงจร เช่น C1'})}return r}}
+// ---- panel
+{const _mp=mepPanelHTML;mepPanelHTML=function(){const h=_mp(),W=S.els.filter(e=>e.type==='wire'&&e.level===cur),aw=W.filter(e=>e.autoW).length;
+  return h+`<h3 style="margin-top:14px">เดินสายไฟอัตโนมัติ</h3><div class="ro"><span>สายไฟชั้นนี้ (อัตโนมัติ / วาดเอง)</span><b>${aw} / ${W.length-aw} เส้น</b></div>
+  <div class="row" style="flex-wrap:wrap;gap:6px;margin-top:6px"><button class="btn pri" onclick="autoWire('cur')">เดินสายไฟอัตโนมัติ (ชั้นนี้)</button><button class="btn" onclick="autoWire('all')">ทุกชั้น</button><button class="btn" onclick="autoWire('all',true)">จัดวงจรใหม่ตามตำแหน่ง + เดินสายใหม่</button></div>
+  <p class="hint">วงจรแสงสว่าง ≤ 12 จุด • เต้ารับ ≤ 8 จุด • เต้ารับครัว/กันน้ำแยกวงจร (≤ 6) • แอร์ น้ำอุ่น EV วงจรเฉพาะ • โคมในวงจรเดียวกันต่อกันด้วยสายสั้นที่สุด ครบในห้องก่อนข้ามห้อง • สวิตช์ต่อเข้าดวงโคมในห้องตัวเอง • ลูกศรสายกลับตู้ (Home run) พร้อมเลขวงจร ชั้นบนชี้ไปทางตู้ DB • สายที่วาดเองไม่ถูกแตะ</p>`}}
+{const _hh7=helpHTML;helpHTML=function(){return _hh7()+`<details><summary>ใหม่ใน v10.0: เดินสายไฟอัตโนมัติ</summary><ul>
+  <li>โหมดไฟฟ้า (ไม่ได้เลือกอะไร) → <b>เดินสายไฟอัตโนมัติ (ชั้นนี้ / ทุกชั้น)</b> อุปกรณ์ที่ยังไม่มีวงจรจะถูกจัดวงจรตามตำแหน่งให้ก่อน แล้วเดินสายทุกวงจร</li>
+  <li>ในแต่ละวงจรต่อดวงโคม/เต้ารับด้วยสายรวมสั้นที่สุด ต่อครบในห้องก่อนข้ามไปห้องถัดไป สวิตช์ต่อเข้าดวงโคมที่ใกล้ที่สุดในห้องเดียวกัน</li>
+  <li>ทุกวงจรมีลูกศรสายกลับตู้ (Home run) พร้อมเลขวงจร ถ้าอยู่ใกล้ตู้ DB จะต่อเข้าตู้โดยตรง ความยาวสายกลับตู้และสายขึ้นชั้นนับรวมใน BOQ</li>
+  <li><b>จัดวงจรใหม่ตามตำแหน่ง + เดินสายใหม่</b> ล้างเลขวงจรเดิมแล้วจัดใหม่: แสงสว่าง ≤ 12 จุด เต้ารับ ≤ 8 จุด เต้ารับครัวแยกวงจร แอร์/น้ำอุ่น/EV วงจรเฉพาะ</li>
+  <li>ผลลัพธ์แจ้งเตือนห้องที่มีดวงโคมแต่ไม่มีสวิตช์ สวิตช์ที่ไม่มีโคมให้ควบคุม ชั้นที่ไม่มีตู้ DB และวงจรที่โหลดเกิน</li></ul></details>`}}
 
 // ================= Boot
 {let th=null;try{th=localStorage.getItem('yothacad-theme')}catch(_){}document.documentElement.dataset.theme=th||'cad'}
