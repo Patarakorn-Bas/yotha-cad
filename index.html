@@ -978,7 +978,7 @@ function draw2(){WOFF.clear();applyFont();g.setTransform(DPR,0,0,DPR,0,0);g.fill
   if(mouse&&!isSelecting()){const s=ws(mouse);g.strokeStyle=C['sel'];g.lineWidth=1.5;
     if(snapK){g.beginPath();if(snapK==='mid'){g.moveTo(s.x,s.y-7);g.lineTo(s.x+7,s.y+5);g.lineTo(s.x-7,s.y+5);g.closePath()}
       else if(snapK==='int'){g.moveTo(s.x-6,s.y-6);g.lineTo(s.x+6,s.y+6);g.moveTo(s.x+6,s.y-6);g.lineTo(s.x-6,s.y+6)}
-      else if(snapK==='cen'){g.arc(s.x,s.y,6,0,Math.PI*2)}else g.rect(s.x-6,s.y-6,12,12);g.stroke()}
+      else if(snapK==='cen'){g.arc(s.x,s.y,6,0,Math.PI*2)}else if(snapK==='port'){g.moveTo(s.x,s.y-8);g.lineTo(s.x+8,s.y);g.lineTo(s.x,s.y+8);g.lineTo(s.x-8,s.y);g.closePath()}else g.rect(s.x-6,s.y-6,12,12);g.stroke()}
     g.strokeStyle=C['muted'];g.lineWidth=0.8;g.beginPath();g.moveTo(s.x-14,s.y);g.lineTo(s.x+14,s.y);g.moveTo(s.x,s.y-14);g.lineTo(s.x,s.y+14);g.stroke()}
   $('#empty').style.display=S.els.length?'none':'flex';
   $('#actbar').classList.toggle('show',T.name!=='select')}
@@ -2443,7 +2443,7 @@ $('#rbIn').onchange=async()=>{const f=$('#rbIn').files[0];if(!f)return;try{const
       v.src=d.app||d.source||'Civil Toolkit';S.rebar[k]={...(S.rebar[k]||{}),...v};n++})});toast('นำเข้าผลออกแบบ '+n+' รายการ'+(nsz?' • ปรับขนาดชิ้นส่วน '+nsz+' กลุ่ม':'')+' • แปลนและตารางโครงสร้างอัปเดตแล้ว');}catch(e){toast('ไฟล์นี้ไม่ใช่ผลออกแบบเหล็กเสริม')}$('#rbIn').value=''};
 
 // ================= App shell: version, sync, manual, install, service worker
-const APP_VER='v9.1';$('#verL').textContent=APP_VER;
+const APP_VER='v9.2';$('#verL').textContent=APP_VER;
 const isEmbedded=/claude\.ai|claudeusercontent|anthropic/.test(location.host)||location.protocol==='blob:';
 const LSK={sync:'yothacad-sync',saved:'yothacad-savedAt',last:'yothacad-lastSync',dev:'yothacad-device'};
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -2701,7 +2701,7 @@ function opLibHTML(kind){const d=D[kind];return`<h3>${kind==='door'?'ประ�
   `</div><h3 style="margin-top:14px">ค่าตั้งต้นของแบบที่เลือก</h3>`+FIELDS[kind].filter(f=>!['pos','st'].includes(f[1])).map(f=>fieldHTML(f,d[f[1]]??'','def')).join('')}
 // ----- discipline
 let DISC='all';const CAT={porch:'arch',steps:'arch',rail:'arch',flr:'arch',clg:'arch',rmem:'struct',elec:'mep',wire:'mep',pipe:'mep',plumb:'mep',wall:'arch',door:'arch',window:'arch',room:'arch',furn:'arch',roof:'arch',column:'struct',beam:'struct',footing:'struct',slab:'struct',stair:'struct'};
-function discLocked(e){if((e.type==='room'||e.type==='clg')&&isMEP())return false;if(e.type==='clg'&&!isMEP()&&!PRINT)return true;if(e.type==='flr'&&isMEP())return true;return !PRINT&&DISC!=='all'&&!!CAT[e.type]&&CAT[e.type]!==DISC}
+function discLocked(e){if(isMEP()&&CAT[e.type]==='mep')return !PRINT&&(DISC==='elec'?(e.type==='plumb'||e.type==='pipe'):DISC==='plumb'?(e.type==='elec'||e.type==='wire'):false);if((e.type==='room'||e.type==='clg')&&isMEP())return false;if(e.type==='clg'&&!isMEP()&&!PRINT)return true;if(e.type==='flr'&&isMEP())return true;return !PRINT&&DISC!=='all'&&!!CAT[e.type]&&CAT[e.type]!==DISC}
 function setDisc(d){DISC=d;document.querySelectorAll('#discSeg button').forEach(b=>b.classList.toggle('on',b.dataset.d===d));const hide=d==='arch'?['โครงสร้าง','งานระบบ']:d==='struct'?['สถาปัตย์','ตกแต่ง','งานระบบ']:isMEP()?['โครงสร้าง','สถาปัตย์','ตกแต่ง']:[],hideT=d==='elec'?['plumb','pipe']:d==='plumb'?['elec','wire']:[];
   document.querySelectorAll('#tools [data-grp]').forEach(el=>{el.style.display=(hide.includes(el.dataset.grp)&&el.dataset.tool!=='grid')||hideT.includes(el.dataset.tool)?'none':''});showRTab({arch:'สถาปัตย์',struct:'โครงสร้าง',elec:'งานระบบ',plumb:'งานระบบ'}[d]||RTAB);
   const tl=TOOLS.find(t=>t[0]===T.name);if(tl&&((hide.includes(tl[4])&&tl[0]!=='grid')||hideT.includes(tl[0])))setTool('select');[...sel].forEach(id=>{const e=byId(id);if(e&&discLocked(e))sel.delete(id)});
@@ -4182,7 +4182,7 @@ function mep3D(e,el,zb,dh){const k=e.kind,T=e.type;let K;
   if(T==='plumb'){
     if(k==='tank'){K=mepKit(e,el);const body=mm(0xcdbb9c,{roughness:.6});K.box(1.2,1.2,0.1,MK3.conc(),0,0,0);K.lathe([[0,0],[.5,0],[.53,.03],[.55,.1],[.55,1.08],[.5,1.22],[.36,1.31],[.24,1.34],[0,1.34]],body,0,0,.1);
       [.3,.52,.74,.96].forEach(z=>K.ring(.553,.012,mm(0xbca986,{roughness:.6}),0,0,.1+z));K.cyl(.2,.07,mm(0xa89676,{roughness:.6}),0,0,1.43);K.cyl(.05,.03,mm(0x8f7f62),0,0,1.5);
-      K.pipe([[.5,0,.22],[.75,0,.22],[.75,0,.06],[.95,0,.06]],.022,MK3.pvc());valveAt(K,.66,0,.22,'ball');K.pipe([[0,.45,1.28],[0,.75,1.28],[0,.75,.1]],.016,MK3.pvc());K.pipe([[-.5,0,1.0],[-.7,0,1.0],[-.7,0,.12]],.022,MK3.pvc());K.done();return true}
+      K.pipe([[.5,0,.22],[.75,0,.22],[.75,0,.06]],.022,MK3.pvc());valveAt(K,.66,0,.22,'ball');K.pipe([[0,.45,1.28],[0,.75,1.28],[0,.75,.1]],.016,MK3.pvc());K.pipe([[-.5,0,1.0],[-.7,0,1.0],[-.7,0,.12]],.022,MK3.pvc());K.done();return true}
     if(k==='pump'){K=mepKit(e,el);const blue=mm(0x1f56b0,{roughness:.35,metalness:.15});K.box(.46,.3,.04,MK3.dark(),0,0,0);K.box(.14,.2,.06,MK3.dark(),-.05,0,.04);
       K.cylX(.085,.2,blue,-.05,0,.19);for(let i=0;i<7;i++)K.ring(.086,.004,mm(0x174386),-.13+i*.025,0,.19).rotation.set(0,Math.PI/2,0);K.cylX(.07,.05,MK3.dark(),-.17,0,.19);
       K.cylX(.08,.09,mm(0xd8dadc,{metalness:.3,roughness:.35}),.1,0,.19);K.sph(.11,blue,-.02,0,.4,1);K.cyl(.025,.06,MK3.steel(),.04,0,.25);K.box(.07,.05,.06,MK3.white(),.1,.08,.3);K.cyl(.025,.03,MK3.chrome(),-.02,.08,.48);
@@ -4394,7 +4394,7 @@ function pumpCf3(e,el){const K=kitX(mepKit(e,el)),bl=mm(0x2d5f8a,{roughness:.35,
   K.cylX(.09,.26,bl,-.1,0,.24,32);finRingsX(K,.093,-.21,.01,.24,bl2,10);K.cylX(.08,.04,dk,-.25,0,.24);K.rb(.08,.08,.06,bl,-.1,0,.33,.01,.004);
   K.cylX(.055,.07,bl,.065,0,.24);K.cylX(.14,.08,bl2,.14,0,.24,40);K.cylX(.1,.012,mm(0xc9ccce,{metalness:.4}),.186,0,.24,32);K.box(.08,.14,.1,bl2,.14,0,.085);
   K.cyl(.04,.14,bl2,.14,-.07,.33);K.cyl(.065,.02,bl2,.14,-.07,.47,24);K.cylX(.04,.09,bl2,.22,0,.24);K.cylX(.065,.02,bl2,.27,0,.24,24);
-  K.pipe([[.28,0,.24],[.42,0,.24],[.42,0,.0]],.034,pv);K.pipe([[.14,-.07,.49],[.14,-.07,.95]],.03,pv);valveAt(K,.14,-.07,.7,'gate');
+  K.pipe([[.28,0,.24],[.42,0,.24],[.42,0,.06]],.034,pv);K.pipe([[.14,-.07,.49],[.14,-.07,.95]],.03,pv);valveAt(K,.14,-.07,.7,'gate');
   K.done();return true}
 function pumpSub3(e,el){const K=kitX(mepKit(e,el)),bk=mm(0x2a2c2f,{roughness:.45}),ss=mm(0xc9ced2,{metalness:.45,roughness:.25});
   K.cyl(.1,.03,bk,0,0,0,32);for(let i=0;i<8;i++){const a=i*Math.PI/4;K.box(.02,.01,.025,MK3.black(),Math.cos(a)*.1,Math.sin(a)*.1,.003)}
@@ -4403,7 +4403,7 @@ function pumpSub3(e,el){const K=kitX(mepKit(e,el)),bk=mm(0x2a2c2f,{roughness:.45
 function tankPE3(e,el,R,Ht,col){const K=kitX(mepKit(e,el)),body=mm(col,{roughness:.6}),rib=mm(new THREE.Color(col).multiplyScalar(.9).getHex(),{roughness:.6}),pv=MK3.pvc();
   K.box(2*R+.2,2*R+.2,.1,MK3.conc(),0,0,0);const h=Ht-.16;K.lathe([[0,0],[R-.05,0],[R-.02,.03],[R,.1],[R,h*.8],[R*.9,h*.9],[R*.65,h*.97],[R*.42,h],[0,h]],body,0,0,.1,48);
   for(let i=1;i<=4;i++)K.ring(R+.003,.012,rib,0,0,.1+h*.8*i/5);K.cyl(R*.36,.07,rib,0,0,.1+h);K.cyl(.05,.03,mm(0x8f7f62),0,0,.17+h);
-  K.pipe([[R-.02,0,.22],[R+.25,0,.22],[R+.25,0,.06],[R+.45,0,.06]],.022,pv);valveAt(K,R+.14,0,.22,'ball');K.pipe([[0,R*.6,h],[0,R+.25,h],[0,R+.25,.1]],.016,pv);K.pipe([[-R+.02,0,h*.75],[-R-.2,0,h*.75],[-R-.2,0,.12]],.022,pv);K.done();return true}
+  K.pipe([[R-.02,0,.22],[R+.25,0,.22],[R+.25,0,.06]],.022,pv);valveAt(K,R+.14,0,.22,'ball');K.pipe([[0,R*.6,h],[0,R+.25,h],[0,R+.25,.1]],.016,pv);K.pipe([[-R+.02,0,h*.75],[-R-.2,0,h*.75],[-R-.2,0,.12]],.022,pv);K.done();return true}
 function tankSS3(e,el){const K=kitX(mepKit(e,el)),ss=mm(0xe4e8eb,{metalness:.3,roughness:.28}),R=.55,pv=MK3.pvc();
   K.box(1.35,1.35,.1,MK3.conc(),0,0,0);for(let i=0;i<4;i++){const a=i*Math.PI/2+Math.PI/4;K.box(.05,.05,.32,MK3.steel(),Math.cos(a)*R*.8,Math.sin(a)*R*.8,.1)}K.ring(R*.82,.02,MK3.steel(),0,0,.4);
   K.lathe([[0,0],[R,0],[R+.01,.03],[R+.01,1.12],[R*.75,1.24],[R*.3,1.3],[0,1.3]],ss,0,0,.42,48);for(let z=.15;z<1.1;z+=.16)K.ring(R+.012,.008,ss,0,0,.42+z);K.cyl(.18,.06,ss,0,0,1.7);
@@ -4608,6 +4608,122 @@ function drawSecMark(e,ov){const F=secFrame(e),ink=ov?C['sel']:C['ink'],bg=C['cv
   <li><b>3D:</b> ปุ่ม "ดวงไฟ" อัตโนมัติ = ซ่อนดวงไฟและอุปกรณ์ติดฝ้าเมื่อซ่อนหลังคาหรือฝ้า / แสดง / ซ่อน</li>
   <li><b>ปั๊มน้ำ</b> แบบที่นิยมในไทย: ถังกลม, ถังกลมมีฝาครอบ, แรงดันคงที่ถังเหลี่ยม, อินเวอร์เตอร์, หอยโข่ง, ปั๊มจุ่ม/ไดโว่ พร้อมถังเก็บน้ำ 500/1,000/2,000 ลิตร ถังสแตนเลส เครื่องกรอง RO และน้ำร้อนโซลาร์</li>
   <li>เพิ่มตัวเลือก: ไฟฟ้า (โคมระย้า พาแนล LED ไฟเส้น Step light ฟลัดไลท์ Bollard โซลาร์เซลล์ เครื่องปั่นไฟ ATS แอร์ฝังฝ้า ฯลฯ) เฟอร์นิเจอร์ ต้นไม้ รถ ประตูหน้าต่าง วัสดุปูพื้น ฝ้า ผนัง และหลังคา พร้อมราคาใน BOQ</li></ul>`)}}
+// ================= v9.2: connection ports, connect tool, pipe/wire endpoints that follow equipment
+Object.assign(PSYS,{ref:{n:'ท่อน้ำยาแอร์ (ทองแดงหุ้มฉนวน)',code:'RF',c:'#b87333',dash:[6,2],z:2.4,dia:'5/8″'}});
+if(!PSYSOPT.some(x=>x[0]==='ref'))PSYSOPT.push(['ref',PSYS.ref.n]);
+const DRAINS=['ws','sl','rw','cd','vt'];
+const PRT=(k,n,sys,x,y,z,dir,dia)=>({k,n,sys:sys.split(','),x,y,z,dir,dia});
+const tankP=R=>[PRT('out','น้ำออก','cw',R+.25,0,.06,'out','1″'),PRT('in','น้ำเข้า (ลูกลอย)','cw',0,R+.25,.1,'in','3/4″'),PRT('ovf','น้ำล้น / ระบายตะกอน','ws,rw',-R-.2,0,.12,'out','1″')];
+const PORTDEF={tank:tankP(.5),tank500:tankP(.42),tank2k:tankP(.72),tankSS:[PRT('out','น้ำออก','cw',.75,0,.06,'out','1″'),PRT('in','น้ำเข้า (ลูกลอย)','cw',0,.75,.1,'in','3/4″')],
+  pump:[PRT('in','ท่อดูด (น้ำเข้า)','cw,irr',.3,0,.05,'in','1″'),PRT('out','ท่อจ่าย (น้ำออก)','cw,irr',.06,0,.92,'out','1″')],pumpCv:[PRT('in','ท่อดูด (น้ำเข้า)','cw,irr',.3,0,.05,'in','1″'),PRT('out','ท่อจ่าย (น้ำออก)','cw,irr',.05,0,.92,'out','1″')],
+  pumpSq:[PRT('in','ท่อดูด (น้ำเข้า)','cw,irr',-.08,.33,.04,'in','1″'),PRT('out','ท่อจ่าย (น้ำออก)','cw,irr',.08,.33,.95,'out','1″')],pumpInv:[PRT('in','ท่อดูด (น้ำเข้า)','cw,irr',-.08,.36,.04,'in','1″'),PRT('out','ท่อจ่าย (น้ำออก)','cw,irr',.08,.36,.95,'out','1″')],
+  pumpCf:[PRT('in','ท่อดูด (น้ำเข้า)','cw,irr,fp',.42,0,.06,'in','1½″'),PRT('out','ท่อจ่าย (น้ำออก)','cw,irr,fp',.14,-.07,.95,'out','1¼″')],pumpSub:[PRT('out','ท่อจ่าย','ws,rw,cw,irr',0,.24,1.1,'out','1½″')],
+  ptank:[PRT('io','ต่อเข้าระบบ','cw',0,0,.66,'io','1″')],hwt:[PRT('in','น้ำเย็นเข้า','cw',-.08,0,1.7,'in','1/2″'),PRT('out','น้ำร้อนออก','hw',.08,0,1.7,'out','1/2″')],
+  hp:[PRT('in','น้ำเย็นเข้า','cw',.2,.3,.2,'in','3/4″'),PRT('out','น้ำร้อนออก','hw',.3,.3,.2,'out','3/4″')],solarWH:[PRT('in','น้ำเย็นเข้า','cw',-.45,1.1,.2,'in','3/4″'),PRT('out','น้ำร้อนออก','hw',.45,1.1,.2,'out','3/4″')],
+  lpg:[PRT('out','แก๊สออก','gas',.3,0,.7,'out','1/2″')],filt:[PRT('in','น้ำเข้า','cw',-.2,0,.72,'in','3/4″'),PRT('out','น้ำออก','cw',.2,0,.72,'out','3/4″')],ro:[PRT('in','น้ำเข้า','cw',-.22,0,.2,'in','1/2″'),PRT('out','น้ำ RO ออก','cw',.22,0,.2,'out','1/4″')],
+  wm:[PRT('in','น้ำประปาเข้า','cw,irr,fp',-.3,0,.12,'in','3/4″'),PRT('out','น้ำออก','cw,irr,fp',.3,0,.12,'out','3/4″')],hb:[PRT('in','น้ำเข้า','cw,irr',0,.05,.55,'in','1/2″')],fvalve:[PRT('io','ต่อลูกลอย','cw',0,0,.05,'io','1/2″')],
+  fd:[PRT('out','ระบายลง','ws,sl,cd',0,0,0,'out','2″')],co:[PRT('io','ต่อท่อ','ws,sl',0,0,0,'io','4″')],fdl:[PRT('out','ระบายลง','ws,rw',0,0,0,'out','3″')],rain:[PRT('out','ปลายท่อน้ำฝน','rw',0,-.18,0,'out','3″')],vtr:[PRT('io','ต่อท่ออากาศ','vt',0,0,0,'io','2″')],
+  ic:[PRT('in','ท่อเข้าบ่อ','ws,sl,rw,cd',-.3,0,-.3,'in','4″'),PRT('out','ท่อออกบ่อ','ws,sl,rw',.3,0,-.35,'out','4″')],grease:[PRT('in','น้ำทิ้งครัวเข้า','ws',-.3,0,-.3,'in','2″'),PRT('out','ท่อออก','ws',.3,0,-.35,'out','2″')],
+  septic:[PRT('in','ท่อโสโครกเข้า','sl,ws',-.33,0,-.3,'in','4″'),PRT('out','ท่อน้ำทิ้งออก','ws',.33,0,-.35,'out','4″'),PRT('vent','ท่ออากาศ','vt',.23,0,.6,'io','2″')],
+  sump:[PRT('in','ท่อเข้า','rw,ws',-.4,0,-.3,'in','4″')],soak:[PRT('in','ท่อเข้า','ws,rw',-.45,0,-.3,'in','4″')],utank:[PRT('io','ท่อเข้า-ออก','cw',.21,.21,.56,'io','1″')]};
+['gv','cv','prv'].forEach(k=>PORTDEF[k]=[PRT('a','ด้าน A','cw,hw,irr,fp',-.2,0,.3,'in','3/4″'),PRT('b','ด้าน B','cw,hw,irr,fp',.2,0,.3,'out','3/4″')]);
+PORTDEF.gasv=[PRT('a','ด้าน A','gas',-.2,0,.95,'in','1/2″'),PRT('b','ด้าน B','gas',.2,0,.95,'out','1/2″')];
+const EPORT={cdu:[PRT('ref','ท่อน้ำยาแอร์','ref',.31,.32,1.2,'io','5/8″')],cass:[PRT('ref','ท่อน้ำยาแอร์','ref',.3,.3,-.15,'io','5/8″'),PRT('cd','ท่อน้ำทิ้งแอร์','cd',-.3,.3,-.15,'out','3/4″')]};
+function furnPorts(e){const L=LIB[e.kind];if(!L)return[];const n=L.n||'',W=+e.w||L.w,Dd=+e.d||L.d,H=+e.h||L.h,bk=Dd/2-.05;
+  if(e.kind==='ac'||/แอร์/.test(n))return[PRT('ref','ท่อน้ำยาแอร์','ref',W/2-.1,Dd/2-.03,H-.2,'io','5/8″'),PRT('cd','ท่อน้ำทิ้งแอร์','cd',-W/2+.1,Dd/2-.03,H-.28,'out','3/4″')];
+  if(/ชักโครก|โถส้วม/.test(n))return[PRT('cw','น้ำดีเข้า (สต๊อปวาล์ว)','cw',-.15,bk,.2,'in','1/2″'),PRT('sl','ท่อโสโครก','sl',0,Dd/2-.3,0,'out','4″')];
+  if(/โถปัสสาวะ/.test(n))return[PRT('cw','น้ำดีเข้า','cw',0,bk,1.1,'in','1/2″'),PRT('ws','ท่อน้ำทิ้ง','ws',0,bk,.45,'out','2″')];
+  if(/อ่างอาบ|จากุซซี่/.test(n))return[PRT('cw','น้ำเย็น','cw',W/2-.1,-.08,.55,'in','1/2″'),PRT('hw','น้ำร้อน','hw',W/2-.1,.08,.55,'in','1/2″'),PRT('ws','ท่อน้ำทิ้ง','ws',W/2-.15,0,0,'out','2″')];
+  if(/ฝักบัว|อาบน้ำ|ถาดอาบ|Walk/.test(n))return[PRT('cw','น้ำเย็น','cw',-.08,bk,1.0,'in','1/2″'),PRT('hw','น้ำร้อน','hw',.08,bk,1.0,'in','1/2″'),PRT('ws','ระบายน้ำพื้น','ws',0,0,0,'out','2″')];
+  if(/เครื่องทำน้ำอุ่น/.test(n))return[PRT('cw','น้ำเย็นเข้า','cw',0,bk,1.2,'in','1/2″')];
+  if(/อ่างล้างหน้า|อ่างทรง|อ่างวาง|อ่างคู่|ตู้อ่าง/.test(n)||/^vanity|basin|vessel/.test(e.kind))return[PRT('cw','น้ำเย็น','cw',-.08,bk,.55,'in','1/2″'),PRT('hw','น้ำร้อน','hw',.08,bk,.55,'in','1/2″'),PRT('ws','ท่อน้ำทิ้ง','ws',0,bk,.45,'out','1½″')];
+  if(/ซิงค์|อ่างซัก/.test(n))return[PRT('cw','น้ำเย็น','cw',-.1,bk,.55,'in','1/2″'),PRT('hw','น้ำร้อน','hw',.1,bk,.55,'in','1/2″'),PRT('ws','ท่อน้ำทิ้ง','ws',0,bk,.45,'out','2″')];
+  if(/ล้างจาน/.test(n))return[PRT('cw','น้ำดีเข้า','cw',-.1,bk,.4,'in','1/2″'),PRT('ws','ท่อน้ำทิ้ง','ws',.1,bk,.4,'out','1½″')];
+  if(/ซักผ้า/.test(n))return[PRT('cw','น้ำดีเข้า','cw',-.1,bk,.9,'in','1/2″'),PRT('ws','ท่อน้ำทิ้ง','ws',.1,bk,.5,'out','2″')];
+  if(/เตา|hob/.test(n+e.kind))return[PRT('gas','แก๊สเข้า','gas',.2,bk,.6,'in','1/2″')];
+  if(/บาร์บีคิว/.test(n))return[PRT('gas','แก๊สเข้า','gas',0,bk,.5,'in','1/2″')];
+  if(/สระว่าย/.test(n))return[PRT('in','น้ำเติมสระ','cw,irr',-W/2,0,-.2,'in','1½″'),PRT('out','ระบายน้ำสระ','ws,rw',W/2,0,-.5,'out','3″')];
+  return[]}
+function portsOf(e){if(!e)return[];if(e.type==='plumb')return PORTDEF[e.kind]||[];if(e.type==='furn')return furnPorts(e);if(e.type==='elec')return EPORT[e.kind]||[];return[]}
+function portW(e,pt){const a=rad(e.rot||0),c=Math.cos(a),s=Math.sin(a);return{x:e.p.x+pt.x*c-pt.y*s,y:e.p.y+pt.x*s+pt.y*c}}
+function devR(e){if(e.type==='furn')return Math.hypot(+e.w||1,+e.d||1)/2;const L=(e.type==='elec'?ELIB:PLIB)[e.kind];let r=.2;(L&&L.p||[]).forEach(q=>{if(q[0]==='c')r=Math.max(r,Math.hypot(q[1],q[2])+q[3]);else if(q[0]!=='t')r=Math.max(r,Math.hypot(q[1],q[2]),Math.hypot(q[3],q[4]))});return r}
+function sysOK(pt,sys){return pt.sys.includes(sys||'cw')}
+// nearest compatible port for a pipe end (within the device footprint)
+function portNear(lid,p,sys,exId){let best=null,bd=1e9;S.els.forEach(t=>{if(t.level!==lid||!t.p||t.id===exId||!['plumb','furn','elec'].includes(t.type))return;const dc=dist(p,t.p);if(dc>devR(t)+.35)return;
+  portsOf(t).forEach(pt=>{if(!sysOK(pt,sys))return;const w=portW(t,pt),d=dist(p,w)+dc*.25;if(d<bd){bd=d;best={dev:t,pt,w}}})});return best}
+function portRef(r){if(!r)return null;const t=byId(r.id);if(!t)return null;const pt=portsOf(t).find(q=>q.k===r.k);return pt?{dev:t,pt,w:portW(t,pt)}:null}
+// ---- 3D: pipes attach exactly to equipment / fixture ports
+pipe3D=function(e,el){const Y_=PSYS[e.sys]||PSYS.cw,r=Math.max(0.006,inchMM(e.dia||Y_.dia)/2000),zz=el+(isFinite(parseFloat(e.z))?parseFloat(e.z):Y_.z),
+  mt=e.pm&&PIPEMAT[e.pm]!=null?mm(PIPEMAT[e.pm],e.pm==='gi'?{metalness:.6,roughness:.35}:{roughness:.45}):e.sys==='ref'?mm(0x222324,{roughness:.85}):(MAT['p_'+(e.sys||'cw')]||MAT.f_white);
+  const P=e.pts.map(q=>({x:q.x,y:q.y,z:zz}));if(e.fit==='0'){for(let i=0;i<P.length-1;i++)addBeam3([P[i].x,P[i].y,0],[P[i+1].x,P[i+1].y,0],{b:r*2,h:r*2},sel.has(e.id)?MAT.sel:mt,zz,e.id);return}
+  const ends=['endA','endB'],o={cpl:e.pm==='gi'?6:4,hang:zz-el>1.6?el+(+lvl(e.level).height||3):0};
+  [0,P.length-1].forEach((ix,k)=>{const p=e.pts[ix],add_=v=>{if(k===0)P.unshift(v);else P.push(v)};
+    const rf=k?e.cb:e.ca,lk=rf&&rf.tee?null:portRef(rf);
+    if(!lk){let host=null;S.els.forEach(q=>{if(host||q===e||q.type!=='pipe'||q.level!==e.level||(q.sys||'cw')!==(e.sys||'cw'))return;for(let i=0;i<q.pts.length-1;i++){const sd=segDist(p,q.pts[i],q.pts[i+1]);if(sd.d<.06&&sd.t>.02&&sd.t<.98){host=sub(q.pts[i+1],q.pts[i]);break}}});
+      if(host){o[ends[k]]={tee:host};return}}
+    const pn=lk||portNear(e.level,p,e.sys);
+    if(pn){const q=pn.w,zt=el+pn.pt.z;if(dist(q,p)>.02)add_({x:q.x,y:q.y,z:zz});if(Math.abs(zt-zz)>.03)add_({x:q.x,y:q.y,z:zt});o[ends[k]]=pn.dev.type==='furn'&&pn.pt.dir==='in'&&!DRAINS.includes(e.sys||'')?'valve':'open';return}
+    const f=fixNear(e.level,p,['plumb','furn']);if(f){const rel=fixZ(e.sys,f),zt=el+rel;if(Math.abs(zt-zz)>.05)add_({x:p.x,y:p.y,z:zt});o[ends[k]]='open';return}o[ends[k]]='cap'});
+  run3D(e.id,P,r,mt,o)};
+// ---- model stubs end vertically so runs meet them with a clean elbow
+// (tank & tankPE outlet stubs trimmed in the patch below)
+// ---- endpoints follow connected equipment when it moves or rotates
+function routeL(a,b,A,B){const dx=Math.abs(a.x-b.x),dy=Math.abs(a.y-b.y);if(dx<.02||dy<.02)return[cp(a),cp(b)];const c1={x:b.x,y:a.y},c2={x:a.x,y:b.y},sc=c=>Math.min(A?dist(c,A.p):9,B?dist(c,B.p):9);return[cp(a),sc(c1)>=sc(c2)?c1:c2,cp(b)]}
+function syncConn(){S.els.forEach(e=>{if((e.type!=='pipe'&&e.type!=='wire')||!(e.ca||e.cb)||!e.pts||e.pts.length<2)return;
+  const tgt=r=>{if(!r)return null;const t=byId(r.id);if(!t||!t.p)return null;if(e.type==='wire')return cp(t.p);const pt=portsOf(t).find(q=>q.k===r.k);return pt?portW(t,pt):null};
+  const A=e.ca&&e.ca.tee?null:tgt(e.ca),B=tgt(e.cb),n=e.pts.length;if(!A&&!B)return;const mv=(i,q,j)=>{const o=e.pts[i];if(dist(o,q)<1e-4)return false;if(j!=null&&j>=0&&j<n&&n>2){const nb=e.pts[j];if(Math.abs(nb.y-o.y)<1e-3)nb.y=q.y;else if(Math.abs(nb.x-o.x)<1e-3)nb.x=q.x}e.pts[i]={x:r3(q.x),y:r3(q.y)};return true};
+  if(e.auto&&A&&B&&(dist(A,e.pts[0])>1e-4||dist(B,e.pts[n-1])>1e-4)){e.pts=routeL(A,B,byId(e.ca.id),byId(e.cb.id)).map(q=>({x:r3(q.x),y:r3(q.y)}));return}
+  if(A)mv(0,A,1);if(B)mv(n-1,B,n-2)})}
+{const _ch=changed;changed=function(...a){try{syncConn()}catch(_){}return _ch.apply(this,a)}}
+// ---- connect tool
+TOOLS.splice(TOOLS.findIndex(t=>t[0]==='pipe')+1,0,['conn','เชื่อมต่อ','cn','<circle cx="5" cy="12" r="3"/><circle cx="19" cy="12" r="3"/><path d="M8 12h3l2-3M13 15l-2-3"/>','งานระบบ']);
+TNAME.conn='เชื่อมต่อ';ALIAS.cn='conn';
+const isDev=e=>e&&e.p&&(e.type==='plumb'||e.type==='elec'||(e.type==='furn'&&furnPorts(e).length>0));
+function connLabel(e){return e.type==='furn'?(LIB[e.kind]||{}).n:((e.type==='elec'?ELIB:PLIB)[e.kind]||{}).n}
+function pickPair(A,B){const PA=portsOf(A),PB=portsOf(B);let best=null,bs=1e9;
+  PA.forEach(pa=>PB.forEach(pb=>{const cm=pa.sys.filter(s=>pb.sys.includes(s));if(!cm.length)return;const sc=dist(portW(A,pa),portW(B,pb))+(pa.dir==='in'?2.5:0)+(pb.dir==='out'?2.5:0)-(cm.includes(D.pipe&&D.pipe.sys)?.3:0);if(sc<bs){bs=sc;best={pa,pb,sys:cm.includes(D.pipe&&D.pipe.sys)?D.pipe.sys:cm[0]}}}));return best}
+function connect(A,B){if(A.type==='elec'&&B.type==='elec'&&!(EPORT[A.kind]&&EPORT[B.kind])){const ckt=A.ckt||B.ckt||(D.elec&&D.elec.ckt)||'';
+    addEl({id:nid(),type:'wire',level:A.level,ckt,ct:'pvc',pts:[cp(A.p),cp(B.p)],ca:{id:A.id},cb:{id:B.id}});toast('ต่อสายไฟ '+connLabel(A)+' → '+connLabel(B)+(ckt?' (วงจร '+ckt+')':''));return true}
+  const pr=pickPair(A,B);if(!pr){toast('สองชิ้นนี้ไม่มีจุดต่อระบบเดียวกัน (เช่น น้ำดี น้ำทิ้ง แก๊ส ท่อน้ำยาแอร์)');return false}
+  const{pa,pb,sys}=pr,a=portW(A,pa),b=portW(B,pb),drain=DRAINS.includes(sys);
+  let z=Math.abs(pa.z-pb.z)<.15?(pa.z+pb.z)/2:sys==='ref'?Math.max(pa.z,pb.z):drain?Math.min(pa.z,pb.z,PSYS[sys].z<0?PSYS[sys].z:99):(pa.dir==='out'?pa.z:pb.dir==='out'?pb.z:Math.max(pa.z,pb.z));
+  const dia=pa.dia&&pb.dia?(inchMM(pa.dia)>=inchMM(pb.dia)?pa.dia:pb.dia):(pa.dia||pb.dia||PSYS[sys].dia);
+  // branch (tee) off a run that already leaves the same port, instead of laying a second parallel pipe
+  let host=null,hp=null,hb=1e9;S.els.forEach(q=>{if(q.type!=='pipe'||q.level!==A.level||(q.sys||'cw')!==sys)return;const usesA=[q.ca,q.cb].some(r=>r&&r.id===A.id&&r.k===pa.k);if(!usesA&&!(q.branchOf&&[q.ca,q.cb].some(r=>r&&r.id===A.id)))return;
+    for(let i=0;i<q.pts.length-1;i++){const s0=q.pts[i],s1=q.pts[i+1],L=dist(s0,s1);if(L<.3)continue;const t=Math.max(.15/L,Math.min(1-.15/L,segDist(b,s0,s1).t)),pt=lerp(s0,s1,t),sc=Math.abs(pt.x-b.x)+Math.abs(pt.y-b.y);if(sc<hb){hb=sc;host=q;hp={pt,hz:Math.abs(s0.y-s1.y)<1e-3}}}});
+  if(host&&hb<dist(a,b)+.01){const t0=hp.pt,c=hp.hz?{x:t0.x,y:b.y}:{x:b.x,y:t0.y},pts=(Math.abs(t0.x-b.x)<.02||Math.abs(t0.y-b.y)<.02)?[t0,b]:[t0,c,b];
+    addEl({id:nid(),type:'pipe',level:A.level,sys,dia:pb.dia||dia,z:host.z,pts:pts.map(q=>({x:r3(q.x),y:r3(q.y)})),cb:{id:B.id,k:pb.k},ca:{id:A.id,k:pa.k,tee:1},branchOf:host.id});
+    toast('แยกสามทางจากท่อเดิม → '+connLabel(B)+' ('+pb.n+') '+(pb.dia||dia));return true}
+  addEl({id:nid(),type:'pipe',level:A.level,sys,dia,z:String(r3(z)),pts:routeL(a,b,A,B).map(q=>({x:r3(q.x),y:r3(q.y)})),ca:{id:A.id,k:pa.k},cb:{id:B.id,k:pb.k},auto:1});
+  toast('ต่อ'+PSYS[sys].n+' '+dia+' : '+connLabel(A)+' ('+pa.n+') → '+connLabel(B)+' ('+pb.n+')');return true}
+function connHit(p){let best=null,bd=12/view.s;S.els.forEach(e=>{if(!onLevel(e)||!(isDev(e)||e.type==='elec'))return;let d;
+  if(e.type==='furn'){const l=rotP(p,e.p,-rad(e.rot||0));d=Math.max(Math.abs(l.x-e.p.x)-(+e.w||.5)/2,Math.abs(l.y-e.p.y)-(+e.d||.5)/2)}else d=dist(p,e.p)-Math.max(.2,Math.min(devR(e),.75));
+  if(d<bd){bd=d;best=e}});return best}
+function connClick(){const h=connHit(raw||mouse);if(!h){toast('คลิกที่อุปกรณ์ สุขภัณฑ์ หรือเครื่องจักร');return}
+  if(!T.ref||!byId(T.ref)){T.ref=h.id;updatePrompt();draw2();return}if(h.id===T.ref)return;const A=byId(T.ref);
+  if(connect(A,h)){if(!(A.type==='elec'&&h.type==='elec'))T.ref=h.id}updatePrompt();draw2()}
+{const _c2=click2;click2=function(p){if(T.name==='conn')return connClick();return _c2(p)}}
+{const _up=updatePrompt;updatePrompt=function(){_up();if(T.name!=='conn')return;const A=T.ref&&byId(T.ref);$('#prompt').textContent=A?'ต้นทาง: '+connLabel(A)+' — คลิกอุปกรณ์ปลายทาง (ท่อจะต่อเข้าจุดต่อที่ตรงระบบให้อัตโนมัติ) • Esc เลือกต้นทางใหม่':'เชื่อมต่อ: คลิกอุปกรณ์ต้นทาง เช่น ถังเก็บน้ำ ปั๊ม เครื่องทำน้ำอุ่น สวิตช์ หรือตู้ไฟ'}}
+{const _st=setTool;setTool=function(n){SNAPS=null;return _st(n)}}
+// ---- snapping to ports while drawing pipes
+let PORTLAB='';
+{const _bs=buildSnaps;buildSnaps=function(){_bs();if(!['pipe','conn'].includes(T.name))return;const sys=D.pipe&&D.pipe.sys;S.els.forEach(t=>{if(!onLevel(t)||!t.p)return;portsOf(t).forEach(pt=>{SNAPS.push({p:portW(t,pt),k:'port',lab:pt.n+' · '+pt.sys.map(s=>(PSYS[s]||{}).code||s).join('/')+' '+(pt.dia||''),ok:sysOK(pt,sys)})})})}}
+{const _sa=snapAt;snapAt=function(p,base){const r=_sa(p,base);PORTLAB='';if(r.k==='port'&&SNAPS){const s=SNAPS.find(q=>q.k==='port'&&dist(q.p,r.p)<1e-6);if(s)PORTLAB=s.lab}return r}}
+function drawPorts(){if(PRINT||!g)return;const tl=['pipe','conn','wire'].includes(T.name),sd=[...sel].map(byId).filter(isDev);if(!tl&&!sd.length)return;const sys=D.pipe&&D.pipe.sys;
+  S.els.forEach(t=>{if(!onLevel(t)||!isDev(t))return;const near=sd.includes(t)||(tl&&mouse&&dist(mouse,t.p)<devR(t)+2.5)||(T.name==='conn'&&T.ref===t.id);if(!near)return;
+    portsOf(t).forEach(pt=>{const s=ws(portW(t,pt)),c=(PSYS[pt.sys[0]]||PSYS.cw).c,dim=T.name==='pipe'&&!sysOK(pt,sys);g.save();g.globalAlpha=dim?.35:1;g.beginPath();g.arc(s.x,s.y,4.2,0,7);g.fillStyle=c;g.fill();g.lineWidth=1.4;g.strokeStyle=C['cv-bg'];g.stroke();
+      if(view.s>70&&(sd.includes(t)||T.name==='conn'))txt((PSYS[pt.sys[0]]||{}).code||'',{x:s.x+9,y:s.y-7},{size:9,c,al:'left',w:'600'});g.restore()})});
+  if(T.name==='conn'&&T.ref&&mouse){const A=byId(T.ref);if(A){g.save();g.globalAlpha=.9;drawAny(A,'s');g.strokeStyle=C['sel'];g.lineWidth=1.5;g.setLineDash([6,4]);seg(A.p,mouse);g.setLineDash([]);g.restore()}}
+  if(PORTLAB&&mouse&&snapK==='port'){const s=ws(mouse);txt(PORTLAB,{x:s.x+14,y:s.y-14},{size:11.5,c:C['sel'],al:'left',w:'600'})}}
+{const _d2=draw2;draw2=function(){_d2();try{drawPorts()}catch(_){}}}
+// ---- properties: show what a pipe / wire is connected to
+{const _ff2=fieldsFor;fieldsFor=function(e){const F=_ff2(e);if((e.type==='pipe'||e.type==='wire')&&(e.ca||e.cb))return F.concat([['ปลดการเชื่อมต่ออุปกรณ์','_unlink','sel',[['','เชื่อมอยู่: '+[e.ca,e.cb].map(r=>{const t=r&&byId(r.id);return t?connLabel(t):'—'}).join(' → ')],['1','ปลดออก (ปลายท่อไม่ขยับตามอุปกรณ์)']]]]);return F}}
+{const _sf=setF;setF=function(e,k,v){if(k==='_unlink'){if(v==='1'){delete e.ca;delete e.cb;delete e.auto}return}return _sf.apply(this,arguments)}}
+{const _hh2=helpHTML;helpHTML=function(){return _hh2()+`<details><summary>ใหม่ใน v9.2: จุดต่อและเครื่องมือเชื่อมต่อ</summary><ul>
+  <li><b>เครื่องมือ "เชื่อมต่อ"</b> (แท็บงานระบบ หรือพิมพ์ <kbd>cn</kbd>) คลิกอุปกรณ์ต้นทาง แล้วคลิกปลายทาง แอปจะเลือกจุดต่อระบบเดียวกันให้เอง เดินท่อแนวฉาก ตั้งขนาดท่อและระดับให้ เช่น ถังเก็บน้ำ → ปั๊ม → เครื่องทำน้ำอุ่น → สุขภัณฑ์ ต่อเป็นทอดได้ต่อเนื่อง</li>
+  <li>รองรับทุกระบบ: น้ำดี น้ำร้อน น้ำทิ้ง โสโครก ท่ออากาศ น้ำฝน แก๊ส ท่อน้ำทิ้งแอร์ ท่อน้ำยาแอร์ (คอยล์ร้อน ↔ แอร์) ดับเพลิง รดน้ำต้นไม้ และสายไฟ (สวิตช์ → โคม ตู้ไฟ → เต้ารับ)</li>
+  <li>ทุกอุปกรณ์มี<b>จุดต่อ</b> (วงกลมสีตามระบบ) แสดงเมื่อเลือกอุปกรณ์ หรือใช้เครื่องมือท่อ ขณะวาดท่อเคอร์เซอร์จะดูดเข้าจุดต่อพร้อมบอกชื่อและขนาด</li>
+  <li>ท่อและสายไฟที่เชื่อมไว้จะ<b>ขยับตาม</b>เมื่อย้ายหรือหมุนอุปกรณ์ ใน 3D ท่อจะต่อเข้าปลายท่อของอุปกรณ์พอดี ปลดการเชื่อมได้ที่แผงคุณสมบัติของท่อ</li></ul></details>`}}
 
 // ================= Boot
 {let th=null;try{th=localStorage.getItem('yothacad-theme')}catch(_){}document.documentElement.dataset.theme=th||'cad'}
