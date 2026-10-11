@@ -876,7 +876,7 @@ function drawEl(e,mode){const ov=mode==='s',ul=mode==='u';const col=k=>ov?C['sel
     case 'flr':{if(isRCP())break;polyPath(e.pts);if(!ul&&DISC!=='struct'&&PRINT!=='plumb'&&PRINT!=='struct'&&PRINT!=='roofs')drawFinish(e);if(ov){polyPath(e.pts);g.strokeStyle=C['sel'];g.lineWidth=2.5;g.stroke()}break}
     case 'clg':{const rcp=isRCP();if(!rcp&&!ov)break;if(!ul)drawPattern(e,CEIL[e.ct||'gyp']);polyPath(e.pts);g.strokeStyle=ov?C['sel']:C['muted'];g.lineWidth=ov?2.5:0.8;g.stroke();break}
     case 'room':{const rcp=isRCP();polyPath(e.pts);if(!ov){g.fillStyle=C['cv-room'];g.fill();polyPath(e.pts)}g.strokeStyle=ov?C['sel']:C['muted'];g.lineWidth=ov?2.5:0.6;g.setLineDash(ov?[]:[2,3]);g.stroke();g.setLineDash([]);
-      const c=ws(roomLabelPt(e));txt(e.name||'',{x:c.x,y:c.y-8},{size:13,w:'600',c:ov?C['sel']:C['ink']});{const zf0=zoneAt('flr',e.level,centroid(e.pts)),lvz=elevOf(e.level)+(zf0?(+zf0.dz||0):0);if(!isRCP()&&DISC!=='struct'){const ty=c.y+37;g.beginPath();g.moveTo(c.x-34,ty-4);g.lineTo(c.x-28,ty-4);g.lineTo(c.x-31,ty+1);g.closePath();g.strokeStyle=C['muted'];g.lineWidth=0.8;g.stroke();txt('FFL '+lvTxt(lvz),{x:c.x-25,y:ty-1},{size:10,w:'500',c:C['muted'],al:'left'})}}txt(f2(polyArea(e.pts))+' ตร.ม.',{x:c.x,y:c.y+9},{size:11,w:'400',c:C['muted']});{const cc=centroid(e.pts),zc=zoneAt('clg',e.level,cc),zf=zoneAt('flr',e.level,cc);if(rcp&&zc)txt((CEIL[zc.ct||'gyp']||{}).n+(zc.ct==='none'?'':' สูง +'+f2(ceilH(zc))),{x:c.x,y:c.y+23},{size:10,w:'400',c:C['muted']});else if(!rcp&&zf&&DISC!=='struct')txt((FIN[zf.fin]||{}).n||'',{x:c.x,y:c.y+23},{size:10,w:'400',c:C['muted']})}break}
+      break}
     case 'beam':{const u=nrm(sub(e.b,e.a)),n=perp(u),h=e.w/2;g.setLineDash(ov?[]:e.at==='floor'?[2,3]:[7,4]);g.strokeStyle=col('cv-beam');g.lineWidth=ov?2.5:1.2;
       polyPath([add(e.a,mul(n,h)),add(e.b,mul(n,h)),add(e.b,mul(n,-h)),add(e.a,mul(n,-h))]);g.stroke();g.setLineDash([]);break}
     case 'column':{g.beginPath();if(e.shape==='circle'){const c=ws(e.p);g.arc(c.x,c.y,e.w/2*view.s,0,Math.PI*2)}else polyPath(rectPts(e.p,e.w,e.d,e.rot));
@@ -963,7 +963,7 @@ function draw2(){WOFF.clear();applyFont();g.setTransform(DPR,0,0,DPR,0,0);g.fill
   if(below&&!PRINT){const bl=S.els.filter(e=>e.level===below);drawWalls(bl.filter(e=>e.type==='wall'),'u');bl.filter(e=>e.type==='column').forEach(e=>drawEl(e,'u'))}
   const L=(PRINT?planList(cur,PRINT):S.els.filter(onLevel)).filter(e=>!hiddenInDisc(e)&&!(ENLV&&e.type==='callout')&&layOn(e));
   const drawT=t=>{const list=L.filter(e=>e.type===t),lk=list.filter(discLocked),un=list.filter(e=>!discLocked(e)),dr=ls=>layDraw(ls,q=>t==='wall'?drawWalls(q,'n'):t==='beam'?drawBeamsMerged(q):q.forEach(e=>drawEl(e,'n')));if(lk.length){g.globalAlpha=t==='column'?0.8:(DISC==='struct'&&t==='wall')?0.16:0.28;dr(lk);g.globalAlpha=1}dr(un)};
-  ORDER.forEach(t=>{if(t!=='roof')drawT(t)});drawT('roof');
+  ORDER.forEach(t=>{if(t!=='roof')drawT(t)});drawT('roof');try{drawRoomLabels(L)}catch(err){console.warn(err)}
   if((PRINT&&PRINT!=='roofs'&&!ENLV)||(!PRINT&&!(S.viewopt&&S.viewopt.adim===false)))drawGridDims(L);
   if(PRINT){drawTags(L);if(PRINT==='roofs')drawRoofLabels(L);return}
   if((DISC==='all'||DISC==='arch')&&!(S.viewopt&&S.viewopt.otag==='0')){const svP=PRINT;PRINT='arch';try{drawTags(L.filter(e=>(e.type==='door'||e.type==='window')&&!discLocked(e)))}finally{PRINT=svP}}
@@ -1059,12 +1059,12 @@ function hitTest(p,tolPx=7,filter){const tol=tolPx/view.s;let best=null,bd=1e9,p
 // thin drawn lines win when the cursor is right on them; labels/tags select their owner
 const THINLN=['wire','pipe','line','pline','circle','arc','dim','rail'];
 function tagHit(e,p){const r=10/view.s;
-  if((e.type==='door'||e.type==='window')&&(DISC==='all'||DISC==='arch')&&!(S.viewopt&&S.viewopt.otag==='0')){const F=openingFrame(e);if(!F)return null;const sd=e.type==='door'?(e.side==='1'?1:-1):1;return dist(p,add(F.c,mul(F.n,sd*(F.w.t/2+0.34))))-r}
+  if((e.type==='door'||e.type==='window')&&(DISC==='all'||DISC==='arch')&&!(S.viewopt&&S.viewopt.otag==='0')){const F=openingFrame(e);if(!F)return null;const sd=e.type==='door'?(e.side==='1'?1:-1):1;return dist(p,TAGPOS.get(e.id)||add(F.c,mul(F.n,sd*(F.w.t/2+0.34))))-r}
   if(e.type==='slab'&&DISC==='struct'&&e.pts)return dist(p,centroid(e.pts))-r;
   if(e.type==='beam'&&DISC==='struct'){const u=nrm(sub(e.b,e.a)),n=mul(perp(u),e.at==='floor'?-1:1);return dist(p,add(lerp(e.a,e.b,.5),mul(n,e.w/2+0.13)))-r*1.4}
   if(e.type==='column'&&DISC==='struct')return dist(p,add(e.p,{x:-e.w/2+.1,y:e.d/2+0.14}))-r;
   if(e.type==='dim'){const d_=dimGeom(e);return dist(p,add(lerp(d_.p1,d_.p2,.5),mul(d_.n,Math.sign(+e.off||1)*8/view.s)))-r}
-  if(e.type==='room'&&e.pts)return dist(p,centroid(e.pts))-r*2;
+  if(e.type==='room'&&e.pts){const lb=ROOMLBL.get(e.id);if(lb&&p.x>=lb.x0&&p.x<=lb.x1&&p.y>=lb.y0&&p.y<=lb.y1)return 0;return dist(p,centroid(e.pts))-r*2}
   return null}
 // all candidates under the cursor, best first (used for click-cycling through overlapped objects)
 function hitAll(p,tolPx,filter){const out=[],ex=new Set();for(let i=0;i<12;i++){const h=hitTest(p,tolPx,e=>!ex.has(e.id)&&(!filter||filter(e)));if(!h)break;out.push(h);ex.add(h.id)}return out}
@@ -2076,7 +2076,7 @@ function markMaps(){const M={};Object.keys(MK).forEach(t=>{[...new Set(S.els.fil
 const markOf=(M,e)=>{const r=M[e.type+'|'+MK[e.type](e)]||'';return(S.malias&&S.malias[e.type+'|'+r])||r};
 function drawTags(L){const M=markMaps();const tg=(p,t,round)=>{if(!t)return;const s=ws(p);g.save();g.font=FONT('600',8);const w=Math.max(15,g.measureText(t).width+8);g.fillStyle=C['cv-bg'];g.strokeStyle=C['ink'];g.lineWidth=0.8;g.beginPath();
     if(round==='hex'){const hw=Math.max(10,w/2+2),hh=8.5;g.moveTo(s.x-hw,s.y);g.lineTo(s.x-hw+5,s.y-hh);g.lineTo(s.x+hw-5,s.y-hh);g.lineTo(s.x+hw,s.y);g.lineTo(s.x+hw-5,s.y+hh);g.lineTo(s.x-hw+5,s.y+hh);g.closePath()}else if(round)g.arc(s.x,s.y,w/2,0,7);else g.rect(s.x-w/2,s.y-6,w,12);g.fill();g.stroke();g.fillStyle=C['ink'];g.textAlign='center';g.textBaseline='middle';g.fillText(t,s.x,s.y+0.5);g.restore()};
-  L.forEach(e=>{if(PRINT==='rcp'||PRINT==='plumb')return;if(PRINT==='arch'){if(e.type==='door'||e.type==='window'){const F=openingFrame(e);if(!F)return;const sd=e.type==='door'?(e.side==='1'?1:-1):1;tg(add(F.c,mul(F.n,sd*(F.w.t/2+0.34))),markOf(M,e),e.type==='door'?true:'hex')}}
+  L.forEach(e=>{if(PRINT==='rcp'||PRINT==='plumb')return;if(PRINT==='arch'){if(e.type==='door'||e.type==='window'){const F=openingFrame(e);if(!F)return;const sd=e.type==='door'?(e.side==='1'?1:-1):1;tg(TAGPOS.get(e.id)||add(F.c,mul(F.n,sd*(F.w.t/2+0.34))),markOf(M,e),e.type==='door'?true:'hex')}}
     else{const tx=(p,t,o)=>{if(!t)return;const s2=ws(p);txt(t,s2,{size:(o&&o.size)||8.5,w:'600',c:C['ink'],rot:(o&&o.rot)||0,al:(o&&o.al)||'center'})};
       if(e.type==='column')tx(add(e.p,{x:-e.w/2-0.02,y:e.d/2+0.14}),e.tagtxt||markOf(M,e),{al:'left'});
       if(e.type==='beam'&&PRINT!=='fdnplan'){const u=nrm(sub(e.b,e.a));let ang=-Math.atan2(u.y,u.x);if(ang>Math.PI/2)ang-=Math.PI;if(ang<-Math.PI/2)ang+=Math.PI;const n=mul(perp(u),e.at==='floor'?-1:1);tx(add(lerp(e.a,e.b,.5),mul(n,e.w/2+0.13)),e.tagtxt||markOf(M,e)+(Math.abs(+e.dz||0)>0.005?'('+(e.dz>0?'+':'')+f2(+e.dz)+')':''),{rot:ang})}
@@ -2467,7 +2467,7 @@ $('#rbIn').onchange=async()=>{const f=$('#rbIn').files[0];if(!f)return;try{const
       v.src=d.app||d.source||'Civil Toolkit';S.rebar[k]={...(S.rebar[k]||{}),...v};n++})});toast('นำเข้าผลออกแบบ '+n+' รายการ'+(nsz?' • ปรับขนาดชิ้นส่วน '+nsz+' กลุ่ม':'')+' • แปลนและตารางโครงสร้างอัปเดตแล้ว');}catch(e){toast('ไฟล์นี้ไม่ใช่ผลออกแบบเหล็กเสริม')}$('#rbIn').value=''};
 
 // ================= App shell: version, sync, manual, install, service worker
-const APP_VER='v9.6';$('#verL').textContent=APP_VER;
+const APP_VER='v9.7';$('#verL').textContent=APP_VER;
 const isEmbedded=/claude\.ai|claudeusercontent|anthropic/.test(location.host)||location.protocol==='blob:';
 const LSK={sync:'yothacad-sync',saved:'yothacad-savedAt',last:'yothacad-lastSync',dev:'yothacad-device'};
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -5073,6 +5073,65 @@ function autoPlumb(scope,reset){const R={main:0,tee:0,len:0,sys:{},warn:[],dev:[
   <li>ระบายน้ำ: ชักโครก → ถังบำบัด (ท่อ 4″) • อ่างล้างหน้า ฝักบัว เครื่องซักผ้า ฟลอร์เดรน → บ่อพัก • ซิงค์ครัว → บ่อดักไขมัน → บ่อพัก • ถังบำบัด → บ่อพัก/บ่อซึม • น้ำฝน → บ่อพัก • ท่ออากาศถังบำบัด</li>
   <li>ชั้นบน: วางท่อน้ำดีขึ้นชั้น (R) และท่อโสโครก/น้ำทิ้งลงชั้นล่าง (SK) ที่มุมห้องน้ำให้เองทั้งชั้นบนและชั้นล่าง แล้วต่อทั้งสองชั้นเข้าระบบ</li>
   <li>แก๊ส: ถังแก๊ส → เตา • แอร์: แอร์ ↔ คอยล์ร้อนที่ใกล้ที่สุด และท่อน้ำทิ้งแอร์ลงฟลอร์เดรน • สรุปผลและคำเตือน (เช่น ไม่มีบ่อพัก) หลังเดินท่อ</li></ul></details>`}}
+// ================= v9.7: professional plan annotation — room labels placed clear of furniture (fit to room, masked), smart door/window tags, section bubbles clear of grid bubbles, unique grid names
+const LBLC=new Map();let PLACED=[];const TAGPOS=new Map(),ROOMLBL=new Map();
+function aabb(P){const B=bbox(P);return{x0:B.x0,y0:B.y0,x1:B.x1,y1:B.y1}}
+function boxOv(a,b){const w=Math.min(a.x1,b.x1)-Math.max(a.x0,b.x0),h=Math.min(a.y1,b.y1)-Math.max(a.y0,b.y0);return w>0&&h>0?w*h:0}
+function annObstacles(lid){const O=[];S.els.forEach(e=>{if(e.level!==lid||hiddenInDisc(e)||!layOn(e))return;
+  if(e.type==='furn'||e.type==='column')O.push({...aabb(rectPts(e.p,+e.w||.4,+e.d||.4,e.rot)),k:e.type});
+  else if((e.type==='elec'||e.type==='plumb')&&isMEP())O.push({x0:e.p.x-.18,y0:e.p.y-.18,x1:e.p.x+.18,y1:e.p.y+.18,k:'dev'});
+  else if(e.type==='stair'){stairFoot(e).forEach(p=>O.push({...aabb(p),k:'stair'}))}
+  else if(e.type==='door'||e.type==='window'){const F=openingFrame(e);if(!F)return;const r=e.type==='door'?Math.max(.4,+e.w||.9)*.9:.18,h=(+e.w||.9)/2;O.push({...aabb([add(add(F.c,mul(F.u,-h)),mul(F.n,-r)),add(add(F.c,mul(F.u,h)),mul(F.n,r))]),k:e.type})}
+  else if(e.type==='text'&&e.p){const b=textBox(e);O.push({x0:e.p.x-b.w/2,y0:e.p.y-b.h/2,x1:e.p.x+b.w/2,y1:e.p.y+b.h/2,k:'text'})}});return O}
+function rectInPoly(R,P,m){const x0=R.x0-m,x1=R.x1+m,y0=R.y0-m,y1=R.y1+m,xm=(x0+x1)/2,ym=(y0+y1)/2;return[[x0,y0],[x1,y0],[x1,y1],[x0,y1],[xm,y0],[xm,y1],[x0,ym],[x1,ym]].every(([x,y])=>inPoly({x,y},P))}
+function roomLines(e){const rcp=isRCP(),cc=centroid(e.pts),zf=zoneAt('flr',e.level,cc),zc=zoneAt('clg',e.level,cc),lvz=elevOf(e.level)+(zf?(+zf.dz||0):0),L=[{t:e.name||'',sz:13,w:'600',c:'ink'},{t:f2(polyArea(e.pts))+' ตร.ม.',sz:11,w:'400',c:'muted'}];
+  if(rcp&&zc)L.push({t:(CEIL[zc.ct||'gyp']||{}).n+(zc.ct==='none'?'':' สูง +'+f2(ceilH(zc))),sz:10,w:'400',c:'muted',wrap:1});else if(!rcp&&zf&&DISC!=='struct'&&(FIN[zf.fin]||{}).n)L.push({t:FIN[zf.fin].n,sz:10,w:'400',c:'muted',wrap:1});
+  if(!rcp&&DISC!=='struct')L.push({t:'FFL '+lvTxt(lvz),sz:10,w:'500',c:'muted',ffl:1});return L.filter(l=>l.t)}
+function layoutLines(lines,k,wrapW){g.save();const out=[];lines.forEach(l=>{const sz=l.sz*k;g.font=FONT(l.w,sz);let parts=[l.t];
+    if(l.wrap&&wrapW&&g.measureText(l.t).width>wrapW){const ws_=l.t.split(' ');if(ws_.length>1){let a=ws_.slice(0,Math.ceil(ws_.length/2)).join(' '),b=ws_.slice(Math.ceil(ws_.length/2)).join(' ');parts=[a,b]}}
+    parts.forEach(t=>{let tw=g.measureText(t).width;if(wrapW&&tw>wrapW&&l.wrap){while(t.length>4&&g.measureText(t+'…').width>wrapW)t=t.slice(0,-1);t+='…';tw=g.measureText(t).width}out.push({...l,t,sz,tw:tw+(l.ffl?12*k:0),lh:sz*1.28})})});g.restore();
+  return{lines:out,w:Math.max(...out.map(l=>l.tw)),h:out.reduce((a,l)=>a+l.lh,0)}}
+function placeRoomLabel(e,obs){const key=e.id+'|'+modelVer+'|'+view.s.toFixed(3)+'|'+DISC+'|'+(PRINT||'')+'|'+isRCP();if(LBLC.has(key))return LBLC.get(key);
+  const lines=roomLines(e),B=bbox(e.pts),cen=centroid(e.pts),diag=Math.hypot(B.x1-B.x0,B.y1-B.y0)||1,roomW=(B.x1-B.x0)*view.s;let best=null;
+  const tryAt=(blk,k)=>{const w=blk.w/view.s,h=blk.h/view.s,stx=Math.max(.15,(B.x1-B.x0)/14),sty=Math.max(.15,(B.y1-B.y0)/14);
+    const cands=[cen];for(let x=B.x0+w/2;x<=B.x1-w/2+1e-6;x+=stx)for(let y=B.y0+h/2;y<=B.y1-h/2+1e-6;y+=sty)cands.push({x,y});
+    cands.forEach(c=>{const R={x0:c.x-w/2,x1:c.x+w/2,y0:c.y-h/2,y1:c.y+h/2};if(!rectInPoly(R,e.pts,.06))return;const A=w*h;let ov=0;obs.forEach(o=>{ov+=boxOv(R,o)*(o.k==='furn'?1:o.k==='door'?1.4:o.k==='column'?2:1.2)});PLACED.forEach(o=>ov+=boxOv(R,o)*3);
+      const sc=ov/A*10+dist(c,cen)/diag*1.2+(1-k)*1.5;if(!best||sc<best.sc)best={sc,c,blk,k,R}})};
+  if(e.lo&&(e.lo.x||e.lo.y)){const blk=layoutLines(lines,1,roomW*.9);const c=roomLabelPt(e);best={c,blk,k:1,R:{x0:c.x-blk.w/2/view.s,x1:c.x+blk.w/2/view.s,y0:c.y-blk.h/2/view.s,y1:c.y+blk.h/2/view.s}}}
+  else for(const k of [1,.9,.8,.7]){const blk=layoutLines(lines,k,Math.max(40,roomW*.88));tryAt(blk,k);if(best&&best.sc<.35)break}
+  if(!best){const blk=layoutLines(lines,.7,Math.max(40,roomW*.88));best={c:cen,blk,k:.7,R:{x0:cen.x-blk.w/2/view.s,x1:cen.x+blk.w/2/view.s,y0:cen.y-blk.h/2/view.s,y1:cen.y+blk.h/2/view.s}}}
+  if(LBLC.size>800)LBLC.clear();LBLC.set(key,best);return best}
+function drawRoomLabels(L){PLACED=[];if(isRCP()&&PRINT==='plumb')return;const rooms=L.filter(e=>e.type==='room'&&e.pts&&e.pts.length>2);if(!rooms.length)return;const obs=annObstacles(cur);
+  rooms.sort((a,b)=>polyArea(a.pts)-polyArea(b.pts)).forEach(e=>{const P=placeRoomLabel(e,obs),sel_=sel.has(e.id);PLACED.push(P.R);ROOMLBL.set(e.id,P.R);
+    withLayer('A-ROOM',()=>{const s=ws(P.c);let y=s.y-P.blk.h/2;g.save();g.lineJoin='round';
+      P.blk.lines.forEach(l=>{const cy=y+l.lh/2,col=sel_&&l.c==='ink'?C['sel']:C[l.c];g.font=FONT(l.w,l.sz);g.textAlign='center';g.textBaseline='middle';const x=l.ffl?s.x+6*P.k:s.x;
+        g.strokeStyle=C['cv-bg'];g.lineWidth=Math.max(2.4,l.sz*.28);g.strokeText(l.t,x,cy);g.fillStyle=col;g.fillText(l.t,x,cy);
+        if(l.ffl){const tx=x-g.measureText(l.t).width/2-8*P.k,ty=cy-1;g.beginPath();g.moveTo(tx-3.5*P.k,ty-3*P.k);g.lineTo(tx+3.5*P.k,ty-3*P.k);g.lineTo(tx,ty+3*P.k);g.closePath();g.lineWidth=.8;g.strokeStyle=C['muted'];g.stroke()}y+=l.lh});g.restore()})})}
+// ---- door / window tags: windows outside the building, doors on their swing side — first clear spot wins
+function tagPlace(e,F,obs){const sdDoor=e.type==='door'?(e.side==='1'?1:-1):1;let pref=sdDoor;
+  if(e.type==='window'){const t=F.w.t/2+.6,inA=S.els.some(r=>r.type==='room'&&r.level===e.level&&inPoly(add(F.c,mul(F.n,t)),r.pts));pref=inA?-1:1}
+  const r=11/view.s,offs=[F.w.t/2+r*.55+.06,F.w.t/2+r*.55+.25,F.w.t/2+r*.55+.5],sh=[0,(+e.w||.9)/2-.12,-((+e.w||.9)/2-.12)];let best=null,i=0;
+  [pref,-pref].forEach(sd=>offs.forEach(o=>sh.forEach(u=>{const p=add(add(F.c,mul(F.n,sd*o)),mul(F.u,u)),R={x0:p.x-r*1.3,x1:p.x+r*1.3,y0:p.y-r*.85,y1:p.y+r*.85};let ov=0;
+    obs.forEach(b=>{if(b.k!=='door'&&b.k!=='window')ov+=boxOv(R,b)});PLACED.forEach(b=>ov+=boxOv(R,b)*2.5);S.els.forEach(w=>{if(w.type==='wall'&&w.level===e.level&&segDist(p,wA(w),wB(w)).d<w.t/2+r*.8)ov+=r*r*4});
+    const sc=ov/(r*r)+i*.04+(sd!==pref?.35:0);i++;if(!best||sc<best.sc)best={sc,p,R}})));PLACED.push(best.R);return best.p}
+{const _dt=drawTags;drawTags=function(L){if(PRINT==='arch'){const obs=annObstacles(cur);const savedP=PLACED.slice();L.filter(e=>e.type==='door'||e.type==='window').forEach(e=>{const F=openingFrame(e);if(F)TAGPOS.set(e.id,tagPlace(e,F,obs))});PLACED=savedP}return _dt(L)}}
+// ---- duplicate grid names (e.g. a grid copied from "4" stays "4") get the next free name
+function fixGridLabels(){const gs=S.els.filter(e=>e.type==='grid'&&!e.aux);const seen={};let ch=0;gs.forEach(e=>{const vert=Math.abs(e.b.x-e.a.x)<Math.abs(e.b.y-e.a.y),k=(vert?'v|':'h|')+(e.lv||'')+'|'+e.label;if(seen[k]&&e.label){e.label=nextGridLabel(e.a,e.b);ch++}seen[(vert?'v|':'h|')+(e.lv||'')+'|'+e.label]=1});return ch}
+{const _ch2=changed;changed=function(...a){try{fixGridLabels()}catch(_){}return _ch2.apply(this,a)}}
+// ---- section / elevation bubbles step clear of grid bubbles (thin leader back to the cutting line)
+function gridBubbleScr(){const out=[];S.els.forEach(e=>{if(e.type!=='grid'||!onLevel(e))return;const u=nrm(sub(e.b,e.a)),R=e.aux?8.5:11;[[e.a,-1],[e.b,1]].filter(([,sg])=>!e.bub||e.bub==='both'||(e.bub==='a'&&sg<0)||(e.bub==='b'&&sg>0)).forEach(([p,sg])=>{const s=ws(p);out.push({x:s.x+u.x*R*sg,y:s.y-u.y*R*sg,r:R})})});return out}
+drawSecMark=function(e,ov){const F=secFrame(e),ink=ov?C['sel']:C['ink'],bg=C['cv-bg'],R=15,tag=String(e.tag||'').slice(0,3),sn=secSheetNo(e)||'—',GB=gridBubbleScr();
+  const p0=ws(e.a),pn=ws(add(e.a,F.n)),nl=Math.hypot(pn.x-p0.x,pn.y-p0.y)||1,n={x:(pn.x-p0.x)/nl,y:(pn.y-p0.y)/nl};
+  const clear=(base,dir)=>{for(let ex=0;ex<=90;ex+=6){const c={x:base.x+dir.x*(R+ex),y:base.y+dir.y*(R+ex)};if(GB.every(b=>Math.hypot(b.x-c.x,b.y-c.y)>b.r+R+4))return{c,ex}}return{c:{x:base.x+dir.x*R,y:base.y+dir.y*R},ex:0}};
+  const bubble=c=>{g.setLineDash([]);g.fillStyle=ink;g.beginPath();g.moveTo(c.x+n.x*(R+10),c.y+n.y*(R+10));g.lineTo(c.x-n.y*R,c.y+n.x*R);g.lineTo(c.x+n.y*R,c.y-n.x*R);g.closePath();g.fill();
+    g.beginPath();g.arc(c.x,c.y,R,0,7);g.fillStyle=bg;g.fill();g.lineWidth=ov?2:1.3;g.strokeStyle=ink;g.stroke();g.lineWidth=.9;g.beginPath();g.moveTo(c.x-R,c.y);g.lineTo(c.x+R,c.y);g.stroke();
+    txt(tag,{x:c.x,y:c.y-R*.45},{size:11.5,w:'700',c:ink});txt(sn,{x:c.x,y:c.y+R*.47},{size:sn.length>4?6.8:sn.length>3?7.6:8.6,w:'500',c:ink})};
+  g.save();g.strokeStyle=ink;
+  if(e.kind==='elev'){const m=ws(lerp(e.a,e.b,.5)),q=clear(m,{x:-n.x,y:-n.y});const c=q.ex?q.c:m;if(q.ex){g.lineWidth=.8;g.beginPath();g.moveTo(m.x,m.y);g.lineTo(c.x,c.y);g.stroke()}bubble(c);txt(e.name||'',{x:c.x-n.x*(R+14),y:c.y-n.y*(R+14)+(Math.abs(n.y)>.5?0:R+12)},{size:10,c:C['muted']});g.restore();return}
+  const A=ws(e.a),B=ws(e.b),L=Math.hypot(B.x-A.x,B.y-A.y)||1,u={x:(B.x-A.x)/L,y:(B.y-A.y)/L},tl=Math.min(24,L*.22);
+  g.lineWidth=ov?1.6:.9;g.setLineDash([16,4,3,4]);g.beginPath();g.moveTo(A.x+u.x*tl,A.y+u.y*tl);g.lineTo(B.x-u.x*tl,B.y-u.y*tl);g.stroke();g.setLineDash([]);
+  g.lineWidth=ov?4:3.2;g.lineCap='butt';g.beginPath();g.moveTo(A.x,A.y);g.lineTo(A.x+u.x*tl,A.y+u.y*tl);g.moveTo(B.x,B.y);g.lineTo(B.x-u.x*tl,B.y-u.y*tl);g.stroke();
+  [[A,{x:-u.x,y:-u.y}],[B,u]].forEach(([P,d])=>{const q=clear(P,d);if(q.ex){g.lineWidth=.9;g.beginPath();g.moveTo(P.x,P.y);g.lineTo(q.c.x-d.x*R,q.c.y-d.y*R);g.stroke()}bubble(q.c)});g.restore()};
 
 // ================= Boot
 {let th=null;try{th=localStorage.getItem('yothacad-theme')}catch(_){}document.documentElement.dataset.theme=th||'cad'}
