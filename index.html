@@ -2467,7 +2467,7 @@ $('#rbIn').onchange=async()=>{const f=$('#rbIn').files[0];if(!f)return;try{const
       v.src=d.app||d.source||'Civil Toolkit';S.rebar[k]={...(S.rebar[k]||{}),...v};n++})});toast('นำเข้าผลออกแบบ '+n+' รายการ'+(nsz?' • ปรับขนาดชิ้นส่วน '+nsz+' กลุ่ม':'')+' • แปลนและตารางโครงสร้างอัปเดตแล้ว');}catch(e){toast('ไฟล์นี้ไม่ใช่ผลออกแบบเหล็กเสริม')}$('#rbIn').value=''};
 
 // ================= App shell: version, sync, manual, install, service worker
-const APP_VER='v9.7';$('#verL').textContent=APP_VER;
+const APP_VER='v9.8';$('#verL').textContent=APP_VER;
 const isEmbedded=/claude\.ai|claudeusercontent|anthropic/.test(location.host)||location.protocol==='blob:';
 const LSK={sync:'yothacad-sync',saved:'yothacad-savedAt',last:'yothacad-lastSync',dev:'yothacad-device'};
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -4697,7 +4697,7 @@ pipe3D=function(e,el){const Y_=PSYS[e.sys]||PSYS.cw,r=Math.max(0.006,inchMM(e.di
 function routeL(a,b,A,B){const dx=Math.abs(a.x-b.x),dy=Math.abs(a.y-b.y);if(dx<.02||dy<.02)return[cp(a),cp(b)];const c1={x:b.x,y:a.y},c2={x:a.x,y:b.y},sc=c=>Math.min(A?dist(c,A.p):9,B?dist(c,B.p):9);return[cp(a),sc(c1)>=sc(c2)?c1:c2,cp(b)]}
 function syncConn(){S.els.forEach(e=>{if((e.type!=='pipe'&&e.type!=='wire')||!(e.ca||e.cb)||!e.pts||e.pts.length<2)return;
   const tgt=r=>{if(!r)return null;const t=byId(r.id);if(!t||!t.p)return null;if(e.type==='wire')return cp(t.p);const pt=portsOf(t).find(q=>q.k===r.k);return pt?portW(t,pt):null};
-  const A=e.ca&&e.ca.tee?null:tgt(e.ca),B=tgt(e.cb),n=e.pts.length;if(!A&&!B)return;const mv=(i,q,j)=>{const o=e.pts[i];if(dist(o,q)<1e-4)return false;if(j!=null&&j>=0&&j<n&&n>2){const nb=e.pts[j];if(Math.abs(nb.y-o.y)<1e-3)nb.y=q.y;else if(Math.abs(nb.x-o.x)<1e-3)nb.x=q.x}e.pts[i]={x:r3(q.x),y:r3(q.y)};return true};
+  const A=e.ca&&e.ca.tee?null:tgt(e.ca),B=e.cb&&e.cb.tee?null:tgt(e.cb),n=e.pts.length;if(!A&&!B)return;const mv=(i,q,j)=>{const o=e.pts[i];if(dist(o,q)<1e-4)return false;if(j!=null&&j>=0&&j<n&&n>2){const nb=e.pts[j];if(Math.abs(nb.y-o.y)<1e-3)nb.y=q.y;else if(Math.abs(nb.x-o.x)<1e-3)nb.x=q.x}e.pts[i]={x:r3(q.x),y:r3(q.y)};return true};
   if(e.auto&&A&&B&&(dist(A,e.pts[0])>1e-4||dist(B,e.pts[n-1])>1e-4)){e.pts=routeL(A,B,byId(e.ca.id),byId(e.cb.id)).map(q=>({x:r3(q.x),y:r3(q.y)}));return}
   if(A)mv(0,A,1);if(B)mv(n-1,B,n-2)})}
 {const _ch=changed;changed=function(...a){try{syncConn()}catch(_){}return _ch.apply(this,a)}}
@@ -4873,18 +4873,20 @@ function routeGrid(a,b,A,B,noObs){const lid=(A||B||{}).level??cur,own=[A&&A.id,B
   const s=stub(A,a)||a,t=stub(B,b)||b;
   const obs=S.els.filter(o=>o.level===lid&&o.p&&(o.type==='plumb'||o.type==='column'||(o.type==='furn'&&furnPorts(o).length))).map(o=>{const mine=own.includes(o.id);
     let r=o.type==='column'?Math.hypot(+o.w||.2,+o.d||.2)/2+.03:mine?(o.type==='furn'?0:devR(o)*1.02):devR(o)*.85;if(mine)r=Math.min(r,dist(o.p,s)-.04,dist(o.p,t)-.04);return{c:o.p,r}}).filter(o=>!noObs&&o.r>0&&dist(o.c,s)>o.r&&dist(o.c,t)>o.r);
-  const pad=1.2,x0=Math.min(s.x,t.x)-pad,x1=Math.max(s.x,t.x)+pad,y0=Math.min(s.y,t.y)-pad,y1=Math.max(s.y,t.y)+pad,XS=new Set([r3(s.x),r3(t.x)]),YS=new Set([r3(s.y),r3(t.y)]);
+  const pad=1.2,RB0=S.els.filter(q=>q.type==='room'&&q.level===lid&&q.pts).flatMap(q=>q.pts),RB=RB0.length?bbox(RB0):null,ins=p=>RB&&p.x>RB.x0&&p.x<RB.x1&&p.y>RB.y0&&p.y<RB.y1,ext=RB&&!ins(s)&&!ins(t)?1.6:0,x0=Math.min(s.x,t.x,ext?RB.x0-ext:1e9)-pad,x1=Math.max(s.x,t.x,ext?RB.x1+ext:-1e9)+pad,y0=Math.min(s.y,t.y,ext?RB.y0-ext:1e9)-pad,y1=Math.max(s.y,t.y,ext?RB.y1+ext:-1e9)+pad,XS=new Set([r3(s.x),r3(t.x)]),YS=new Set([r3(s.y),r3(t.y)]);
   for(let x=x0;x<=x1;x+=.25)XS.add(r3(x));for(let y=y0;y<=y1;y+=.25)YS.add(r3(y));obs.forEach(o=>{[o.c.x-o.r-.1,o.c.x+o.r+.1].forEach(v=>{if(v>x0&&v<x1)XS.add(r3(v))});[o.c.y-o.r-.1,o.c.y+o.r+.1].forEach(v=>{if(v>y0&&v<y1)YS.add(r3(v))})});
   const X=[...XS].sort((p,q)=>p-q),Y=[...YS].sort((p,q)=>p-q),nx=X.length,ny=Y.length;if(nx*ny>40000)return null;
   const si=X.indexOf(r3(s.x)),sj=Y.indexOf(r3(s.y)),ti=X.indexOf(r3(t.x)),tj=Y.indexOf(r3(t.y));if(si<0||sj<0||ti<0||tj<0)return null;
   const PS=[];S.els.forEach(q=>{if(q.type==='pipe'&&q.level===lid)for(let m=0;m<q.pts.length-1;m++)PS.push([q.pts[m],q.pts[m+1]])});
   const ovl=(i,j,k,l)=>{let c=0;const p0={x:X[i],y:Y[j]},p1={x:X[k],y:Y[l]},hz=Math.abs(p0.y-p1.y)<1e-6;PS.forEach(([u,v])=>{if(hz&&Math.abs(u.y-v.y)<1e-3&&Math.abs(u.y-p0.y)<.07){const o=Math.min(Math.max(p0.x,p1.x),Math.max(u.x,v.x))-Math.max(Math.min(p0.x,p1.x),Math.min(u.x,v.x));if(o>0)c+=o*3}else if(!hz&&Math.abs(u.x-v.x)<1e-3&&Math.abs(u.x-p0.x)<.07){const o=Math.min(Math.max(p0.y,p1.y),Math.max(u.y,v.y))-Math.max(Math.min(p0.y,p1.y),Math.min(u.y,v.y));if(o>0)c+=o*3}});return c};
+  const RMS=S.els.filter(q=>q.type==='room'&&q.level===lid&&q.pts),inR=p=>RMS.some(r=>inPoly(p,r.pts)),outdoor=RMS.length&&!inR(a)&&!inR(b);
+  const indoor=(i,j,k,l)=>outdoor&&inR({x:(X[i]+X[k])/2,y:(Y[j]+Y[l])/2})?(Math.abs(X[k]-X[i])+Math.abs(Y[l]-Y[j]))*4:0;
   const free=(i,j,k,l)=>{const p={x:X[i],y:Y[j]},q={x:X[k],y:Y[l]};return obs.every(o=>segDist(o.c,p,q).d>=o.r)};
   const N=nx*ny*4,dist_=new Float64Array(N).fill(1e18),prev=new Int32Array(N).fill(-1),H=[];const push=(d,id)=>{H.push([d,id]);let i=H.length-1;while(i>0){const p=(i-1)>>1;if(H[p][0]<=H[i][0])break;[H[p],H[i]]=[H[i],H[p]];i=p}};
   const pop=()=>{const top=H[0],last=H.pop();if(H.length){H[0]=last;let i=0;for(;;){const l=2*i+1,r=l+1;let m=i;if(l<H.length&&H[l][0]<H[m][0])m=l;if(r<H.length&&H[r][0]<H[m][0])m=r;if(m===i)break;[H[m],H[i]]=[H[i],H[m]];i=m}}return top};
   const DIR=[[1,0],[-1,0],[0,1],[0,-1]],id=(i,j,d)=>((i*ny+j)<<2)|d;for(let d=0;d<4;d++){dist_[id(si,sj,d)]=0;push(0,id(si,sj,d))}let end=-1;
   while(H.length){const[dc,u]=pop();if(dc>dist_[u])continue;const d=u&3,ij=u>>2,i=Math.floor(ij/ny),j=ij%ny;if(i===ti&&j===tj){end=u;break}
-    DIR.forEach(([di,dj],nd)=>{const k=i+di,l=j+dj;if(k<0||l<0||k>=nx||l>=ny)return;if(!free(i,j,k,l))return;const c=dc+Math.abs(X[k]-X[i])+Math.abs(Y[l]-Y[j])+(nd!==d&&!(i===si&&j===sj)?.45:0)+ovl(i,j,k,l),v=id(k,l,nd);if(c<dist_[v]-1e-9){dist_[v]=c;prev[v]=u;push(c,v)}})}
+    DIR.forEach(([di,dj],nd)=>{const k=i+di,l=j+dj;if(k<0||l<0||k>=nx||l>=ny)return;if(!free(i,j,k,l))return;const c=dc+Math.abs(X[k]-X[i])+Math.abs(Y[l]-Y[j])+(nd!==d&&!(i===si&&j===sj)?.45:0)+ovl(i,j,k,l)+indoor(i,j,k,l),v=id(k,l,nd);if(c<dist_[v]-1e-9){dist_[v]=c;prev[v]=u;push(c,v)}})}
   if(end<0)return null;const path=[];for(let u=end;u>=0;u=prev[u]){const ij=u>>2;path.push({x:X[Math.floor(ij/ny)],y:Y[ij%ny]})}path.reverse();
   return simplifyP([a,...path,b])}
 {const _rs=routeSmart;routeSmart=function(a,b,A,B){try{const r=routeGrid(a,b,A,B)||routeGrid(a,b,A,B,true);if(r&&r.length>=2)return r}catch(err){console.warn(err)}const r2=_rs(a,b,A,B);if(r2.every((q,i)=>!i||Math.abs(q.x-r2[i-1].x)<.02||Math.abs(q.y-r2[i-1].y)<.02))return r2;return simplifyP([a,{x:b.x,y:a.y},b])};routeL=routeSmart}
@@ -5132,6 +5134,35 @@ drawSecMark=function(e,ov){const F=secFrame(e),ink=ov?C['sel']:C['ink'],bg=C['cv
   g.lineWidth=ov?1.6:.9;g.setLineDash([16,4,3,4]);g.beginPath();g.moveTo(A.x+u.x*tl,A.y+u.y*tl);g.lineTo(B.x-u.x*tl,B.y-u.y*tl);g.stroke();g.setLineDash([]);
   g.lineWidth=ov?4:3.2;g.lineCap='butt';g.beginPath();g.moveTo(A.x,A.y);g.lineTo(A.x+u.x*tl,A.y+u.y*tl);g.moveTo(B.x,B.y);g.lineTo(B.x-u.x*tl,B.y-u.y*tl);g.stroke();
   [[A,{x:-u.x,y:-u.y}],[B,u]].forEach(([P,d])=>{const q=clear(P,d);if(q.ex){g.lineWidth=.9;g.beginPath();g.moveTo(P.x,P.y);g.lineTo(q.c.x-d.x*R,q.c.y-d.y*R);g.stroke()}bubble(q.c)});g.restore()};
+// ================= v9.8: auto plumbing also creates the missing main equipment (meter, tank, pump, septic tank, inspection chamber, grease trap) outside the building
+function apOccupied(p,lid){return S.els.some(e=>e.level===lid&&((e.pts&&['slab','room','porch','flr','steps'].includes(e.type)&&inPoly(p,e.pts))||(e.type==='wall'&&segDist(p,wA(e),wB(e)).d<e.t/2+.35)||((e.type==='plumb'||e.type==='furn')&&e.p&&dist(e.p,p)<.9)))}
+function apOutside(lid,B,side,along,gap){// point outside the building footprint on the given side, pushed out until clear
+  const n={L:{x:-1,y:0},R:{x:1,y:0},D:{x:0,y:-1},U:{x:0,y:1}}[side];let base=side==='L'?{x:B.x0,y:along}:side==='R'?{x:B.x1,y:along}:side==='D'?{x:along,y:B.y0}:{x:along,y:B.y1};
+  for(let d=gap;d<gap+6;d+=.25){const p={x:r3(base.x+n.x*d),y:r3(base.y+n.y*d)};if(!apOccupied(p,lid))return p}return{x:r3(base.x+n.x*gap),y:r3(base.y+n.y*gap)}}
+const angTo=(a,b)=>((Math.round(deg(Math.atan2(b.y-a.y,b.x-a.x))/15)*15)%360+360)%360;
+function apEquip(R){const lid=S.levels[0].id,all=S.els,walls=all.filter(e=>e.type==='wall'&&e.level===lid);if(!walls.length)return;
+  const B=bbox(walls.flatMap(w=>[w.a,w.b])),fx=all.filter(e=>e.type==='furn'&&furnPorts(e).length),has=(...k)=>all.some(e=>e.type==='plumb'&&k.includes(e.kind));
+  const cwF=fx.filter(e=>furnPorts(e).some(p=>p.k==='cw')),wcF=fx.filter(e=>furnPorts(e).some(p=>p.k==='sl')),wsF=fx.filter(e=>furnPorts(e).some(p=>p.k==='ws')),kit=fx.filter(e=>/ซิงค์|ล้างจาน/.test((LIB[e.kind]||{}).n||''));
+  if(!cwF.length&&!wcF.length&&!wsF.length)return;
+  const sideOf=pts=>{const c=centroid(pts.map(e=>e.p).concat(pts.length===1?[pts[0].p]:[]));const d={L:c.x-B.x0,R:B.x1-c.x,D:c.y-B.y0,U:B.y1-c.y};return Object.entries(d).sort((a,b)=>a[1]-b[1])[0][0]};
+  const alongOf=(side,pts)=>{const c=centroid(pts.map(e=>e.p).concat([pts[0].p]));return side==='L'||side==='R'?c.y:c.x};
+  // front = side with the porch / main door (else the lowest side of the plan)
+  const por=all.filter(e=>(e.type==='porch'||e.type==='steps')&&e.level===lid);let front='D';if(por.length){const c=centroid(por.flatMap(p=>p.pts||[p.a,p.b].filter(Boolean)));const d={L:Math.abs(c.x-B.x0),R:Math.abs(B.x1-c.x),D:Math.abs(c.y-B.y0),U:Math.abs(B.y1-c.y)};front=Object.entries(d).sort((a,b)=>a[1]-b[1])[0][0]}
+  const add=(kind,p,rot)=>{const e={id:nid(),type:'plumb',kind,level:lid,p,rot:rot||0};S.els.push(e);R.dev.push(PLIB[kind].n);return e};
+  let sept=all.find(e=>e.type==='plumb'&&e.kind==='septic');
+  if(wcF.length&&!sept){const sd=sideOf(wcF),p=apOutside(lid,B,sd,alongOf(sd,wcF),1.3);sept=add('septic',p,0);const w=wcF.sort((a,b)=>dist(a.p,p)-dist(b.p,p))[0];sept.rot=(angTo(p,w.p)+180)%360}
+  let grease=all.find(e=>e.type==='plumb'&&e.kind==='grease');
+  if(kit.length&&!grease){const sd=sideOf(kit),p=apOutside(lid,B,sd,alongOf(sd,kit),.9);grease=add('grease',p,0);grease.rot=(angTo(p,kit[0].p)+180)%360}
+  if((wsF.length||sept)&&!has('ic','soak','sump')){const ref=sept||grease||wsF[0];const sd=front,al=sd==='L'||sd==='R'?ref.p.y:ref.p.x,p=apOutside(lid,B,sd,al,1.5);const ic=add('ic',p,0);ic.rot=(angTo(p,ref.p)+180)%360}
+  if(cwF.length&&!has('pump','pumpCv','pumpSq','pumpInv','pumpCf','tank','tank500','tank2k','tankSS','utank','wm','riser')){
+    const sd=sideOf(cwF);let al=alongOf(sd,cwF);if(sept&&(sd===sideOf(wcF))){const sl=sd==='L'||sd==='R'?sept.p.y:sept.p.x,span=sd==='L'||sd==='R'?[B.y0,B.y1]:[B.x0,B.x1];al=sl+2.6<=span[1]+1?sl+2.6:sl-2.6}
+    const tp=apOutside(lid,B,sd,al,1.6),n={L:{x:-1,y:0},R:{x:1,y:0},D:{x:0,y:-1},U:{x:0,y:1}}[sd],t={x:-n.y,y:n.x},pp={x:r3(tp.x+t.x*1.4-n.x*.4),y:r3(tp.y+t.y*1.4-n.y*.4)};
+    const tank=add('tank',tp,0),pump=add('pump',apOccupied(pp,lid)?{x:r3(tp.x-t.x*1.4-n.x*.4),y:r3(tp.y-t.y*1.4-n.y*.4)}:pp,0);tank.rot=angTo(tank.p,pump.p);pump.rot=angTo(pump.p,tank.p);
+    const fs=front,wal=fs==='L'||fs==='R'?tp.y:tp.x;const wm=add('wm',apOutside(lid,B,fs,wal,2.2),0);wm.rot=angTo(wm.p,tank.p)}}
+{const _ap=autoPlumb;autoPlumb=function(scope,reset){const on=!(S.viewopt&&S.viewopt.apEquip===false),R0={dev:[]};if(on)mutate(()=>{apEquip(R0)});
+  _ap(scope,reset);const dl=$('#apDlg');if(on&&dl&&R0.dev.length){const h3=dl.querySelector('h3');if(h3)h3.insertAdjacentHTML('afterend',`<div class="ro"><span>เพิ่มอุปกรณ์หลักที่ยังไม่มี</span><b>${esc(R0.dev.join(', '))}</b></div>`)}}}
+{const _pp3=plumbPanelHTML;plumbPanelHTML=function(){const h=_pp3(),on=!(S.viewopt&&S.viewopt.apEquip===false);const box=`<label style="display:flex;gap:6px;align-items:center;font-size:13px;margin:6px 0"><input type="checkbox" ${on?'checked':''} onchange="S.viewopt=S.viewopt||{};S.viewopt.apEquip=this.checked"> เพิ่มมิเตอร์ ถังเก็บน้ำ ปั๊ม ถังบำบัด บ่อพัก บ่อดักไขมัน ที่ยังไม่มีให้อัตโนมัติ (วางนอกอาคาร ย้ายได้ภายหลัง)</label>`;
+  const k='<p class="hint">น้ำดี: มิเตอร์';const i=h.indexOf(k);return i>=0?h.slice(0,i)+box+h.slice(i):h}}
 
 // ================= Boot
 {let th=null;try{th=localStorage.getItem('yothacad-theme')}catch(_){}document.documentElement.dataset.theme=th||'cad'}
