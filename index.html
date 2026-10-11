@@ -786,7 +786,7 @@ function roofArea(e){if(!e._part&&!isRectPts(e.pts)){const A=polyArea(roofOuter(
 function roofEdges(e){const out=[],seen=new Set();roofFaces(e).forEach(f=>{for(let i=0;i<f.length;i++){const a=f[i],b=f[(i+1)%f.length];if(a[2]<0.01&&b[2]<0.01)continue;if(Math.hypot(a[0]-b[0],a[1]-b[1])<0.02)continue;
   const k=[a,b].map(p=>p[0].toFixed(2)+','+p[1].toFixed(2)).sort().join('|');if(seen.has(k))continue;seen.add(k);out.push([{x:a[0],y:a[1]},{x:b[0],y:b[1]}])}});return out}
 function roofBase(e){const v=parseFloat(e.base),L=lvl(e.level);return elevOf(e.level)+(isFinite(v)&&String(e.base).trim()!==''?v:(L.kind==='roof'?0:+L.height))+(+e.dz||0)}
-function pileOffsets(e){const n=+e.piles,ex=Math.max(0.25,e.pd/2+0.15),hx=Math.max(0,e.w/2-ex),hy=Math.max(0,e.d/2-ex);
+function pileOffsets(e){const n=+e.piles,ex=Math.max(0.25,e.pd/2+0.15),ps=+e.ps>0?+e.ps:0,hx=ps?Math.min(ps/2,Math.max(0,e.w/2-e.pd/2)):Math.max(0,e.w/2-ex),hy=ps&&n>=3?Math.min(ps/2,Math.max(0,e.d/2-e.pd/2)):Math.max(0,e.d/2-ex);
   const L={1:[[0,0]],2:[[-hx,0],[hx,0]],3:[[-hx,-hy],[hx,-hy],[0,hy]],4:[[-hx,-hy],[hx,-hy],[hx,hy],[-hx,hy]],5:[[-hx,-hy],[hx,-hy],[hx,hy],[-hx,hy],[0,0]],6:[[-hx,-hy],[0,-hy],[hx,-hy],[-hx,hy],[0,hy],[hx,hy]]}[n]||[];
   return L.map(([x,y])=>rotP({x:e.p.x+x,y:e.p.y+y},e.p,rad(e.rot||0)))}
 function textBox(e){const w=Math.max(1,String(e.s).length)*e.size*0.55;return{w,h:e.size}}
@@ -1061,7 +1061,7 @@ const THINLN=['wire','pipe','line','pline','circle','arc','dim','rail'];
 function tagHit(e,p){const r=10/view.s;
   if((e.type==='door'||e.type==='window')&&(DISC==='all'||DISC==='arch')&&!(S.viewopt&&S.viewopt.otag==='0')){const F=openingFrame(e);if(!F)return null;const sd=e.type==='door'?(e.side==='1'?1:-1):1;return dist(p,add(F.c,mul(F.n,sd*(F.w.t/2+0.34))))-r}
   if(e.type==='slab'&&DISC==='struct'&&e.pts)return dist(p,centroid(e.pts))-r;
-  if(e.type==='beam'&&DISC==='struct'){const u=nrm(sub(e.b,e.a)),n=perp(u);return dist(p,add(lerp(e.a,e.b,.5),mul(n,e.w/2+0.13)))-r*1.4}
+  if(e.type==='beam'&&DISC==='struct'){const u=nrm(sub(e.b,e.a)),n=mul(perp(u),e.at==='floor'?-1:1);return dist(p,add(lerp(e.a,e.b,.5),mul(n,e.w/2+0.13)))-r*1.4}
   if(e.type==='column'&&DISC==='struct')return dist(p,add(e.p,{x:-e.w/2+.1,y:e.d/2+0.14}))-r;
   if(e.type==='dim'){const d_=dimGeom(e);return dist(p,add(lerp(d_.p1,d_.p2,.5),mul(d_.n,Math.sign(+e.off||1)*8/view.s)))-r}
   if(e.type==='room'&&e.pts)return dist(p,centroid(e.pts))-r*2;
@@ -2079,8 +2079,8 @@ function drawTags(L){const M=markMaps();const tg=(p,t,round)=>{if(!t)return;cons
   L.forEach(e=>{if(PRINT==='rcp'||PRINT==='plumb')return;if(PRINT==='arch'){if(e.type==='door'||e.type==='window'){const F=openingFrame(e);if(!F)return;const sd=e.type==='door'?(e.side==='1'?1:-1):1;tg(add(F.c,mul(F.n,sd*(F.w.t/2+0.34))),markOf(M,e),e.type==='door'?true:'hex')}}
     else{const tx=(p,t,o)=>{if(!t)return;const s2=ws(p);txt(t,s2,{size:(o&&o.size)||8.5,w:'600',c:C['ink'],rot:(o&&o.rot)||0,al:(o&&o.al)||'center'})};
       if(e.type==='column')tx(add(e.p,{x:-e.w/2-0.02,y:e.d/2+0.14}),e.tagtxt||markOf(M,e),{al:'left'});
-      if(e.type==='beam'&&PRINT!=='fdnplan'){const u=nrm(sub(e.b,e.a));let ang=-Math.atan2(u.y,u.x);if(ang>Math.PI/2)ang-=Math.PI;if(ang<-Math.PI/2)ang+=Math.PI;const n=perp(u);tx(add(lerp(e.a,e.b,.5),mul(n,e.w/2+0.13)),e.tagtxt||markOf(M,e)+(Math.abs(+e.dz||0)>0.005?'('+(e.dz>0?'+':'')+f2(+e.dz)+')':''),{rot:ang})}
-      if(e.type==='slab'){const mk=e.sk==='pc'?'PS':e.sk==='ground'?'GS':markOf(M,e);tg(centroid(e.pts),e.tagtxt||mk,true)}
+      if(e.type==='beam'&&PRINT!=='fdnplan'){const u=nrm(sub(e.b,e.a));let ang=-Math.atan2(u.y,u.x);if(ang>Math.PI/2)ang-=Math.PI;if(ang<-Math.PI/2)ang+=Math.PI;const n=mul(perp(u),e.at==='floor'?-1:1);tx(add(lerp(e.a,e.b,.5),mul(n,e.w/2+0.13)),e.tagtxt||markOf(M,e)+(Math.abs(+e.dz||0)>0.005?'('+(e.dz>0?'+':'')+f2(+e.dz)+')':''),{rot:ang})}
+      if(e.type==='slab'){const mk=(e.sk==='pc'||e.sk==='precast')?'PS':e.sk==='ground'?'GS':markOf(M,e);tg(centroid(e.pts),e.tagtxt||mk,true)}
       if(e.type==='footing'&&PRINT==='fdnplan'){const fw=e.w/2,fd=e.d/2;tx(add(e.p,{x:fw+0.05,y:-fd+0.02}),e.tagtxt||e.name||'F',{al:'left'})}}})}
 function vpExt(vp){if(vp.kind==='enl'){const c=byId(vp.ref);if(!c||c.type!=='callout')return null;const B=calloutBox(c),m=0.15;return{x0:B.x0-m,x1:B.x1+m,y0:B.y0-m,y1:B.y1+m}}
   if(vp.kind==='sec'){const sec=byId(vp.ref);if(!sec||sec.type!=='section')return null;const R=genSecCached(sec),e=R.ext;return{R,x0:e.s0-4.4,x1:e.s1+3.6,y0:(sec.kind==='elev'?GROUND:Math.min(e.z0,GROUND))-2.2,y1:e.z1+1.6}}
@@ -2467,7 +2467,7 @@ $('#rbIn').onchange=async()=>{const f=$('#rbIn').files[0];if(!f)return;try{const
       v.src=d.app||d.source||'Civil Toolkit';S.rebar[k]={...(S.rebar[k]||{}),...v};n++})});toast('นำเข้าผลออกแบบ '+n+' รายการ'+(nsz?' • ปรับขนาดชิ้นส่วน '+nsz+' กลุ่ม':'')+' • แปลนและตารางโครงสร้างอัปเดตแล้ว');}catch(e){toast('ไฟล์นี้ไม่ใช่ผลออกแบบเหล็กเสริม')}$('#rbIn').value=''};
 
 // ================= App shell: version, sync, manual, install, service worker
-const APP_VER='v9.4';$('#verL').textContent=APP_VER;
+const APP_VER='v9.5';$('#verL').textContent=APP_VER;
 const isEmbedded=/claude\.ai|claudeusercontent|anthropic/.test(location.host)||location.protocol==='blob:';
 const LSK={sync:'yothacad-sync',saved:'yothacad-savedAt',last:'yothacad-lastSync',dev:'yothacad-device'};
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -4894,6 +4894,84 @@ function routeGrid(a,b,A,B){const lid=(A||B||{}).level??cur,own=[A&&A.id,B&&B.id
   <li>คลิกบนเส้นสายไฟ ท่อ เส้นเขียนแบบ และเส้นบอกระยะได้ตรงแนวเส้นที่เห็น เส้นบางจะถูกเลือกก่อนเมื่อคลิกตรงเส้นพอดี</li>
   <li>คลิกป้ายได้: ป้ายประตู/หน้าต่าง ป้ายพื้น ป้ายคาน ป้ายเสา ตัวเลขระยะ ชื่อห้อง และข้อความของลูกศรชี้ ภายในพื้นที่แฮตช์/เมฆแก้ไขก็คลิกเลือกได้</li>
   <li>โหมดประปาเลือกสุขภัณฑ์ได้ โหมดไฟฟ้าเลือกแอร์ได้ (งานอื่นยังล็อกไว้ตามหมวดงาน)</li></ul></details>`}}
+// ================= v9.5: import "yothacad-rebar" version 2 from Civil Toolkit (per-position footings, slab parts, designed members)
+{const _ro=rebarOf;rebarOf=function(e){const r=_ro(e);return e&&e.rb&&typeof e.rb==='object'?{...r,...e.rb}:r}}
+const RBF={column:['n','d','td','ts','c'],beam:['tn','td','bn','bd','sd','ss','c'],slab:['md','ms','dd','ds','c'],footing:['d','s','c','sn','sdb','std','sts'],stair:['md','ms','dd','ds','c']};
+function rbPick(type,o){const v={};(RBF[type]||[]).forEach(f=>{if(o[f]!=null&&o[f]!=='')v[f]=typeof o[f]==='string'&&!/^[RD]B\d+$/.test(o[f])?parseFloat(o[f]):o[f]});return v}
+const near05=(a,b)=>Math.abs(a.x-b.x)<=0.05+1e-9&&Math.abs(a.y-b.y)<=0.05+1e-9;
+function importRebarV2(d){const items=Array.isArray(d.items)?d.items:[],PL=d.placements||{},src=d.app||d.source||'Civil Toolkit',li=id=>S.levels.findIndex(l=>l.id===id);
+  const R={sRest:0,fMark:0,fType:0,fSize:0,fNew:0,fMatch:0,fMiss:[],sHosts:0,sParts:0,sPre:0,sCast:0,sNew:0,sUpd:0,sPartial:0,cEl:0,cSize:0,bEl:0,bSize:0,mk:0,rebar:0,miss:[]};
+  // 1) resolve column / beam groups by the marks they had when the design was exported (before any resizing)
+  const M=markMaps(),mo=e=>markOf(M,e),hasGB=items.some(it=>/^GB/i.test(it.mark||''));
+  const grpFor=it=>{const els=S.els.filter(e=>e.type===it.type&&!(it.type==='beam'&&e.bm==='steel'));let g=els.filter(e=>mo(e)===it.mark||e.tagtxt===it.mark);
+    if(it.type==='beam'&&hasGB){if(/^GB/i.test(it.mark||'')){if(!g.length){const fl=els.filter(e=>e.at==='floor'),mks=[...new Set(fl.map(mo))].sort((a,b)=>(parseInt(a.replace(/\D/g,''))||0)-(parseInt(b.replace(/\D/g,''))||0)),mk=mks[(parseInt(String(it.mark).replace(/\D/g,''))||1)-1];g=mk?fl.filter(e=>mo(e)===mk):[]}}else g=g.filter(e=>e.at!=='floor')}
+    if(!g.length&&it.key)g=els.filter(e=>rkey(e)===it.key);return g};
+  const mem=items.filter(it=>it.type==='column'||it.type==='beam').map(it=>({it,g:grpFor(it)}));
+  // 2) footing positions (items[].positions, else placements.footings)
+  let fpos=[];items.filter(it=>it.type==='footing').forEach(it=>(it.positions||[]).forEach(p=>fpos.push({...it,...p,positions:undefined})));if(!fpos.length&&Array.isArray(PL.footings))fpos=PL.footings.map(p=>({...p}));
+  const fItemsNoPos=items.filter(it=>it.type==='footing'&&!(it.positions&&it.positions.length));
+  // 3) slab parts (items[].parts, else placements.slabs)
+  let parts=[];items.filter(it=>it.type==='slab').forEach(it=>(it.parts||[]).forEach(p=>parts.push({...p,t:+it.t||null,item:it})));if(!parts.length&&Array.isArray(PL.slabs))parts=PL.slabs.map(p=>({...p}));
+  mutate(()=>{S.rebar=S.rebar||{};
+    // ---- footings, one by one
+    fpos.forEach(fp=>{const at={x:+fp.x,y:+fp.y};let f=S.els.find(e=>e.type==='footing'&&near05(e.p,at));
+      if(!f){const c=S.els.filter(e=>e.type==='column'&&near05(e.p,at)).sort((a,b)=>li(a.level)-li(b.level))[0];if(!c){R.fMiss.push((fp.ctMark||fp.mark||'F')+' @ ('+fp.x+', '+fp.y+')');return}
+        f={id:nid(),type:'footing',level:c.level,p:cp(c.p),...clone(D.footing)};S.els.push(f);R.fNew++}else R.fMatch++;
+      const pile=String(fp.ftype||'').toLowerCase()==='pile'&&(+fp.piles||0)>0,oldPile=(+f.piles||0)>0,nm=fp.ctMark||fp.mark||f.name;
+      if(nm&&nm!==f.name){f.name=nm;R.fMark++}if(pile!==oldPile||(pile&&+f.piles!==+fp.piles))R.fType++;
+      const sz=(k,v)=>{v=+v;if(v>0&&Math.abs((+f[k]||0)-v)>0.004){f[k]=r3(v);return 1}return 0};let ch=sz('w',fp.w)+sz('d',fp.l??fp.d)+sz('t',fp.t);
+      if(pile){f.piles=String(+fp.piles);if(+fp.pileSize>0)f.pd=r3(+fp.pileSize);f.ps=+fp.pileSpacing>0?r3(+fp.pileSpacing):0;if(!(+f.pl>0))f.pl=6}else{f.piles='0';f.ps=0}
+      if(+fp.pedB>0){ch+=sz('sw',Math.max(+fp.pedB,+fp.pedH||0))}if(fp.ped)f.ped=fp.ped;if(fp.bars)f.bars=fp.bars;f.ftype=pile?'pile':'spread';if(ch)R.fSize++;
+      const rb=rbPick('footing',fp);if(Object.keys(rb).length){f.rb=rb;S.rebar[rkey(f)]={...(S.rebar[rkey(f)]||{}),...rb,src};R.rebar++}});
+    fItemsNoPos.forEach(it=>{const g=S.els.filter(e=>e.type==='footing'&&(e.name||'F')===it.mark);if(!g.length){R.miss.push(it.mark||it.key);return}g.forEach(f=>{const rb=rbPick('footing',it);f.rb=rb;if(it.ctMark&&it.ctMark!==f.name){f.name=it.ctMark;R.fMark++}S.rebar[rkey(f)]={...(S.rebar[rkey(f)]||{}),...rb,src}});R.rebar++});
+    // ---- slabs split into the designed panels
+    const hosts=new Map();parts.forEach(p=>{const x0=+p.x0,y0=+p.y0,w=+p.w,l=+p.l;if(!(w>0&&l>0))return;const c={x:x0+w/2,y:y0+l/2},L=+p.level;
+      const cand=S.els.filter(e=>e.type==='slab'&&e.pts&&inPoly(c,e.pts));const host=cand.find(e=>li(e.level)===L)||cand.find(e=>li(e.level)===L-1)||cand[0]||null;
+      const k=host?host.id:'_new'+L;if(!hosts.has(k))hosts.set(k,{host,L,list:[]});hosts.get(k).list.push({...p,x0,y0,w,l})});
+    hosts.forEach(({host,L,list})=>{const lvId=host?host.level:(S.levels[Math.max(0,Math.min(S.levels.length-1,L))]||S.levels[0]).id,base=host||{t:+(list[0].t)||0.12,dz:0};
+      const mk=p=>{const pre=String(p.slabType||'').toLowerCase()==='precast';pre?R.sPre++:R.sCast++;return{sk:pre?'precast':'cast',sdir:p.w<=p.l?'x':'y',tagtxt:p.ctMark||'',bath:/bath/i.test(p.slabType||'')?'1':undefined}};
+      const rect=p=>[{x:p.x0,y:p.y0},{x:p.x0+p.w,y:p.y0},{x:p.x0+p.w,y:p.y0+p.l},{x:p.x0,y:p.y0+p.l}].map(q=>({x:r3(q.x),y:r3(q.y)}));
+      if(host&&list.length===1){const B=bbox(host.pts),p=list[0];if(host.pts.length===4&&Math.abs(B.x0-p.x0)<.06&&Math.abs(B.y0-p.y0)<.06&&Math.abs(B.x1-p.x0-p.w)<.06&&Math.abs(B.y1-p.y0-p.l)<.06){const o=mk(p);if(host.sk!==o.sk||host.tagtxt!==o.tagtxt)R.sUpd++;Object.assign(host,o);if(!o.bath)delete host.bath;R.sParts++;return}}
+      list.forEach(p=>{S.els.push({id:nid(),type:'slab',level:lvId,t:+base.t||0.12,dz:base.dz||0,...mk(p),pts:rect(p)});R.sParts++});
+      if(host){R.sHosts++;const B=bbox(host.pts),xs=[...new Set([B.x0,B.x1,...list.flatMap(p=>[p.x0,p.x0+p.w])].map(r3))].filter(v=>v>=B.x0-1e-6&&v<=B.x1+1e-6).sort((a,b)=>a-b),ys=[...new Set([B.y0,B.y1,...list.flatMap(p=>[p.y0,p.y0+p.l])].map(r3))].filter(v=>v>=B.y0-1e-6&&v<=B.y1+1e-6).sort((a,b)=>a-b);
+        const free=(i,j)=>{const c={x:(xs[i]+xs[i+1])/2,y:(ys[j]+ys[j+1])/2};return inPoly(c,host.pts)&&!list.some(p=>c.x>p.x0&&c.x<p.x0+p.w&&c.y>p.y0&&c.y<p.y0+p.l)};
+        // leftover area of the original slab (not covered by any designed panel) is kept as rectangles with the original slab type
+        const used=new Set(),rest=[];for(let j=0;j<ys.length-1;j++)for(let i=0;i<xs.length-1;i++){if(used.has(i+','+j)||!free(i,j))continue;let i2=i;while(i2+1<xs.length-1&&free(i2+1,j)&&!used.has((i2+1)+','+j))i2++;let j2=j,ok=true;
+          while(ok&&j2+1<ys.length-1){for(let k=i;k<=i2;k++)if(!free(k,j2+1)||used.has(k+','+(j2+1))){ok=false;break}if(ok)j2++}for(let jj=j;jj<=j2;jj++)for(let k=i;k<=i2;k++)used.add(k+','+jj);rest.push({x0:xs[i],y0:ys[j],x1:xs[i2+1],y1:ys[j2+1]})}
+        rest.forEach(r=>{if((r.x1-r.x0)*(r.y1-r.y0)<0.01)return;S.els.push({id:nid(),type:'slab',level:host.level,t:host.t,dz:host.dz||0,sk:host.sk||'cast',sdir:host.sdir,tagtxt:'S?',pts:[{x:r.x0,y:r.y0},{x:r.x1,y:r.y0},{x:r.x1,y:r.y1},{x:r.x0,y:r.y1}]});R.sRest++});
+        const isRect=host.pts.length===4;if(!isRect&&rest.length===0&&list.reduce((a,p)=>a+p.w*p.l,0)<0.9*polyArea(host.pts)){R.sPartial++}else S.els=S.els.filter(e=>e!==host)}else R.sNew+=list.length});
+    // ---- designed columns & beams: real size, own rebar, Civil Toolkit mark
+    mem.forEach(({it,g})=>{if(!g.length){R.miss.push(it.mark||it.key);return}const rb=rbPick(it.type,it);
+      g.forEach(e=>{let ch=false;if(it.designed){if(+it.b>0&&Math.abs(e.w-it.b)>0.004){e.w=r3(+it.b);ch=true}if(+it.h>0&&!(e.type==='column'&&e.shape==='circle')&&Math.abs(e.d-it.h)>0.004){e.d=r3(+it.h);ch=true}}
+        if(ch)e.type==='column'?R.cSize++:R.bSize++;e.type==='column'?R.cEl++:R.bEl++;const t=it.ctMark||it.mark;if(t&&e.tagtxt!==t){e.tagtxt=t;R.mk++}if(Object.keys(rb).length)e.rb=rb});
+      if(Object.keys(rb).length){const k=rkey(g[0]);if(k){S.rebar[k]={...(S.rebar[k]||{}),...rb,src};R.rebar++}}});
+    // marks in schedules follow Civil Toolkit when one mark maps to one size group
+    {const M2=markMaps(),byRaw={};S.els.forEach(e=>{if((e.type==='column'||e.type==='beam')&&e.tagtxt){const raw=M2[e.type+'|'+MK[e.type](e)];if(!raw)return;const k=e.type+'|'+raw;(byRaw[k]=byRaw[k]||new Set()).add(e.tagtxt)}});
+      S.malias=S.malias||{};Object.entries(byRaw).forEach(([k,set])=>{if(set.size===1){const t=[...set][0];if(k.split('|')[1]!==t)S.malias[k]=t;else delete S.malias[k]}})}
+    // ---- remaining rebar items (slab / stair / anything keyed like version 1)
+    items.forEach(it=>{if(it.type==='slab'){const rb=rbPick('slab',it);if(!Object.keys(rb).length)return;const sk=String(it.slabType||'cast').toLowerCase()==='precast'?'precast':'cast';
+        S.els.filter(e=>e.type==='slab'&&(e.sk||'cast')===sk&&(!(+it.t>0)||Math.abs(e.t-it.t)<.005)).forEach(e=>{const k=rkey(e);S.rebar[k]={...(S.rebar[k]||{}),...rb,src}});R.rebar++}
+      else if(it.type==='stair'){const rb=rbPick('stair',it),st=S.els.filter(e=>e.type==='stair'),ex=st.filter(e=>rkey(e)===it.key),g=ex.length?ex:st;if(g.length&&Object.keys(rb).length){g.forEach(e=>{const k=rkey(e);S.rebar[k]={...(S.rebar[k]||{}),...rb,src}});R.rebar++}}})});
+  rbSummary(d,R)}
+function rbSummary(d,R){let dl=$('#rbSum');if(!dl){dl=document.createElement('dialog');dl.id='rbSum';document.body.appendChild(dl)}
+  const row=(a,b)=>`<div class="ro"><span>${a}</span><b>${b}</b></div>`,mx=R.fMiss.concat(R.miss);
+  dl.innerHTML=`<h3>นำเข้าผลออกแบบเหล็กเสริม (version ${esc(String(d.version||1))})</h3><p class="hint">จาก ${esc(d.app||'Civil Toolkit')}${d.project?' • '+esc(d.project):''}${d.method?' • '+esc(d.method):''}</p>`+
+    row('ฐานราก — จับคู่ตามพิกัด',R.fMatch+' ต้น'+(R.fNew?' + สร้างใหม่ '+R.fNew:''))+row('ฐานราก — เปลี่ยนเครื่องหมาย',R.fMark+' จุด')+row('ฐานราก — เปลี่ยนชนิด (ฐานแผ่ ↔ ฐานเข็ม / จำนวนเข็ม)',R.fType+' จุด')+row('ฐานราก — ปรับขนาด/ตอม่อ',R.fSize+' จุด')+
+    row('พื้น — แยกจากพื้นเดิม',R.sHosts+' แผ่น → '+R.sParts+' ช่อง')+row('พื้นสำเร็จรูป / หล่อในที่',R.sPre+' / '+R.sCast+' ช่อง')+(R.sUpd?row('พื้นที่เปลี่ยนชนิด/เครื่องหมายในตัว',R.sUpd+' แผ่น'):'')+(R.sRest?row('พื้นส่วนที่ไม่มีในผลออกแบบ (ป้าย S?) — ตรวจว่าเป็นช่องเปิด/บันไดหรือไม่',R.sRest+' ช่อง'):'')+
+    row('เสา — ชิ้น (ปรับขนาด)',R.cEl+' ('+R.cSize+')')+row('คาน — ชิ้น (ปรับขนาด)',R.bEl+' ('+R.bSize+')')+row('เสา/คาน เปลี่ยนเครื่องหมาย',R.mk+' ชิ้น')+row('ชุดเหล็กเสริมที่บันทึก',R.rebar+' รายการ')+
+    (R.sPartial?`<p class="hint">⚠ พื้นเดิม ${R.sPartial} แผ่นมีบางส่วนที่ไม่อยู่ในผลออกแบบ จึงเก็บแผ่นเดิมไว้ด้วย ตรวจและลบส่วนที่ซ้ำได้</p>`:'')+
+    (mx.length?`<p class="hint">⚠ จับคู่ไม่ได้ ${mx.length} รายการ: ${esc(mx.slice(0,12).join(', '))}${mx.length>12?' …':''}</p>`:'<p class="hint">✓ จับคู่ได้ครบทุกรายการ</p>')+
+    `<div class="acts" style="justify-content:flex-end"><button class="btn pri" id="rbSumX">ปิด</button></div>`;
+  $('#rbSumX').onclick=()=>dl.close();dl.showModal?dl.showModal():dl.setAttribute('open','');
+  toast('นำเข้าผลออกแบบ v2 แล้ว • ฐานราก '+(R.fMatch+R.fNew)+' ต้น • พื้น '+R.sParts+' ช่อง • เสา/คาน '+(R.cEl+R.bEl)+' ชิ้น')}
+{const inp=$('#rbIn'),_old=inp.onchange;inp.onchange=async function(ev){const f=inp.files[0];if(!f)return;let d=null;try{d=JSON.parse(await f.text())}catch(_){}
+  const v2=d&&(+d.version>=2||(d.placements&&(d.placements.footings||d.placements.slabs))||(Array.isArray(d.items)&&d.items.some(it=>it&&(it.positions||it.parts||it.ctMark))));
+  if(!v2)return _old.call(this,ev);try{importRebarV2(d)}catch(err){console.error(err);toast('นำเข้าไม่สำเร็จ: '+(err.message||err))}inp.value=''}}
+{const _hh5=helpHTML;helpHTML=function(){return _hh5()+`<details><summary>ใหม่ใน v9.5: นำเข้าผลออกแบบจาก Civil Toolkit (version 2)</summary><ul>
+  <li>ไฟล์ → นำเข้าผลออกแบบเหล็กเสริม รับไฟล์ yothacad-rebar ได้ทั้ง version 1 และ 2</li>
+  <li>ฐานราก: จับคู่ทีละต้นด้วยพิกัด (คลาดได้ไม่เกิน 5 ซม.) ใช้เครื่องหมาย F1, F2, F3… จากผลออกแบบ วาดฐานแผ่ หรือฐานเข็มตามจำนวนเข็ม ขนาด และระยะห่างเข็ม พร้อมตอม่อและเหล็กของแต่ละต้น ถ้ามีเสาแต่ยังไม่มีฐานราก จะสร้างให้</li>
+  <li>พื้น: แบ่งพื้นเดิมเป็นช่องตามผลออกแบบ พื้นสำเร็จรูป (PS) วาดลายแผ่นตามช่วงสั้น พื้นหล่อในที่ใช้เครื่องหมาย S1, S2…</li>
+  <li>เสา/คานที่ออกแบบแล้วปรับขนาดจริง ใช้เหล็กของตัวเอง และใช้เครื่องหมายจาก Civil Toolkit (C1, B1, GB1…) หลังนำเข้าจะแสดงสรุปจำนวนที่เปลี่ยน</li></ul></details>`}}
 
 // ================= Boot
 {let th=null;try{th=localStorage.getItem('yothacad-theme')}catch(_){}document.documentElement.dataset.theme=th||'cad'}
