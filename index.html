@@ -1670,8 +1670,8 @@ function build3(){WOFF.clear();modernMats();if(MAT.gnd)MAT.gnd.position.y=GROUND
         if(e.depth>0.01)addMesh(new THREE.BoxGeometry(e.sw,e.depth-0.003,e.sw),MAT.col,e.id,V3(e.p.x,e.p.y,top+e.depth/2),r);
         pileOffsets(e).forEach(q=>{const geo=e.pshape==='ci'?new THREE.CylinderGeometry(e.pd/2,e.pd/2,e.pl,16):new THREE.BoxGeometry(e.pd,e.pl,e.pd);addMesh(geo,MAT.pile,e.id,V3(q.x,q.y,top-e.t-e.pl/2),r)});break}
       case 'stair':build3Stair(e,el);break;
-      case 'elec':case 'plumb':{const L=(e.type==='elec'?ELIB:PLIB)[e.kind];if(!L)break;const rr_=rad(e.rot||0),cs_=Math.cos(rr_),sn_=Math.sin(rr_),X=(x,y)=>({x:e.p.x+x*cs_-y*sn_,y:e.p.y+x*sn_+y*cs_}),zb=e.type==='elec'&&L.mount==='ceil'?el+ceilAt(e):el,dh=e.type==='elec'&&L.mount==='wall'&&isFinite(parseFloat(e.h))?parseFloat(e.h)-L.h:0;
-        if(e.type==='elec'&&L.mount==='ceil'&&!liteShown())break;if(mep3D(e,el,zb,dh))break;L.b.forEach(bx=>{let poly,z0,z1,m;if(bx[0]==='b'){poly=[X(bx[1],bx[2]),X(bx[3],bx[2]),X(bx[3],bx[4]),X(bx[1],bx[4])];z0=bx[5];z1=bx[6];m=bx[7]}else{poly=ellPts(X,bx[1],bx[2],bx[3],bx[4],16);z0=bx[5];z1=bx[6];m=bx[7]}if(e.kind==='rain'){z1=+lvl(e.level).height}
+      case 'elec':case 'plumb':{const L=(e.type==='elec'?ELIB:PLIB)[e.kind];if(!L)break;const rr_=rad(e.rot||0),cs_=Math.cos(rr_),sn_=Math.sin(rr_),X=(x,y)=>({x:e.p.x+x*cs_-y*sn_,y:e.p.y+x*sn_+y*cs_}),zb=e.type==='elec'&&L.mount==='ceil'?el+ceilAt(e):(e.type==='elec'?elecBase(e,el):el),dh=e.type==='elec'&&L.mount==='wall'&&isFinite(parseFloat(e.h))?parseFloat(e.h)-L.h:0;
+        if(e.type==='elec'&&L.mount==='ceil'&&!liteShown())break;if(mep3D(e,e.type==='elec'&&L.mount!=='ceil'?zb:el,zb,dh))break;L.b.forEach(bx=>{let poly,z0,z1,m;if(bx[0]==='b'){poly=[X(bx[1],bx[2]),X(bx[3],bx[2]),X(bx[3],bx[4]),X(bx[1],bx[4])];z0=bx[5];z1=bx[6];m=bx[7]}else{poly=ellPts(X,bx[1],bx[2],bx[3],bx[4],16);z0=bx[5];z1=bx[6];m=bx[7]}if(e.kind==='rain'){z1=+lvl(e.level).height}
           const geo=new THREE.ExtrudeGeometry(new THREE.Shape(poly.map(q=>new THREE.Vector2(q.x,q.y))),{depth:Math.max(0.005,z1-z0),bevelEnabled:false});const mm=addMesh(geo,sel.has(e.id)?MAT.sel:(MAT['m_'+m]||MAT.f_white),e.id,new THREE.Vector3(0,zb+z0+dh,0),0,true);mm.rotation.x=-Math.PI/2});break}
       case 'rmem':{if(!(show3.roof==='frame'||DISC==='struct'||show3.roof===false))break;const m=rmemM(e),sp=SECLIB[e.sec]||SECLIB.C150;addBeam3(m.a,m.b,sp,sp.wood?MAT.rf_wood:MAT.rf_steel,el,e.id);break}
       case 'pipe':{pipe3D(e,el);break}
@@ -2467,7 +2467,7 @@ $('#rbIn').onchange=async()=>{const f=$('#rbIn').files[0];if(!f)return;try{const
       v.src=d.app||d.source||'Civil Toolkit';S.rebar[k]={...(S.rebar[k]||{}),...v};n++})});toast('นำเข้าผลออกแบบ '+n+' รายการ'+(nsz?' • ปรับขนาดชิ้นส่วน '+nsz+' กลุ่ม':'')+' • แปลนและตารางโครงสร้างอัปเดตแล้ว');}catch(e){toast('ไฟล์นี้ไม่ใช่ผลออกแบบเหล็กเสริม')}$('#rbIn').value=''};
 
 // ================= App shell: version, sync, manual, install, service worker
-const APP_VER='v10.0';$('#verL').textContent=APP_VER;
+const APP_VER='v10.1';$('#verL').textContent=APP_VER;
 const isEmbedded=/claude\.ai|claudeusercontent|anthropic/.test(location.host)||location.protocol==='blob:';
 const LSK={sync:'yothacad-sync',saved:'yothacad-savedAt',last:'yothacad-lastSync',dev:'yothacad-device'};
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -5315,6 +5315,84 @@ function drawWireLabels(){if(!WIRELBL.length)return;g.save();g.font=FONT('700',9
   <li>ทุกวงจรมีลูกศรสายกลับตู้ (Home run) พร้อมเลขวงจร ถ้าอยู่ใกล้ตู้ DB จะต่อเข้าตู้โดยตรง ความยาวสายกลับตู้และสายขึ้นชั้นนับรวมใน BOQ</li>
   <li><b>จัดวงจรใหม่ตามตำแหน่ง + เดินสายใหม่</b> ล้างเลขวงจรเดิมแล้วจัดใหม่: แสงสว่าง ≤ 12 จุด เต้ารับ ≤ 8 จุด เต้ารับครัวแยกวงจร แอร์/น้ำอุ่น/EV วงจรเฉพาะ</li>
   <li>ผลลัพธ์แจ้งเตือนห้องที่มีดวงโคมแต่ไม่มีสวิตช์ สวิตช์ที่ไม่มีโคมให้ควบคุม ชั้นที่ไม่มีตู้ DB และวงจรที่โหลดเกิน</li></ul></details>`}}
+
+// ================= v10.1: tidy 3D conduits (square runs above the ceiling, drops in the wall, buried outside) + menus and toolbars grouped by category
+// ---- devices standing out in the yard sit on the ground
+function nearFoot(lid,p,tol){if(inFoot(lid,p))return true;const P=FPK.get(lid+'|'+modelVer)||[];return P.some(q=>q.some((a,i)=>segDist(p,a,q[(i+1)%q.length]).d<tol))}
+function ewOutdoor(d){return !!d&&!!d.p&&lvIdx(d.level)===0&&!nearFoot(d.level,d.p,.6)}
+function elecBase(e,el){return ewOutdoor(e)&&gradeMode(e.level,el)?GROUND:el}
+function wireDevZ(d,el){const L=ELIB[d.kind]||{},b=elecBase(d,el);if(L.mount==='ceil')return el+ceilAt(d);if(d.kind==='db'||d.kind==='sdb')return b+(isFinite(parseFloat(d.h))?parseFloat(d.h):+L.h||1.5)+.3;if(L.mount==='wall')return b+(isFinite(parseFloat(d.h))?parseFloat(d.h):+L.h||1.2)+.08;return b+.05}
+{const _w3=wire3D;wire3D=function(e,el){const ct=e.ct||'pvc';if(ct==='none'||!e.pts||e.pts.length<2)return;
+  const A=e.ca&&byId(e.ca.id),B=e.cb?byId(e.cb.id):(e.hr&&e.to?byId(e.to):null);
+  if(e.pts.length!==2||!A||!B||A.type!=='elec'||B.type!=='elec'||!A.p||!B.p)return _w3(e,el);
+  const lid=e.level,LH=+lvl(lid).height||3,zz=el+(isFinite(parseFloat(e.z))?parseFloat(e.z):LH-.18),r=Math.max(.008,inchMM(e.cdia||'1/2″')/2000+.002),elB=B.level===lid?el:elevOf(B.level);
+  const pa=A.p,pb=B.p,dx=Math.abs(pa.x-pb.x),dy=Math.abs(pa.y-pb.y),H=[pa];if(dx>.03&&dy>.03)H.push(dx>=dy?{x:pb.x,y:pa.y}:{x:pa.x,y:pb.y});H.push(pb);
+  const lv0=lvIdx(lid)===0,inside=q=>!lv0||nearFoot(lid,q,.6),zOut=(gradeMode(lid,el)?GROUND:el)-.45,HZ=[];
+  for(let i=0;i<H.length;i++){const q=H[i],a=inside(q);if(i){const p=H[i-1],b=inside(p);if(a!==b){let lo=0,hi=1;for(let k=0;k<14;k++){const m=(lo+hi)/2;inside(lerp(p,q,m))===b?lo=m:hi=m}const c=lerp(p,q,hi);HZ.push({x:c.x,y:c.y,z:b?zz:zOut},{x:c.x,y:c.y,z:a?zz:zOut})}}HZ.push({x:q.x,y:q.y,z:a?zz:zOut})}
+  const P=[{x:pa.x,y:pa.y,z:wireDevZ(A,el)},...HZ,{x:pb.x,y:pb.y,z:wireDevZ(B,elB)}],bur=HZ.some(q=>q.z<el-.1);
+  const box=d=>(ELIB[d.kind]||{}).mount==='ceil'?'box':'open';
+  run3D(e.id,P,r,(CONDM[ct]||CONDM.pvc)(),{cpl:3,hang:bur?0:el+LH,flex:ct==='flex',endA:box(A),endB:box(B)})}}
+// ---- File menu: grouped, one section open at a time
+const MENU_ICON={proj:'M3 7h6l2 2h10v10H3z',out2:'M6 3h9l4 4v14H6zM9 12h7M9 16h7',out3:'M12 3l8 4.5v9L12 21l-8-4.5v-9zM12 12l8-4.5M12 12v9M12 12 4 7.5',bim:'M4 21V9l8-5 8 5v12M9 21v-6h6v6',boq:'M4 6h16v12H4zM8 10h8M8 14h5',ct:'M10 14l4-4M8.5 16.5a3 3 0 0 1-4-4L7 10M15.5 7.5a3 3 0 0 1 4 4L17 14',set:'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2'};
+const MENU_GROUPS=[['proj','โครงการ',[['proj','จัดการโครงการ (เปิด / เปลี่ยนชื่อ / ลบ)'],['new','โครงการใหม่'],['sample','โครงการใหม่จากบ้านตัวอย่าง'],['open','เปิดไฟล์โครงการ (.json)'],['save','บันทึกเป็นไฟล์โครงการ (.json)']]],
+  ['out2','ส่งออกแบบ 2D',[['sheets','ชุดแบบ PDF (ไปที่หน้าแผ่นงาน)'],['dxf','DXF ทุกชั้นสำหรับ AutoCAD (.zip)'],['png2','ภาพแปลนชั้นนี้ (.png)']]],
+  ['out3','ส่งออกภาพ 3D',[['png3','ตามขนาดหน้าจอ (คมชัดสูง)'],['png3hd','Full HD 1920×1080'],['png3k2','2K 2560×1440'],['png3k4','4K 3840×2160'],['rp','✨ Prompt สำหรับเรนเดอร์ด้วย AI']]],
+  ['bim','BIM — Revit / ArchiCAD',[['rvt','สคริปต์สร้างโมเดลใน Revit (.py) — แก้ไขได้จริง'],['ifc','ไฟล์ IFC (.ifc)']]],
+  ['boq','ประมาณราคาและปริมาณงาน',[['boq','ประมาณราคา BOQ / Excel (ปร.4–ปร.6 และเอกชน)'],['csv','ตารางปริมาณงาน (.csv)']]],
+  ['ct','Civil Toolkit',[['xct','ส่งแบบไป Civil Toolkit'],['rbin','นำเข้าผลออกแบบเหล็กเสริม (.json)']]],
+  ['set','ตั้งค่า',[['layers','เลเยอร์ / ความหนาเส้น'],['theme','สลับธีม (CAD / สว่าง / มืด)']]]];
+{const st=document.createElement('style');st.textContent=`#menu{width:330px;max-height:calc(100vh - 70px);overflow:auto;padding:6px}
+#menu .grp{border-radius:7px}#menu .grp+.grp{margin-top:2px}
+#menu .mg{display:flex!important;align-items:center;gap:9px;font-weight:600}#menu .mg svg{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;opacity:.8}
+#menu .mg .cnt{margin-left:auto;font-weight:400;font-size:11px;color:var(--muted)}#menu .mg::after{content:'›';font-size:16px;line-height:1;color:var(--muted);transition:transform .15s}#menu .grp.open .mg::after{transform:rotate(90deg)}
+#menu .mi{display:none;padding:0 0 4px 26px}#menu .grp.open .mi{display:block}#menu .grp.open{background:var(--panel)}#menu .mi button{font-size:13px;padding:6px 10px}#menu .mi button:hover{background:var(--panel2)}
+.dd{position:relative;display:inline-flex}.ddm{position:absolute;right:0;top:calc(100% + 4px);display:none;flex-direction:column;gap:2px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:4px;min-width:178px;z-index:30;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.dd.open>.ddm{display:flex}.ddm .btn{width:100%;text-align:left;justify-content:flex-start;border-color:transparent;background:transparent}.ddm .btn:hover{background:var(--panel)}.sbar .ddm{left:0;right:auto}
+.stp{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:8px 0}.stph{display:flex;align-items:center;gap:8px;margin-bottom:6px}.stpn{width:20px;height:20px;border-radius:50%;background:var(--acc,#2b78d0);color:#fff;font-size:12px;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.stp .row{display:flex;flex-wrap:wrap;gap:6px}details.hd summary{cursor:pointer;font-size:12.5px;color:var(--muted);margin-top:6px}
+#helpBody .hcat{margin:14px 0 4px;font-size:13px;letter-spacing:.02em;color:var(--muted);text-transform:none;border-bottom:1px solid var(--line);padding-bottom:3px}#helpBody .hq{width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:7px;background:var(--panel);color:var(--ink);margin-bottom:4px}
+#helpBody .vb{display:inline-block;font-size:10.5px;padding:0 6px;border-radius:9px;background:var(--acc,#2b78d0);color:#fff;margin-right:6px;vertical-align:1px}`;document.head.appendChild(st)}
+{const M=$('#menu'),old=new Map([...M.querySelectorAll('button[data-m]')].map(b=>[b.dataset.m,b.textContent]));const known=new Set(MENU_GROUPS.flatMap(g=>g[2].map(x=>x[0])));
+  const extra=[...old.entries()].filter(([k])=>!known.has(k));const groups=extra.length?MENU_GROUPS.concat([['set','อื่นๆ',extra]]):MENU_GROUPS;let open='proj';try{const v=localStorage.getItem('yc-mopen');if(v!=null)open=v}catch(_){}
+  M.innerHTML=groups.map(([ic,t,its])=>`<div class="grp${ic===open?' open':''}" data-g="${ic}"><button class="mg" type="button"><svg viewBox="0 0 24 24"><path d="${MENU_ICON[ic]}"/></svg>${t}<span class="cnt">${its.length}</span></button><div class="mi">${its.map(([m,n])=>`<button data-m="${m}">${n}</button>`).join('')}</div></div>`).join('');
+  const _mo=M.onclick;M.onclick=e=>{const h=e.target.closest('.mg');if(h){e.stopPropagation();const g=h.parentElement,was=g.classList.contains('open');M.querySelectorAll('.grp').forEach(x=>x.classList.remove('open'));if(!was)g.classList.add('open');try{localStorage.setItem('yc-mopen',was?'':g.dataset.g)}catch(_){}return}
+    const b=e.target.closest('button[data-m]');if(!b)return;if(b.dataset.m==='sheets'){M.style.display='none';setView('msheet');return}if(b.dataset.m==='rp'){M.style.display='none';const r=$('#rpBtn');if(r)r.click();return}if(_mo)_mo.call(M,e)}}
+// ---- small drop-downs for toolbars
+function ddWrap(label,items,o){o=o||{};const d=document.createElement('div');d.className='dd'+(o.once?' once':'');d.innerHTML=`<button class="btn ddb${o.pri?' pri':''}" type="button">${label} ▾</button><div class="ddm"></div>`;const m=d.lastChild;items.filter(Boolean).forEach(x=>m.appendChild(x));if(o.title)d.firstChild.title=o.title;return d}
+document.addEventListener('click',e=>{const t=e.target.closest('.ddb'),inM=e.target.closest('.ddm');document.querySelectorAll('.dd.open').forEach(d=>{if(t&&d===t.parentElement)return;if(inM&&d.contains(inM)&&!d.classList.contains('once'))return;d.classList.remove('open')});if(t)t.parentElement.classList.toggle('open')});
+// 3D view bar: [มุมมอง ▾] [พอดีจอ] [ชั้น] [แสดง/ซ่อน ▾] [✨ AI]
+{const bar=$('#v3wrap .v3bar');if(bar){const q=s=>bar.querySelector(s),cams=[...bar.querySelectorAll('[data-cam]')].filter(b=>b.dataset.cam!=='fit'),fit=q('[data-cam="fit"]'),lv=q('#tgLv3'),ai=q('#rpBtn');
+  const camDD=ddWrap('มุมมอง',cams,{once:true,title:'มุมกล้อง ไอโซ บน หน้า ขวา ซ้าย หลัง'}),showDD=ddWrap('แสดง/ซ่อน',['#tgRoof3','#tgCeil3','#tgLite3','#tgGrid3','#tgUnder3','#tgUg3'].map(q),{title:'หลังคา ฝ้า ดวงไฟ กริด ใต้ดิน ระบบใต้ดิน'});
+  [...bar.childNodes].forEach(n=>n.remove());[camDD,fit,lv,showDD,ai].forEach(x=>x&&bar.appendChild(x));if(ai){ai.textContent='✨ AI';ai.title='Prompt สำหรับเรนเดอร์ภาพด้วย AI'}}}
+// sheets bar: [แผ่น] [พอดีจอ] [สร้างชุดแบบอัตโนมัติ] [แผ่นงาน ▾] [ส่งออก ▾]
+{const bar=$('#vHwrap .sbar');if(bar){const q=s=>bar.querySelector(s),sel=q('#shSel'),fit=q('#hFit'),auto=q('#hAuto');const pg=ddWrap('แผ่นงาน',[q('#hNew'),q('#hProj')],{once:true}),ex=ddWrap('ส่งออก PDF / PNG',[q('#hPdf'),q('#hPdf1'),q('#hPng')],{once:true,pri:true});
+  [...bar.childNodes].forEach(n=>n.remove());[sel,fit,auto,pg,ex].forEach(x=>x&&bar.appendChild(x));const p=$('#hPdf');if(p)p.classList.remove('pri')}}
+// sections bar: [รูปตัด] [พอดีจอ] [สร้างอัตโนมัติ] [แก้แนวตัด] [ข้อความ ▾] [ส่งออก PNG]
+{const bar=$('#vSwrap .sbar');if(bar){const q=s=>bar.querySelector(s),keep=['#secSel','#sFit','#sAuto','#sEdit'].map(q),tx=ddWrap('ข้อความ',[q('#sTxt'),q('#sShowH')],{once:true}),png=q('#sPng');
+  [...bar.childNodes].forEach(n=>n.remove());[...keep,tx,png].forEach(x=>x&&bar.appendChild(x))}}
+// ---- electrical panel as three clear steps
+mepPanelHTML=function(){const E=S.els.filter(e=>e.type==='elec'&&e.level===cur),un=S.els.filter(e=>e.type==='elec'&&!e.ckt&&ewKind(e)).length,L=loadData(),W=S.els.filter(e=>e.type==='wire'&&e.level===cur),aw=W.filter(e=>e.autoW).length,nck=new Set(S.els.filter(e=>e.type==='elec'&&e.ckt).map(e=>e.ckt)).size;
+  const step=(n,t,body)=>`<div class="stp"><div class="stph"><span class="stpn">${n}</span><b>${t}</b></div>${body}</div>`;
+  return`<h3>งานไฟฟ้า — ${esc(lvl(cur).name)}</h3><p class="hint">แสดงแปลนฝ้า อุปกรณ์ไฟฟ้า และสายไฟ งานสถาปัตย์และโครงสร้างล็อกไว้เป็นพื้นหลัง</p>
+  <div class="ro"><span>อุปกรณ์ไฟฟ้าชั้นนี้</span><b>${E.length} จุด</b></div><div class="ro"><span>วงจรทั้งอาคาร • ยังไม่จัดวงจร</span><b>${nck} วงจร • ${un} จุด</b></div><div class="ro"><span>โหลดรวมทั้งอาคาร</span><b>${(L.tot/1000).toFixed(2)} kVA • ${(L.tot/230).toFixed(1)} A</b></div><div class="ro"><span>มิเตอร์แนะนำ</span><b>${L.meter}</b></div><div class="ro"><span>สายไฟชั้นนี้ (อัตโนมัติ / วาดเอง)</span><b>${aw} / ${W.length-aw} เส้น</b></div>`+
+  step(1,'วางอุปกรณ์',`<div class="row"><button class="btn pri" data-mep="auto">วางไฟฟ้าอัตโนมัติ (ชั้นนี้)</button></div><details class="hd"><summary>วางอะไรบ้าง</summary><p class="hint">โคมไฟตามขนาดห้อง สวิตช์ข้างประตู เต้ารับ จุดแอร์ในห้องนอนและห้องนั่งเล่น จุดเครื่องทำน้ำอุ่นในห้องน้ำ และตู้ไฟใกล้ทางเข้า (แทนที่เฉพาะชิ้นที่วางอัตโนมัติไว้ก่อน)</p></details>`)+
+  step(2,'เดินสายไฟ',`<div class="row"><button class="btn pri" onclick="autoWire('cur')">เดินสาย (ชั้นนี้)</button><button class="btn" onclick="autoWire('all')">ทุกชั้น</button></div><details class="hd"><summary>หลักการเดินสาย</summary><p class="hint">อุปกรณ์ที่ยังไม่มีวงจรจะถูกจัดวงจรตามตำแหน่งก่อน • โคม/เต้ารับในวงจรเดียวกันต่อกันด้วยสายสั้นที่สุด ครบในห้องก่อนข้ามห้อง • สวิตช์ต่อเข้าดวงโคมในห้องตัวเอง • ลูกศรสายกลับตู้พร้อมเลขวงจร • ใน 3D ท่อร้อยสายเดินแนวฉากเหนือฝ้า ลงผนังแนวดิ่ง และฝังดินเมื่อออกนอกอาคาร • สายที่วาดเองไม่ถูกแตะ</p></details>`)+
+  step(3,'ปรับวงจร (ถ้าต้องการ)',`<div class="row"><button class="btn" onclick="autoWire('all',true)">จัดวงจรใหม่ตามตำแหน่ง + เดินสายใหม่</button><button class="btn" data-mep="ckt">จัดวงจรใหม่แบบเรียงลำดับ</button></div><details class="hd"><summary>เกณฑ์การจัดวงจร</summary><p class="hint">แสงสว่าง ≤ 12 จุด • เต้ารับ ≤ 8 จุด • เต้ารับครัว/กันน้ำแยกวงจร (≤ 6) • แอร์ น้ำอุ่น EV วงจรเฉพาะ • โหลดต่อวงจรไม่เกิน 1,800 VA</p></details>`)};
+// ---- manual: grouped by topic with a search box
+function helpFilter(q){q=(q||'').trim().toLowerCase();const B=$('#helpBody');if(!B)return;B.querySelectorAll('details').forEach(d=>{const hit=!q||d.textContent.toLowerCase().includes(q);d.style.display=hit?'':'none';if(q&&hit)d.open=true});
+  B.querySelectorAll('.hsec').forEach(s=>{s.style.display=[...s.querySelectorAll('details')].some(d=>d.style.display!=='none')?'':'none'})}
+{const _hh10=helpHTML;helpHTML=function(){return _hh10()+`<details><summary>ใหม่ใน v10.1: ท่อร้อยสาย 3D เรียบร้อย และเมนูจัดหมวดหมู่</summary><ul>
+  <li>ท่อร้อยสายใน 3D เดินแนวฉากเหนือฝ้า ลงผนังแนวดิ่งถึงสวิตช์/เต้ารับ สายกลับตู้เดินถึงตู้ DB จริง (ชั้นบนลงผ่านพื้น) และฝังดินลึก 45 ซม. เมื่อออกนอกอาคาร</li>
+  <li>โคมไฟสนามและอุปกรณ์นอกอาคารวางบนพื้นดิน</li>
+  <li>เมนูไฟล์แบ่งเป็นหมวด: โครงการ • ส่งออกแบบ 2D • ส่งออกภาพ 3D • BIM • ประมาณราคา • Civil Toolkit • ตั้งค่า (เปิดทีละหมวด)</li>
+  <li>แถบ 3D: มุมมอง ▾ • พอดีจอ • ชั้น • แสดง/ซ่อน ▾ • AI — แถบแผ่นงานและรูปตัดรวมปุ่มส่งออกเป็นเมนูย่อย</li>
+  <li>แผงไฟฟ้าเป็น 3 ขั้น: วางอุปกรณ์ → เดินสาย → ปรับวงจร • คู่มือจัดตามหัวข้อและค้นหาได้</li></ul></details>`}}
+{const _hh8=helpHTML;helpHTML=function(){const src=_hh8(),box=document.createElement('div');box.innerHTML=src;const ds=[...box.children].filter(c=>c.tagName==='DETAILS');if(!ds.length)return src;
+  const CAT=[['เริ่มต้น บันทึก และติดตั้งแอป',/^(1|12|13|14)\.|v10\.1/],['เขียนแบบและแก้ไข',/^(4|5|6)\.|v9\.1|v9\.4/],['สถาปัตย์และโครงสร้าง',/^(2|3|10)\./],['งานระบบ: ไฟฟ้า ประปา และการเชื่อมต่อ',/^7\.1|v9\.2|v9\.3|v9\.6|v10\.0/],['3D รูปตัด และแผ่นงาน',/^(7|8|9)\./],['ส่งออกและเชื่อมต่อโปรแกรมอื่น',/^11\.|v9\.5/]];
+  const bins=CAT.map(c=>({t:c[0],re:c[1],d:[]})),other={t:'อื่นๆ',d:[]};
+  ds.forEach(d=>{const s=d.querySelector('summary'),t=(s&&s.textContent||'').trim();const m=t.match(/^ใหม่ใน (v[\d.]+):\s*/);if(m&&s)s.innerHTML=`<span class="vb">${m[1]}</span>`+esc(t.slice(m[0].length));(bins.find(b=>b.re.test(t))||other).d.push(d)});
+  const rest=[...box.children].filter(c=>c.tagName!=='DETAILS').map(c=>c.outerHTML).join('');
+  return rest+`<input class="hq" placeholder="ค้นหาในคู่มือ เช่น เดินสาย, DXF, เหล็กเสริม" oninput="helpFilter(this.value)" aria-label="ค้นหาในคู่มือ">`+bins.concat([other]).filter(b=>b.d.length).map(b=>`<div class="hsec"><h4 class="hcat">${b.t}</h4>${b.d.map(d=>d.outerHTML).join('')}</div>`).join('')}}
 
 // ================= Boot
 {let th=null;try{th=localStorage.getItem('yothacad-theme')}catch(_){}document.documentElement.dataset.theme=th||'cad'}
