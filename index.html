@@ -2467,7 +2467,7 @@ $('#rbIn').onchange=async()=>{const f=$('#rbIn').files[0];if(!f)return;try{const
       v.src=d.app||d.source||'Civil Toolkit';S.rebar[k]={...(S.rebar[k]||{}),...v};n++})});toast('นำเข้าผลออกแบบ '+n+' รายการ'+(nsz?' • ปรับขนาดชิ้นส่วน '+nsz+' กลุ่ม':'')+' • แปลนและตารางโครงสร้างอัปเดตแล้ว');}catch(e){toast('ไฟล์นี้ไม่ใช่ผลออกแบบเหล็กเสริม')}$('#rbIn').value=''};
 
 // ================= App shell: version, sync, manual, install, service worker
-const APP_VER='v10.2';$('#verL').textContent=APP_VER;
+const APP_VER='v10.6';$('#verL').textContent=APP_VER;
 const isEmbedded=/claude\.ai|claudeusercontent|anthropic/.test(location.host)||location.protocol==='blob:';
 const LSK={sync:'yothacad-sync',saved:'yothacad-savedAt',last:'yothacad-lastSync',dev:'yothacad-device'};
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
@@ -5716,6 +5716,881 @@ function reorgSheets(L){const A3=drawArea({size:'A3'}),AW=A3.x1-A3.x0,AH=A3.y1-A
   <li>สารบัญแบ่งหมวด A S E P พร้อมข้อกำหนดทั่วไป มาตรฐานอ้างอิง คำย่อ และสัญลักษณ์ (แก้ได้ในแผงข้างเมื่อเลือกกล่องข้อกำหนด)</li>
   <li>แบบขยายประตู-หน้าต่างอยู่หน้าเดียวกับตารางประตูหน้าต่างในหมวดสถาปัตย์</li>
   <li>ผังบริเวณ: ไฟล์ → โครงการ → ที่ดิน โฉนด และแผนที่ตั้ง — ใส่ข้อมูลโฉนด สร้างขอบเขตที่ดิน ถนน พิกัด ดึงแผนที่ OpenStreetMap หรืออัปโหลดภาพแผนที่ แผ่นผังบริเวณแสดงอาคาร ระบบสุขาภิบาล ระยะร่น หมุดที่ดิน และตารางพื้นที่ว่าง</li></ul></details>`}}
+
+// ================= v10.3: AutoCAD-style drafting — command line & aliases, Enter/Space repeat, @ coordinates, full OSNAP, polar & object snap tracking, window/crossing selection
+// ---- AutoCAD aliases on the tools (C = CIRCLE, COL = column, SL = slab)
+{const AK={circle:'c',column:'col',slab:'sl',dim:'dim'};TOOLS.forEach(t=>{if(AK[t[0]])t[2]=AK[t[0]]})}
+const CMDN={line:'LINE',pline:'PLINE',rect:'RECTANG',circle:'CIRCLE',arc:'ARC',dim:'DIMLINEAR',text:'MTEXT',hatch:'HATCH',leader:'MLEADER',cloud:'REVCLOUD',areaq:'AREA',measure:'DIST',move:'MOVE',copy:'COPY',rotate:'ROTATE',mirror:'MIRROR',scale:'SCALE',offset:'OFFSET',trim:'TRIM',extend:'EXTEND',fillet:'FILLET',break:'BREAK',array:'ARRAY',match:'MATCHPROP',select:'SELECT',
+  wall:'WALL',column:'COLUMN',beam:'BEAM',slab:'SLAB',door:'DOOR',window:'WINDOW',grid:'GRID',footing:'FOOTING',stair:'STAIR',roof:'ROOF',room:'ROOM',furn:'FURNITURE',section:'SECTION',callout:'CALLOUT',lvl:'LEVELMARK',porch:'PORCH',steps:'STEPS',rail:'RAILING',flr:'FLOORFINISH',clg:'CEILING',rmem:'ROOFFRAME',elec:'ELECTRIC',wire:'WIRE',plumb:'PLUMBING',pipe:'PIPE',conn:'CONNECT',txedit:'TEXTEDIT'};
+const XAL={circle:['ci'],copy:['cp'],text:['mt','dt','t','text'],dim:['dli','dm','dimlin'],column:['column'],slab:['slab'],rect:['rectangle'],leader:['mld','leader'],hatch:['bh'],measure:['dist','di'],areaq:['area','aa'],move:['m'],mirror:['mi'],offset:['o'],trim:['tr'],extend:['ex'],fillet:['f'],array:['ar'],match:['ma','painter']};
+const P2=(en,th)=>()=>toast('คำสั่ง '+en+' ('+th+') จะมาในเฟส 2');
+let CMDLIST=[],CMDMAP={};
+function buildCmds(){CMDLIST=TOOLS.map(t=>({id:t[0],en:CMDN[t[0]]||t[0].toUpperCase(),th:t[1],names:[...new Set([t[2],(CMDN[t[0]]||t[0]).toLowerCase(),...(XAL[t[0]]||[])])],run:()=>setTool(t[0])}));
+  CMDLIST.push({id:'erase',en:'ERASE',th:'ลบ',names:['e','erase','del'],run:()=>{if(sel.size)delSel();else{setTool('select');toast('เลือกวัตถุที่จะลบ แล้วกด Delete หรือพิมพ์ E อีกครั้ง')}}},
+    {id:'undo',en:'UNDO',th:'ย้อนกลับ',names:['u','undo'],run:()=>undo()},{id:'redo',en:'REDO',th:'ทำซ้ำ',names:['redo','mredo'],run:()=>redo()},
+    {id:'zoom',en:'ZOOM',th:'พอดีจอ (Extents)',names:['z','zoom','ze'],run:()=>fit2()},{id:'layer',en:'LAYER',th:'เลเยอร์',names:['la','layer'],run:()=>openLayers()},
+    {id:'osnap',en:'OSNAP',th:'ตั้งค่าจับจุดและการติดตาม',names:['os','osnap','ds','dsettings','se'],run:()=>openOsnap()},{id:'regen',en:'REGEN',th:'วาดใหม่',names:['re','regen'],run:()=>{SNAPS=null;draw2();dirty3=true;req3()}},
+    {id:'ortho',en:'ORTHO',th:'ตั้งฉาก (F8)',names:['ortho'],run:()=>toggleSnap('ortho')},{id:'polar',en:'POLAR',th:'มุมขั้ว (F10)',names:['polar'],run:()=>toggleSnap('polar')},
+    {id:'stretch',en:'STRETCH',th:'ยืดวัตถุ',names:['s','stretch'],run:P2('STRETCH','ยืดวัตถุ')},{id:'chamfer',en:'CHAMFER',th:'ลบมุม',names:['cha','chamfer'],run:P2('CHAMFER','ลบมุม')},
+    {id:'join',en:'JOIN',th:'รวมเส้น',names:['j','join'],run:P2('JOIN','รวมเส้น')},{id:'explode',en:'EXPLODE',th:'ระเบิดวัตถุ',names:['x','explode'],run:P2('EXPLODE','ระเบิดวัตถุ')});
+  CMDMAP={};CMDLIST.forEach(c=>c.names.forEach(n=>{if(!CMDMAP[n])CMDMAP[n]=c}))}
+buildCmds();
+function acFind(v){return CMDLIST.filter(c=>c.names.some(n=>n.startsWith(v))).sort((a,b)=>{const ea=a.names.includes(v)?0:1,eb=b.names.includes(v)?0:1;return ea-eb||Math.min(...a.names.map(n=>n.length))-Math.min(...b.names.map(n=>n.length))}).slice(0,8)}
+// ---- osnap modes & tracking settings
+const OSL=[['end','ปลายเส้น','Endpoint'],['mid','กึ่งกลาง','Midpoint'],['cen','ศูนย์กลาง','Center'],['int','จุดตัด','Intersection'],['qua','ควอดแรนต์','Quadrant'],['per','ตั้งฉาก','Perpendicular'],['tan','สัมผัส','Tangent'],['nea','ใกล้สุด','Nearest']];
+let OS={end:1,mid:1,cen:1,int:1,qua:1,per:1,tan:0,nea:0,inc:45,polar:1,otrack:1};try{Object.assign(OS,JSON.parse(localStorage.getItem('yc-osnap')||'{}'))}catch(_){}
+SN.polar=!!OS.polar;SN.otrack=!!OS.otrack;if(SN.ortho)SN.polar=false;
+function saveOS(){OS.polar=SN.polar?1:0;OS.otrack=SN.otrack?1:0;try{localStorage.setItem('yc-osnap',JSON.stringify(OS))}catch(_){}}
+let SNGEO={segs:[],circs:[]},SNX=null,ACQ=[],DW={p:null,timer:0},LASTCMD=null,LASTPT=null,CHAIN=[],SPACEPAN=false,LASTPROMPT='';
+const POLYT=['pline','slab','room','flr','clg','porch','roof','wire','pipe','rail','hatch','cloud','leader','areaq'],OPENT=['wire','pipe','rail','leader'];
+// ---- snap geometry (segments & circles) for perpendicular / tangent / nearest; quadrant points; line-circle intersections
+{const _bs=buildSnaps;buildSnaps=function(){_bs();const segs=[],circs=[];
+  try{cutSegs(null).forEach(s=>segs.push(s));
+    S.els.forEach(e=>{if(!onLevel(e)||hiddenInDisc(e))return;const P4=P=>P.forEach((q,i)=>segs.push([q,P[(i+1)%P.length]]));
+      if(e.type==='wall')wallPolys(e).forEach(P4);else if(e.type==='beam')P4(beamRect(e));
+      else if(['column','footing','furn'].includes(e.type)&&e.p){if(e.shape==='circle')circs.push({c:e.p,r:e.w/2});else P4(rectPts(e.p,e.w,e.d,e.rot))}
+      else if(e.type==='roof')P4(roofOuter(e));else if(e.type==='circle')circs.push({c:e.c,r:e.r});else if(e.type==='arc')circs.push({c:e.c,r:e.r,a0:e.a0,a1:e.a1})});
+    circs.forEach(c=>{if(c.a0!=null)return;[0,90,180,270].forEach(a=>{const q=add(c.c,{x:c.r*Math.cos(rad(a)),y:c.r*Math.sin(rad(a))}),s=SNAPS.find(z=>z.k==='end'&&dist(z.p,q)<1e-7);if(s)s.k='qua';else SNAPS.push({p:q,k:'qua'})})});
+    if(segs.length*circs.length<60000)circs.forEach(c=>segs.forEach(([a,b])=>lineCircleT(a,b,c.c,c.r).forEach(t=>{if(t<-1e-6||t>1+1e-6)return;const q=lerp(a,b,t);if(c.a0!=null&&!angIn(deg(Math.atan2(q.y-c.c.y,q.x-c.c.x)),c.a0,c.a1))return;SNAPS.push({p:q,k:'int'})})));
+  }catch(err){console.warn(err)}SNGEO={segs,circs}}}
+const onArc=(c,q)=>c.a0==null||angIn(deg(Math.atan2(q.y-c.c.y,q.x-c.c.x)),c.a0,c.a1);
+function dynSnap(p,base,tol){const G=SNGEO;let r=null,bd=1e9;
+  if(OS.per&&base){G.segs.forEach(([a,b])=>{const sd=segDist(p,a,b);if(sd.d>tol||sd.d>=bd)return;const f=segDist(base,a,b);if(f.tu<-1e-6||f.tu>1+1e-6)return;const q=add(a,mul(sub(b,a),f.tu));if(dist(q,base)<1e-6)return;bd=sd.d;r={p:q,k:'per'}});
+    G.circs.forEach(c=>{const dc=Math.abs(dist(p,c.c)-c.r);if(dc>tol||dc>=bd||dist(base,c.c)<1e-6)return;const u=nrm(sub(base,c.c)),A=add(c.c,mul(u,c.r)),B=add(c.c,mul(u,-c.r)),q=dist(A,p)<dist(B,p)?A:B;if(!onArc(c,q))return;bd=dc;r={p:q,k:'per'}});if(r)return r}
+  if(OS.tan&&base){G.circs.forEach(c=>{const dc=Math.abs(dist(p,c.c)-c.r),d=dist(base,c.c);if(dc>tol||d<=c.r+1e-6)return;const b0=Math.atan2(base.y-c.c.y,base.x-c.c.x),t=Math.acos(c.r/d);[b0+t,b0-t].forEach(a=>{const q={x:c.c.x+c.r*Math.cos(a),y:c.c.y+c.r*Math.sin(a)},dd=dist(q,p);if(dd<bd&&onArc(c,q)){bd=dd;r={p:q,k:'tan'}}})});if(r)return r}
+  if(OS.nea){G.segs.forEach(([a,b])=>{const sd=segDist(p,a,b);if(sd.d<=tol&&sd.d<bd){bd=sd.d;r={p:sd.q,k:'nea'}}});G.circs.forEach(c=>{const dc=Math.abs(dist(p,c.c)-c.r);if(dc>tol||dc>=bd)return;const q=add(c.c,mul(nrm(sub(p,c.c)),c.r));if(onArc(c,q)){bd=dc;r={p:q,k:'nea'}}});if(r)return r}
+  return null}
+function acqDwell(pt){if(!SN.otrack)return;if(DW.p&&dist(DW.p,pt)<1e-9)return;DW.p=cp(pt);clearTimeout(DW.timer);
+  DW.timer=setTimeout(()=>{if(!DW.p||!mouse||dist(mouse,DW.p)>1e-6)return;const i=ACQ.findIndex(a=>dist(a,DW.p)<1e-6);if(i>=0)ACQ.splice(i,1);else{ACQ.push(cp(DW.p));if(ACQ.length>7)ACQ.shift()}draw2()},450)}
+function polarDirs(){const inc=Math.max(1,+OS.inc||45),out=[];for(let a=0;a<360-1e-6;a+=inc)out.push(a);return out}
+function trackSnap(p,base){const ts=7/view.s;let H=null,V=null,hb=ts,vb=ts;ACQ.forEach(a=>{const dy=Math.abs(p.y-a.y),dx=Math.abs(p.x-a.x);if(dy<hb&&dx>1e-6){hb=dy;H=a}if(dx<vb&&dy>1e-6){vb=dx;V=a}});
+  if(H&&V&&H!==V){const q={x:V.x,y:H.y};SNX={trk:[[H,q],[V,q]]};return{p:q,k:'trk'}}
+  const L=H||V;if(!L)return null;const hz=L===H;
+  if(base&&SN.polar){let best=null,bd=10/view.s;polarDirs().forEach(a=>{const c=Math.cos(rad(a)),s=Math.sin(rad(a));let t;if(hz){if(Math.abs(s)<1e-9)return;t=(L.y-base.y)/s}else{if(Math.abs(c)<1e-9)return;t=(L.x-base.x)/c}if(t<=1e-6)return;const q={x:base.x+c*t,y:base.y+s*t},d=dist(q,p);if(d<bd){bd=d;best={q,a}}});
+    if(best){SNX={trk:[[L,best.q]],pol:{base,q:best.q,ang:best.a,L:dist(base,best.q)}};return{p:best.q,k:'trk'}}}
+  let q=hz?{x:p.x,y:L.y}:{x:L.x,y:p.y};if(SN.grid){if(hz)q.x=L.x+Math.round((p.x-L.x)/SN.step)*SN.step;else q.y=L.y+Math.round((p.y-L.y)/SN.step)*SN.step}
+  SNX={trk:[[L,q]]};return{p:q,k:'trk'}}
+function polarSnap(p,base){const v=sub(p,base);if(len(v)<1e-9)return null;const inc=Math.max(1,+OS.inc||45),ang=deg(Math.atan2(v.y,v.x)),k=Math.round(ang/inc)*inc,u={x:Math.cos(rad(k)),y:Math.sin(rad(k))},t=dot(v,u);
+  if(t<=0||Math.abs(crs(u,v))*view.s>10)return null;const Lr=SN.grid?Math.round(t/SN.step)*SN.step:t,q=add(base,mul(u,Lr));SNX={pol:{base,q,ang:normA(k),L:Lr}};return{p:q,k:'pol'}}
+{const _sa=snapAt;snapAt=function(p,base){SNX=null;const tol=12/view.s;
+  if(SN.obj){if(!SNAPS)buildSnaps();let best=null,bs=1e9;for(const s of SNAPS){if(s.k!=='port'&&!OS[s.k])continue;const d=dist(s.p,p);if(d>tol)continue;const sc=d+(s.k==='mid'?3/view.s:0)-(s.k==='port'?2/view.s:0);if(sc<bs){bs=sc;best=s}}
+    if(best){if(best.k==='port')return _sa(p,base);acqDwell(best.p);PORTLAB='';PORTSNAP=null;return{p:cp(best.p),k:best.k}}
+    DW.p=null;clearTimeout(DW.timer);const dy=dynSnap(p,base,tol);if(dy){PORTLAB='';PORTSNAP=null;return dy}}
+  if(SN.otrack&&SN.obj&&ACQ.length){const t=trackSnap(p,base);if(t){PORTLAB='';PORTSNAP=null;return t}}
+  if(base&&SN.polar&&!SN.ortho){const t=polarSnap(p,base);if(t){PORTLAB='';PORTSNAP=null;return t}}
+  const o=SN.obj;SN.obj=false;try{return _sa(p,base)}finally{SN.obj=o}}}
+// ---- toggles F3 / F8 / F9 / F10 / F11 & status bar
+{const f=$('footer'),o=$('#tgOrtho');o.insertAdjacentHTML('afterend','<button class="tg" id="tgPolar" title="F10 — มุมขั้ว (Polar tracking) คลิกขวาเพื่อตั้งค่ามุม">มุมขั้ว</button><button class="tg" id="tgOtrack" title="F11 — ติดตามจุด (Object snap tracking): ชี้ค้างที่จุดเพื่อเก็บจุดอ้างอิง">ติดตามจุด</button><button class="tg" id="tgOsSet" title="ตั้งค่าจับจุดและการติดตาม (OS)">⚙</button>');
+  $('#tgObj').title='F3 — จับจุดวัตถุ (OSNAP) คลิกขวาเพื่อเลือกชนิดจุด';$('#tgGrid').title='F9 — ปัดระยะ (SNAP)';$('#tgOrtho').title='F8 — ตั้งฉาก (ORTHO)'}
+function syncTg(){[['tgObj','obj'],['tgGrid','grid'],['tgOrtho','ortho'],['tgPolar','polar'],['tgOtrack','otrack']].forEach(([id,k])=>{const b=$('#'+id);if(b)b.classList.toggle('on',!!SN[k])})}
+{const _ts=toggleSnap;toggleSnap=function(k){const N={obj:'จับจุด (OSNAP)',grid:'ปัดระยะ (SNAP)',ortho:'ตั้งฉาก (ORTHO)',polar:'มุมขั้ว (POLAR)',otrack:'ติดตามจุด (OTRACK)'};
+  if(k==='polar'||k==='otrack'){SN[k]=!SN[k];if(k==='polar'&&SN.polar)SN.ortho=false;if(k==='otrack'&&!SN.otrack)ACQ=[]}else{_ts(k);if(k==='ortho'&&SN.ortho)SN.polar=false}
+  syncTg();saveOS();log(N[k]+(SN[k]?' เปิด':' ปิด'));draw2()}}
+$('#tgPolar').onclick=()=>toggleSnap('polar');$('#tgOtrack').onclick=()=>toggleSnap('otrack');$('#tgOsSet').onclick=()=>openOsnap();
+['tgObj','tgPolar','tgOtrack'].forEach(id=>$('#'+id).addEventListener('contextmenu',e=>{e.preventDefault();openOsnap()}));syncTg();
+{const st=document.createElement('style');st.textContent=`#cmdHist{position:absolute;left:8px;bottom:46px;max-width:min(620px,72%);font:12px/1.45 ui-monospace,Menlo,Consolas,"IBM Plex Sans Thai",monospace;color:var(--ink);background:color-mix(in srgb,var(--panel) 85%,transparent);border:1px solid var(--line);border-radius:6px;padding:4px 8px;pointer-events:none;white-space:pre-wrap;z-index:4}
+#cmdHist:empty{display:none}#cmdHist.big{max-height:42vh;overflow:auto;pointer-events:auto}#cmdHist div{overflow:hidden;text-overflow:ellipsis}
+#cmdAC{position:fixed;z-index:50;display:none;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:3px;min-width:280px;box-shadow:0 8px 24px rgba(0,0,0,.25);font-size:13px}
+#cmdAC div{display:flex;gap:8px;align-items:center;padding:5px 8px;border-radius:5px;cursor:pointer}#cmdAC div.on,#cmdAC div:hover{background:var(--accfill);color:var(--accink)}#cmdAC b{min-width:92px;font-family:ui-monospace,Menlo,Consolas,monospace}#cmdAC kbd{font:11px ui-monospace,monospace;opacity:.75;min-width:30px}
+#cmd{width:240px;font-family:ui-monospace,Menlo,Consolas,"IBM Plex Sans Thai",monospace}#prompt{font-variant-numeric:tabular-nums}
+.osg{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;margin:6px 0 10px}.osg label{display:flex;align-items:center;gap:8px;font-size:13.5px}.osg i{font-style:normal;width:18px;text-align:center;color:var(--acc)}.osg small{color:var(--muted)}`;document.head.appendChild(st)}
+// ---- command history (F2 expands)
+const CMDLOG=[];{const h=document.createElement('div');h.id='cmdHist';$('#v2wrap').appendChild(h)}
+function log(t){if(!t)return;CMDLOG.push(String(t));if(CMDLOG.length>300)CMDLOG.splice(0,CMDLOG.length-300);renderHist()}
+function renderHist(){const h=$('#cmdHist');if(!h)return;const big=h.classList.contains('big'),L=big?CMDLOG:CMDLOG.slice(-3);h.innerHTML=L.map(t=>`<div>${esc(t)}</div>`).join('');if(big)h.scrollTop=h.scrollHeight}
+{const _t=toast;toast=function(m){log('ⓘ '+m);return _t(m)}}
+// ---- autocomplete
+const AC=document.createElement('div');AC.id='cmdAC';document.body.appendChild(AC);let ACI=0,ACL=[];
+function acHide(){AC.style.display='none';ACL=[]}
+function acRender(){AC.innerHTML=ACL.map((c,i)=>`<div class="${i===ACI?'on':''}" data-i="${i}"><b>${c.en}</b><kbd>${esc(c.names[0].toUpperCase())}</kbd><span>${esc(c.th)}</span></div>`).join('');const r=cmd.getBoundingClientRect();AC.style.display='block';AC.style.left=Math.max(6,Math.min(r.left,innerWidth-AC.offsetWidth-6))+'px';AC.style.bottom=(innerHeight-r.top+4)+'px';AC.style.top='auto'}
+function acUpdate(){const v=cmd.value.trim().toLowerCase();if(!/^[a-z]+$/.test(v)){acHide();return}ACL=acFind(v);if(!ACL.length){acHide();return}ACI=0;acRender()}
+AC.addEventListener('mousedown',e=>{const d=e.target.closest('[data-i]');if(!d)return;e.preventDefault();const c=ACL[+d.dataset.i];cmd.value='';acHide();cmd.blur();log('» '+c.names[0].toUpperCase());c.run()});
+// ---- command line: letters = command (or option inside a command), @ relative coordinates
+const INHIST=[];let INI=-1;
+function toolOption(o){const t=T.name;
+  if(['line','wall','beam'].includes(t)&&T.pts.length){if(o==='c'&&CHAIN.length>=3){click2(cp(CHAIN[0]));setTool('select');return true}
+    if(o==='u'){if(CHAIN.length>1){undo();CHAIN.pop();T.pts=[cp(CHAIN[CHAIN.length-1])];updatePrompt();draw2()}else{T.pts=[];CHAIN=[];updatePrompt();draw2()}return true}}
+  if(POLYT.includes(t)&&T.pts.length){if(o==='c'){finishPoly(!OPENT.includes(t));return true}if(o==='u'){T.pts.pop();updatePrompt();draw2();return true}}
+  return false}
+{const _rc=runCmd;runCmd=function(t){t=String(t||'').trim();if(!t){enterAction();return}log('» '+t);if(INHIST[INHIST.length-1]!==t)INHIST.push(t);INI=-1;const lc=t.toLowerCase();
+  if(/^[a-z]+$/.test(lc)){if(toolOption(lc))return;const c=CMDMAP[lc]||acFind(lc)[0];acHide();if(c){c.run();return}toast('ไม่รู้จักคำสั่ง "'+t+'" — พิมพ์ตัวแรกเพื่อดูรายการคำสั่ง');return}
+  let m;const base=T.pts.length?T.pts[T.pts.length-1]:null;
+  if(m=t.match(/^@\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)$/)){if(base)return _rc(m[1]+','+m[2]);if(!LASTPT){toast('ยังไม่มีจุดล่าสุดสำหรับ @');return}return _rc('#'+r3(LASTPT.x+ +m[1])+','+r3(LASTPT.y+ +m[2]))}
+  if(m=t.match(/^@\s*(-?[\d.]+)\s*<\s*(-?[\d.]+)$/)){if(base)return _rc(m[1]+'<'+m[2]);if(!LASTPT){toast('ยังไม่มีจุดล่าสุดสำหรับ @');return}const a=rad(+m[2]);return _rc('#'+r3(LASTPT.x+ +m[1]*Math.cos(a))+','+r3(LASTPT.y+ +m[1]*Math.sin(a)))}
+  return _rc(t)}}
+function enterAction(){const v=cmd.value.trim();if(v){cmd.value='';acHide();runCmd(v);return}
+  if(T.phase==='pick'){okStep();return}
+  if(T.name==='select'){if(LASTCMD){log('ทำซ้ำคำสั่ง: '+(CMDN[LASTCMD]||LASTCMD));setTool(LASTCMD)}else toast('พิมพ์ชื่อคำสั่ง เช่น L, C, M แล้วกด Enter หรือ Space');return}
+  const had=T.pts.length>0||!!T.ref;okStep();if(had&&T.name!=='select'&&!['scale','array'].includes(T.name))setTool('select')}
+cmd.placeholder='คำสั่ง เช่น L, C, M, TR • ระยะ หรือ @3,2';
+cmd.addEventListener('keydown',e=>{const acv=AC.style.display==='block';
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();e.stopImmediatePropagation();if(acv&&ACL.length){ACI=(ACI+(e.key==='ArrowDown'?1:-1)+ACL.length)%ACL.length;acRender()}else if(INHIST.length){INI=INI<0?INHIST.length:INI;INI=Math.max(0,Math.min(INHIST.length,INI+(e.key==='ArrowUp'?-1:1)));cmd.value=INHIST[INI]||''}return}
+  if(e.key==='Tab'&&acv&&ACL[ACI]){e.preventDefault();cmd.value=ACL[ACI].names[0];acHide();return}
+  if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopImmediatePropagation();let v=cmd.value.trim();if(acv&&ACL[ACI]&&/^[a-z]+$/i.test(v)&&!CMDMAP[v.toLowerCase()])v=ACL[ACI].names[0];cmd.value='';acHide();cmd.blur();if(v)runCmd(v);else enterAction();draw2();return}
+  if(e.key==='Escape')acHide()},true);
+cmd.addEventListener('input',()=>{acUpdate();draw2()});cmd.addEventListener('blur',()=>setTimeout(()=>{if(document.activeElement!==cmd)acHide()},120));
+// ---- keyboard: Enter / Space = Enter (repeat last command), Space-drag still pans, F2 history, F10 polar, F11 otrack
+window.addEventListener('keydown',e=>{const tg=e.target,inField=tg&&(tg.tagName==='INPUT'||tg.tagName==='SELECT'||tg.tagName==='TEXTAREA');
+  if(e.key==='F10'||e.key==='F11'||e.key==='F2'){e.preventDefault();e.stopImmediatePropagation();if(e.key==='F2'){$('#cmdHist').classList.toggle('big');renderHist()}else toggleSnap(e.key==='F10'?'polar':'otrack');return}
+  if(inField||document.querySelector('dialog[open]'))return;
+  if(e.key===' '){e.preventDefault();e.stopImmediatePropagation();if(!e.repeat){spaceDown=true;SPACEPAN=false}return}
+  if(e.key==='Enter'&&!e.ctrlKey&&!e.metaKey){e.preventDefault();e.stopImmediatePropagation();enterAction();return}
+  if(e.key==='Escape'){ACQ=[];acHide()}},true);
+window.addEventListener('keyup',e=>{if(e.key!==' ')return;const tg=e.target,inField=tg&&(tg.tagName==='INPUT'||tg.tagName==='SELECT'||tg.tagName==='TEXTAREA');if(inField||document.querySelector('dialog[open]'))return;spaceDown=false;if(!SPACEPAN)enterAction()},true);
+window.addEventListener('keydown',()=>setTimeout(()=>{if(document.activeElement===cmd){acUpdate();draw2()}},0));
+cv2.addEventListener('pointerdown',()=>{if(spaceDown)SPACEPAN=true},true);
+// ---- remember last command, last point, line chain; prompt in AutoCAD style
+{const _st=setTool;setTool=function(n){const prev=T.name;_st(n);ACQ=[];if(n!=='select'){LASTCMD=n;if(n!==prev)log('คำสั่ง: '+(CMDN[n]||n.toUpperCase())+' — '+(TNAME[n]||''))}CHAIN=[]}}
+{const _c2=click2;click2=function(p){if(p&&T.name!=='select'){if(['line','wall','beam'].includes(T.name)){if(!T.pts.length)CHAIN=[cp(p)];else CHAIN.push(cp(p))}LASTPT=cp(p)}return _c2(p)}}
+{const _up=updatePrompt;updatePrompt=function(){_up();const P=$('#prompt');if(!P)return;
+  if(T.name==='select'&&T.phase!=='pick')P.textContent='คำสั่ง: พิมพ์ชื่อคำสั่งแบบ AutoCAD (L, PL, C, REC, M, CO, RO, MI, O, TR, EX…) แล้ว Enter/Space'+(LASTCMD?' • Enter = ทำซ้ำ '+(CMDN[LASTCMD]||LASTCMD):'')+' • ลากซ้าย→ขวา = เลือกทั้งชิ้น, ขวา→ซ้าย = ตัดผ่าน';
+  else if(T.name!=='select'){let t=P.textContent;if(['line','wall','beam'].includes(T.name)&&T.pts.length)t+=CHAIN.length>=3?'  [ปิดรูป C / ย้อน U]':'  [ย้อน U]';else if(POLYT.includes(T.name)&&T.pts.length)t+=OPENT.includes(T.name)?'  [จบ C / ย้อน U]':'  [ปิดรูป C / ย้อน U]';P.textContent=(CMDN[T.name]||T.name.toUpperCase())+' — '+t}
+  if(P.textContent!==LASTPROMPT){LASTPROMPT=P.textContent;if(T.name!=='select')log(P.textContent)}}}
+// ---- crossing selection (right → left): anything the box touches
+function elOutline(e){const S_=[],poly=(P,cl)=>{if(!P||!P.length)return;for(let i=0;i<P.length-(cl?0:1);i++)S_.push([P[i],P[(i+1)%P.length]])};
+  try{if(e.type==='wall'){wallPolys(e).forEach(p=>poly(p,true));S_.push([wA(e),wB(e)])}
+    else if(e.type==='beam')poly(beamRect(e),true);else if(e.type==='stair')stairFoot(e).forEach(p=>poly(p,true));else if(e.type==='steps')stepsPieces(e).forEach(q=>poly(q.poly,true));
+    else if(e.type==='callout'){const B=calloutBox(e);poly([{x:B.x0,y:B.y0},{x:B.x1,y:B.y0},{x:B.x1,y:B.y1},{x:B.x0,y:B.y1}],true)}
+    else if(e.type==='dim'){const d=dimGeom(e);S_.push([d.p1,d.p2],[e.a,d.p1],[e.b,d.p2])}
+    else if(e.type==='door'||e.type==='window'){const F=openingFrame(e);if(F)S_.push([add(F.c,mul(F.u,-e.w/2)),add(F.c,mul(F.u,e.w/2))])}
+    else if(e.type==='roof')poly(roofOuter(e),true);else if(e.a&&e.b)S_.push([e.a,e.b]);
+    else if(e.pts)poly(e.pts,!(['pipe','wire','rail'].includes(e.type)||(e.type==='pline'&&!e.closed)));
+    else if(e.type==='circle'){const P=[];for(let i=0;i<32;i++)P.push(add(e.c,{x:e.r*Math.cos(i/32*Math.PI*2),y:e.r*Math.sin(i/32*Math.PI*2)}));poly(P,true)}
+    else if(e.type==='arc'){const P=[],sp=normA(e.a1-e.a0)||360;for(let i=0;i<=24;i++){const a=rad(e.a0+sp*i/24);P.push(add(e.c,{x:e.r*Math.cos(a),y:e.r*Math.sin(a)}))}poly(P,false)}
+    else if(e.type==='text'){const b=textBox(e);poly(rectPts(e.p,b.w,b.h,e.rot),true)}
+    else if(e.p&&e.w)poly(rectPts(e.p,+e.w,+e.d||+e.w,e.rot),true);else if(e.p)S_.push([e.p,e.p])}catch(_){}return S_}
+function crossHit(e,R){const ins=q=>q.x>=R.x0&&q.x<=R.x1&&q.y>=R.y0&&q.y<=R.y1;if(keyPts(e).some(ins))return true;
+  const E=[[{x:R.x0,y:R.y0},{x:R.x1,y:R.y0}],[{x:R.x1,y:R.y0},{x:R.x1,y:R.y1}],[{x:R.x1,y:R.y1},{x:R.x0,y:R.y1}],[{x:R.x0,y:R.y1},{x:R.x0,y:R.y0}]];
+  return elOutline(e).some(([a,b])=>ins(a)||ins(b)||E.some(([c,d])=>segInt(a,b,c,d)))}
+cv2.addEventListener('pointerup',()=>{if(!press||press.mode!=='box'||!boxSel)return;const a=boxSel.a,b=boxSel.b;if(b.x>=a.x)return;const R={x0:Math.min(a.x,b.x),x1:Math.max(a.x,b.x),y0:Math.min(a.y,b.y),y1:Math.max(a.y,b.y)};
+  if(!press.shift&&T.phase!=='pick')sel.clear();S.els.filter(x=>onLevel(x)&&!discLocked(x)&&!hiddenInDisc(x)).forEach(el=>{if(crossHit(el,R))sel.add(el.id)});boxSel=null;onSel();if(sel.size)log('เลือกแบบตัดผ่าน (Crossing): '+sel.size+' ชิ้น')},true);
+// ---- on-screen overlay: selection box colours, pre-selection highlight, snap markers & labels, tracking lines, dynamic input
+const G0=cv2.getContext('2d'),SNL=Object.fromEntries(OSL.map(o=>[o[0],o[1]+' ('+o[2]+')'])),NEWK=['qua','per','tan','nea','pol','trk'];
+function tipAt(x,y,t,col){g.save();g.font='500 12px "IBM Plex Sans Thai",system-ui,sans-serif';const w=g.measureText(t).width+12;x=Math.min(x,W2-w-4);g.globalAlpha=.95;g.fillStyle=C['panel'];g.fillRect(x,y-10,w,20);g.globalAlpha=1;g.strokeStyle=col||C['muted'];g.lineWidth=1;g.strokeRect(x+.5,y-9.5,w-1,19);g.fillStyle=C['ink'];g.textBaseline='middle';g.textAlign='left';g.fillText(t,x+6,y);g.restore()}
+function farLine(A,B,col){const dx=B.x-A.x,dy=B.y-A.y,L=Math.hypot(dx,dy)||1,u={x:dx/L,y:dy/L};g.save();g.strokeStyle=col;g.lineWidth=1;g.setLineDash([3,4]);g.beginPath();g.moveTo(A.x,A.y);g.lineTo(A.x+u.x*4000,A.y+u.y*4000);g.stroke();g.restore()}
+function overlay10(){g.setTransform(DPR,0,0,DPR,0,0);
+  if(isSelecting()&&!press&&!boxSel&&raw&&mouse){const h=hitTest(raw,7);if(h&&!sel.has(h.id)){g.save();g.globalAlpha=.45;drawAny(h,'s');g.restore()}}
+  if(boxSel){const a=ws(boxSel.a),b=ws(boxSel.b),cr=boxSel.b.x<boxSel.a.x;g.save();g.fillStyle=cr?'rgba(60,190,100,.12)':'rgba(61,130,233,.12)';g.strokeStyle=cr?'#3cbe64':'#3d82e9';g.lineWidth=1.2;g.setLineDash(cr?[6,4]:[]);
+    const x=Math.min(a.x,b.x),y=Math.min(a.y,b.y),w=Math.abs(b.x-a.x),h=Math.abs(b.y-a.y);g.fillRect(x,y,w,h);g.strokeRect(x,y,w,h);g.restore();tipAt(b.x+14,b.y+20,cr?'ตัดผ่าน (Crossing) — เลือกทุกชิ้นที่แตะกรอบ':'หน้าต่าง (Window) — เลือกชิ้นที่อยู่ในกรอบทั้งหมด',cr?'#3cbe64':'#3d82e9')}
+  ACQ.forEach(p=>{const s=ws(p);g.save();g.strokeStyle='#3cbe64';g.lineWidth=1.6;g.beginPath();g.moveTo(s.x-6,s.y);g.lineTo(s.x+6,s.y);g.moveTo(s.x,s.y-6);g.lineTo(s.x,s.y+6);g.stroke();g.restore()});
+  if(!mouse||isSelecting())return;const s=ws(mouse),k=snapK;
+  if(k==='trk'&&SNX&&SNX.trk)SNX.trk.forEach(([a,q])=>{const A=ws(a),Q=ws(q);farLine(A,Q,'#3cbe64');farLine(Q,A,'#3cbe64')});
+  if((k==='pol'||k==='trk')&&SNX&&SNX.pol){const B=ws(SNX.pol.base);farLine(B,ws(SNX.pol.q),'#3d82e9')}
+  g.save();g.strokeStyle=C['sel'];g.lineWidth=1.6;g.beginPath();
+  if(k==='qua'){g.moveTo(s.x,s.y-7);g.lineTo(s.x+7,s.y);g.lineTo(s.x,s.y+7);g.lineTo(s.x-7,s.y);g.closePath()}
+  else if(k==='per'){g.moveTo(s.x-7,s.y-7);g.lineTo(s.x-7,s.y+7);g.lineTo(s.x+7,s.y+7);g.moveTo(s.x-7,s.y);g.lineTo(s.x,s.y);g.lineTo(s.x,s.y+7)}
+  else if(k==='tan'){g.arc(s.x,s.y,6,0,7);g.moveTo(s.x-8,s.y-6);g.lineTo(s.x+8,s.y-6)}
+  else if(k==='nea'){g.moveTo(s.x-6,s.y-6);g.lineTo(s.x+6,s.y-6);g.lineTo(s.x-6,s.y+6);g.lineTo(s.x+6,s.y+6);g.closePath()}
+  else if(k==='pol'||k==='trk'){g.moveTo(s.x-4,s.y-4);g.lineTo(s.x+4,s.y+4);g.moveTo(s.x+4,s.y-4);g.lineTo(s.x-4,s.y+4)}g.stroke();g.restore();
+  if(k&&SNL[k])tipAt(s.x+14,s.y-26,SNL[k],C['sel']);
+  else if(k==='pol'&&SNX&&SNX.pol)tipAt(s.x+14,s.y-26,'มุมขั้ว: '+f2(SNX.pol.L)+' < '+(Math.round(SNX.pol.ang*10)/10)+'°','#3d82e9');
+  else if(k==='trk'&&SNX)tipAt(s.x+14,s.y-26,SNX.pol?'ติดตาม + มุมขั้ว '+(Math.round(SNX.pol.ang*10)/10)+'°':'ติดตามจุด','#3cbe64');
+  if(document.activeElement===cmd&&cmd.value)tipAt(s.x+14,s.y+40,'› '+cmd.value+'▏',C['acc'])}
+{const _d=draw2;draw2=function(){const k=snapK,sp=k&&NEWK.includes(k),bs=boxSel;if(sp)snapK=null;boxSel=null;try{_d()}finally{snapK=k;boxSel=bs}if(PRINT||g!==G0)return;try{overlay10()}catch(err){console.warn(err)}}}
+// ---- drafting settings dialog (OS / DS)
+function openOsnap(){let d=$('#osDlg');if(!d){d=document.createElement('dialog');d.id='osDlg';d.style.maxWidth='520px';document.body.appendChild(d)}
+  const SYM={end:'□',mid:'△',cen:'○',int:'✕',qua:'◇',per:'⊥',tan:'◯',nea:'⧗'};
+  d.innerHTML=`<h3>การจับจุดและการติดตาม (Drafting Settings)</h3><p class="hint">เหมือน OSNAP ใน AutoCAD • คลิกขวาที่ปุ่ม จับจุด / มุมขั้ว ในแถบล่าง หรือพิมพ์ OS เพื่อเปิดหน้านี้</p>
+  <label class="ck"><input type="checkbox" id="osOn" ${SN.obj?'checked':''}> เปิดจับจุดวัตถุ (F3)</label>
+  <div class="osg">${OSL.map(([k,th,en])=>`<label><input type="checkbox" data-os="${k}" ${OS[k]?'checked':''}><i>${SYM[k]}</i>${th} <small>${en}</small></label>`).join('')}</div>
+  <div class="row" style="display:flex;gap:6px;margin-bottom:12px"><button class="btn" id="osAll" type="button">เลือกทั้งหมด</button><button class="btn" id="osNone" type="button">ล้างทั้งหมด</button></div>
+  <label class="ck"><input type="checkbox" id="osPol" ${SN.polar?'checked':''}> มุมขั้ว — Polar tracking (F10)</label>
+  <div class="f"><label for="osInc">มุมเพิ่มทีละ</label><select id="osInc">${[90,45,30,22.5,15,10,5].map(v=>`<option value="${v}"${+OS.inc===v?' selected':''}>${v}°</option>`).join('')}</select></div>
+  <label class="ck"><input type="checkbox" id="osTrk" ${SN.otrack?'checked':''}> ติดตามจุด — Object snap tracking (F11)</label>
+  <p class="hint">ติดตามจุด: ชี้ค้างที่จุดจับ (ปลายเส้น กึ่งกลาง ฯลฯ) ประมาณครึ่งวินาทีจนขึ้นเครื่องหมาย + สีเขียว แล้วเลื่อนออกแนวนอนหรือแนวดิ่ง เส้นประจะลากตามแนวจุดนั้น พิมพ์ระยะได้ทันที ชี้ซ้ำเพื่อเลิกเก็บจุด • ตั้งฉาก (F8) กับมุมขั้วเปิดพร้อมกันไม่ได้</p>
+  <div class="acts" style="justify-content:flex-end"><button class="btn pri" id="osX" type="button">ปิด</button></div>`;
+  const apply=()=>{d.querySelectorAll('[data-os]').forEach(c=>OS[c.dataset.os]=c.checked?1:0);OS.inc=+$('#osInc').value;SN.obj=$('#osOn').checked;SN.polar=$('#osPol').checked;if(SN.polar)SN.ortho=false;SN.otrack=$('#osTrk').checked;if(!SN.otrack)ACQ=[];syncTg();saveOS();SNAPS=null;draw2()};
+  d.querySelectorAll('input,select').forEach(c=>c.onchange=apply);$('#osAll').onclick=()=>{d.querySelectorAll('[data-os]').forEach(c=>c.checked=true);apply()};$('#osNone').onclick=()=>{d.querySelectorAll('[data-os]').forEach(c=>c.checked=false);apply()};
+  $('#osX').onclick=()=>d.close();d.showModal?d.showModal():d.setAttribute('open','')}
+{const M=$('#menu'),sg=M.querySelector('.grp[data-g="set"] .mi');if(sg){sg.insertAdjacentHTML('afterbegin','<button data-m="osnap">การจับจุดและการติดตาม (OS)</button>');const c=sg.parentElement.querySelector('.cnt');if(c)c.textContent=sg.querySelectorAll('[data-m]').length}
+  M.addEventListener('click',e=>{const b=e.target.closest('[data-m="osnap"]');if(!b)return;e.stopImmediatePropagation();M.style.display='none';openOsnap()},true)}
+{const _hh=helpHTML;helpHTML=function(){return _hh()+`<details><summary>ใหม่ใน v10.3: ใช้งานแบบ AutoCAD (เฟส 1)</summary><ul>
+  <li><b>บรรทัดคำสั่ง</b>: พิมพ์ชื่อย่อแบบ AutoCAD เช่น <kbd>L</kbd> LINE, <kbd>PL</kbd>, <kbd>C</kbd> CIRCLE, <kbd>A</kbd>, <kbd>REC</kbd>, <kbd>M</kbd>, <kbd>CO</kbd>/<kbd>CP</kbd>, <kbd>RO</kbd>, <kbd>MI</kbd>, <kbd>SC</kbd>, <kbd>O</kbd>, <kbd>TR</kbd>, <kbd>EX</kbd>, <kbd>F</kbd>, <kbd>BR</kbd>, <kbd>AR</kbd>, <kbd>MA</kbd>, <kbd>H</kbd>, <kbd>T</kbd>/<kbd>MT</kbd>, <kbd>DLI</kbd>, <kbd>DI</kbd>, <kbd>E</kbd>, <kbd>U</kbd>, <kbd>Z</kbd>, <kbd>LA</kbd>, <kbd>OS</kbd> หรือชื่อเต็ม เช่น LINE, COPY — พิมพ์ตัวแรกแล้วจะมีรายการให้เลือก (ลูกศรขึ้นลง / Tab)</li>
+  <li>ชื่อย่องานอาคาร: <kbd>W</kbd> ผนัง, <kbd>COL</kbd> เสา, <kbd>B</kbd> คาน, <kbd>SL</kbd> พื้น, <kbd>D</kbd> ประตู, <kbd>WI</kbd> หน้าต่าง, <kbd>G</kbd> กริด ฯลฯ (เปลี่ยนจากเดิม: เสา C → COL, พื้น S → SL, วงกลม CI → C)</li>
+  <li><b>Enter หรือ Space</b> = ตกลง/จบคำสั่ง • กดอีกครั้งเมื่อว่าง = ทำคำสั่งล่าสุดซ้ำ • ลูกศรขึ้นในช่องคำสั่ง = เรียกสิ่งที่พิมพ์ก่อนหน้า • Space ค้างแล้วลากยังเลื่อนจอได้</li>
+  <li>ระหว่าง LINE / ผนัง / คาน พิมพ์ <kbd>C</kbd> ปิดรูป, <kbd>U</kbd> ย้อนเส้นล่าสุด • เส้นต่อเนื่อง/แรเงา พิมพ์ C ปิด, U ลบจุดล่าสุด</li>
+  <li><b>พิกัด</b>: <kbd>@3,2</kbd> ระยะสัมพัทธ์ • <kbd>@5&lt;45</kbd> ระยะ+มุม • <kbd>#10,5</kbd> พิกัดสัมบูรณ์ • พิมพ์แค่ตัวเลข = ระยะตามทิศเมาส์ (Direct distance)</li>
+  <li><b>จับจุด (F3)</b>: ปลายเส้น กึ่งกลาง ศูนย์กลาง จุดตัด ควอดแรนต์ ตั้งฉาก สัมผัส ใกล้สุด มีป้ายบอกชนิดจุด เลือกชนิดได้ด้วยคลิกขวาที่ปุ่ม หรือพิมพ์ OS</li>
+  <li><b>มุมขั้ว (F10)</b> ล็อกตามมุมที่ตั้ง (90/45/30/15…) พร้อมเส้นประและป้ายระยะ<มุม • <b>ติดตามจุด (F11)</b> ชี้ค้างที่จุดเพื่อเก็บจุดอ้างอิง (+ สีเขียว) แล้วเดินตามแนวนอน/ดิ่ง หรือจุดตัดของแนวสองจุด</li>
+  <li><b>เลือกวัตถุ</b>: ลากซ้าย→ขวา = หน้าต่างสีฟ้า (เลือกชิ้นที่อยู่ในกรอบทั้งหมด) • ลากขวา→ซ้าย = ตัดผ่านสีเขียว (เลือกทุกชิ้นที่แตะ) • ชี้วัตถุแล้วไฮไลต์ก่อนคลิก</li>
+  <li>ประวัติคำสั่งแสดงเหนือแถบล่าง กด <kbd>F2</kbd> เพื่อขยายดูทั้งหมด • STRETCH, CHAMFER, JOIN, EXPLODE จะมาในเฟส 2</li></ul></details>`}}
+$('#verL').textContent='v10.3';
+
+// ================= v10.4: phase 2 — full modify set: STRETCH, CHAMFER, JOIN, EXPLODE, LENGTHEN, two-point BREAK, FILLET radius, TRIM/EXTEND on circles/arcs/polylines, fence trim, Shift swaps TRIM/EXTEND, OFFSET Through, ROTATE/SCALE Copy & Reference
+{const ic={stretch:'<path d="M3 8h8v8H3z"/><path d="M11 12h9M17 9l3 3-3 3"/>',chamfer:'<path d="M4 20V11l7-7h9"/>',join:'<path d="M3 12h6M15 12h6"/><path d="M9 9l3 3-3 3M15 9l-3 3 3 3"/>',
+    explode:'<path d="M12 3v5M12 16v5M3 12h5M16 12h5M6 6l3 3M15 15l3 3M18 6l-3 3M6 18l3-3"/>',lengthen:'<path d="M3 12h11"/><path d="M14 12h4" stroke-dasharray="2 2"/><path d="M18 9l3 3-3 3"/>'};
+  const at=TOOLS.findIndex(t=>t[0]==='array')+1||TOOLS.length;
+  TOOLS.splice(at,0,['stretch','ยืดวัตถุ','s',ic.stretch,'แก้ไข'],['chamfer','ลบมุม','cha',ic.chamfer,'แก้ไข'],['join','รวมเส้น','j',ic.join,'แก้ไข'],['explode','ระเบิด','x',ic.explode,'แก้ไข'],['lengthen','ยืด/หดเส้น','len',ic.lengthen,'แก้ไข']);
+  Object.assign(TNAME,{stretch:'ยืดวัตถุ',chamfer:'ลบมุม',join:'รวมเส้น',explode:'ระเบิด',lengthen:'ยืด/หดเส้น'});
+  Object.assign(CMDN,{stretch:'STRETCH',chamfer:'CHAMFER',join:'JOIN',explode:'EXPLODE',lengthen:'LENGTHEN'});
+  Object.assign(XAL,{lengthen:['len','lengthen'],stretch:['s','stretch'],chamfer:['cha','chamfer'],join:['j','join'],explode:['x','explode']});
+  D.fillet=Object.assign({r:0},D.fillet||{});D.chamfer={d1:0.1,d2:0.1};D.lengthen={d:0.5};
+  FIELDS.fillet=[['รัศมีต่อมุม (ม.) — 0 = มุมคม','r']];FIELDS.chamfer=[['ระยะลบมุม เส้นแรก (ม.)','d1'],['ระยะลบมุม เส้นที่สอง (ม.)','d2']];FIELDS.lengthen=[['ระยะยืด (+) / หด (−) (ม.)','d']];
+  NEEDSEL.push('join','explode');
+  {const _b=buildCmds;buildCmds=function(){_b();const seen=new Set();CMDLIST=CMDLIST.filter(c=>{if(seen.has(c.id))return false;seen.add(c.id);return true});CMDMAP={};CMDLIST.forEach(c=>c.names.forEach(n=>{if(!CMDMAP[n])CMDMAP[n]=c}))}}
+  buildCmds()}
+let SHIFT=false,RUB=null;
+window.addEventListener('keydown',e=>{if(e.key==='Shift')SHIFT=true},true);window.addEventListener('keyup',e=>{if(e.key==='Shift')SHIFT=false},true);window.addEventListener('blur',()=>{SHIFT=false});
+cv2.addEventListener('pointerdown',e=>{SHIFT=e.shiftKey},true);
+// ---- small geometry helpers
+const P2A=(c,q)=>normA(deg(Math.atan2(q.y-c.y,q.x-c.x))),APT=(c,r,a)=>({x:c.x+r*Math.cos(rad(a)),y:c.y+r*Math.sin(rad(a))}),R3P=q=>({x:r3(q.x),y:r3(q.y)});
+const plSpecial=e=>e.type==='pline'&&(e.leader==='1'||e.cloud==='1'||e.land==='1'||!!e.hatch);
+const TRIMF=e=>SEGT.includes(e.type)||e.type==='circle'||e.type==='arc'||(e.type==='pline'&&!plSpecial(e)&&e.pts&&e.pts.length>=2);
+const inR=(R,q)=>!!q&&q.x>=R.x0-1e-9&&q.x<=R.x1+1e-9&&q.y>=R.y0-1e-9&&q.y<=R.y1+1e-9;
+const mkR=(a,b)=>({x0:Math.min(a.x,b.x),x1:Math.max(a.x,b.x),y0:Math.min(a.y,b.y),y1:Math.max(a.y,b.y)});
+function group(fn){let r;mutate(()=>{const sv=mutate;mutate=f=>f();try{r=fn()}finally{mutate=sv}});return r}
+function circInt(c1,r1,c2,r2){const d=dist(c1,c2);if(d<1e-9||d>r1+r2+1e-9||d<Math.abs(r1-r2)-1e-9)return[];const a=(r1*r1-r2*r2+d*d)/(2*d),h=Math.sqrt(Math.max(0,r1*r1-a*a)),u=nrm(sub(c2,c1)),m=add(c1,mul(u,a)),n=perp(u);return h<1e-9?[m]:[add(m,mul(n,h)),add(m,mul(n,-h))]}
+// cutting edges: other segments (lines/walls/beams/grids, polyline/slab/room edges) + circles/arcs
+function segCuts(a,b,exId){const ts=[];cutSegs(exId).forEach(([c,d])=>{const t=lineSegT(a,b,c,d);if(t!=null)ts.push(t)});
+  cutCircles(exId).forEach(o=>lineCircleT(a,b,o.c,o.r).forEach(t=>{const q=lerp(a,b,t);if(o.type==='circle'||angIn(P2A(o.c,q),o.a0,o.a1))ts.push(t)}));return ts}
+function circCuts(c,r,exId){const as=[];cutSegs(exId).forEach(([a,b])=>lineCircleT(a,b,c,r).forEach(t=>{if(t>=-1e-9&&t<=1+1e-9)as.push(P2A(c,lerp(a,b,t)))}));
+  cutCircles(exId).forEach(o=>circInt(c,r,o.c,o.r).forEach(q=>{if(o.type==='circle'||angIn(P2A(o.c,q),o.a0,o.a1))as.push(P2A(c,q))}));
+  return [...new Set(as.map(a=>Math.round(a*1e6)/1e6))].sort((x,y)=>x-y)}
+// polyline parametrisation by length
+function plSegs(e){const P=e.pts,n=P.length,m=e.closed?n:n-1,S2=[];let c=0;for(let i=0;i<m;i++){const a=P[i],b=P[(i+1)%n],l=dist(a,b);S2.push({a,b,l,c});c+=l}return{S:S2,L:c,closed:!!e.closed}}
+function plPos(G,p){let best=null;G.S.forEach(s=>{const d=segDist(p,s.a,s.b);if(!best||d.d<best.d)best={d:d.d,s:s.c+d.t*s.l}});return best?best.s:0}
+function plAt(G,s){for(const q of G.S){if(s<=q.c+q.l+1e-9)return lerp(q.a,q.b,q.l>0?Math.max(0,Math.min(1,(s-q.c)/q.l)):0)}return cp(G.S[G.S.length-1].b)}
+function plSub(G,s0,s1){const out=[plAt(G,s0)];G.S.forEach(q=>{const v=q.c+q.l;if(v>s0+1e-9&&v<s1-1e-9)out.push(cp(q.b))});out.push(plAt(G,s1));return out.map(R3P)}
+function plSubW(G,s0,s1){return s1>s0?plSub(G,s0,s1):[...plSub(G,s0,G.L),...plSub(G,0,s1).slice(1)]}
+function plClone(e,pts,closed){const c=clone(e);c.id=nid();c.pts=pts;c.closed=!!closed;return c}
+// ---- TRIM / EXTEND plans (preview + action)
+function trimPlan(e,p){
+  if(SEGT.includes(e.type)){const tc=segDist(p,e.a,e.b).t,ts=[0,1,...segCuts(e.a,e.b,e.id).filter(t=>t>1e-6&&t<1-1e-6)].sort((a,b)=>a-b);let i=0;while(i<ts.length-2&&ts[i+1]<tc)i++;const t0=ts[i],t1=ts[i+1];if(t0===0&&t1===1)return null;
+    return{show:{seg:[lerp(e.a,e.b,t0),lerp(e.a,e.b,t1)]},go:()=>{const A=cp(e.a),B=cp(e.b);if(t0===0)setSegEnds(e,R3P(lerp(A,B,t1)),B);else if(t1===1)setSegEnds(e,A,R3P(lerp(A,B,t0)));else{const e2=splitSeg(e,t0,t1);e.b=R3P(e.b);e2.a=R3P(e2.a)}}}}
+  if(e.type==='circle'){const as=circCuts(e.c,e.r,e.id);if(as.length<2)return null;const ac=P2A(e.c,p);let k=as.length-1;for(let i=0;i<as.length;i++){if(angIn(ac,as[i],as[(i+1)%as.length])){k=i;break}}
+    const a0=as[k],a1=as[(k+1)%as.length];return{show:{arc:{c:e.c,r:e.r,a0,a1}},go:()=>{e.type='arc';e.a0=r3(a1);e.a1=r3(a0)}}}
+  if(e.type==='arc'){const sw=normA(e.a1-e.a0)||360,sa=a=>normA(a-e.a0),sc=Math.min(sw,sa(P2A(e.c,p)));const ts=[0,sw,...circCuts(e.c,e.r,e.id).map(sa).filter(s=>s>1e-4&&s<sw-1e-4)].sort((a,b)=>a-b);
+    let i=0;while(i<ts.length-2&&ts[i+1]<sc)i++;const t0=ts[i],t1=ts[i+1];if(t0===0&&t1===sw)return null;const A0=e.a0,A1=e.a1;
+    return{show:{arc:{c:e.c,r:e.r,a0:A0+t0,a1:A0+t1}},go:()=>{if(t0===0)e.a0=r3(normA(A0+t1));else if(t1===sw)e.a1=r3(normA(A0+t0));else{const e2=clone(e);e2.id=nid();e2.a0=r3(normA(A0+t1));e2.a1=A1;e.a1=r3(normA(A0+t0));S.els.splice(S.els.indexOf(e)+1,0,e2)}}}}
+  if(e.type==='pline'){const G=plSegs(e);if(G.L<1e-9)return null;const cuts=[];G.S.forEach(q=>segCuts(q.a,q.b,e.id).forEach(t=>{if(t>1e-6&&t<1-1e-6)cuts.push(q.c+t*q.l)}));cuts.sort((a,b)=>a-b);const sc=plPos(G,p);
+    if(!G.closed){const ts=[0,...cuts,G.L];let i=0;while(i<ts.length-2&&ts[i+1]<sc)i++;const t0=ts[i],t1=ts[i+1];if(t0===0&&t1===G.L)return null;
+      return{show:{pts:plSub(G,t0,t1)},go:()=>{const keep=[];if(t0>1e-9)keep.push(plSub(G,0,t0));if(t1<G.L-1e-9)keep.push(plSub(G,t1,G.L));e.pts=keep[0];if(keep[1])S.els.splice(S.els.indexOf(e)+1,0,plClone(e,keep[1],false))}}}
+    if(cuts.length<2)return null;let k=cuts.length-1;for(let i=0;i<cuts.length-1;i++)if(sc>=cuts[i]&&sc<=cuts[i+1]){k=i;break}
+    const s0=cuts[k],s1=k===cuts.length-1?cuts[0]:cuts[k+1];return{show:{pts:plSubW(G,s0,s1)},go:()=>{e.pts=plSubW(G,s1,s0);e.closed=false}}}
+  return null}
+function extendPlan(e,p){
+  const segX=(a,b,exId)=>{let best=null;segCuts(a,b,exId).forEach(t=>{if(t>1+1e-6&&(best==null||t<best))best=t});return best==null?null:lerp(a,b,best)};
+  if(SEGT.includes(e.type)){const endB=dist(p,e.b)<dist(p,e.a),q=endB?segX(e.a,e.b,e.id):segX(e.b,e.a,e.id);if(!q)return null;
+    return{show:{seg:[endB?e.b:e.a,q]},go:()=>{const A=cp(e.a),B=cp(e.b);endB?setSegEnds(e,A,R3P(q)):setSegEnds(e,R3P(q),B)}}}
+  if(e.type==='pline'&&!e.closed){const P=e.pts,n=P.length,atEnd=dist(p,P[n-1])<dist(p,P[0]),a=atEnd?P[n-2]:P[1],b=atEnd?P[n-1]:P[0],q=segX(a,b,e.id);if(!q)return null;
+    return{show:{seg:[b,q]},go:()=>{e.pts[atEnd?n-1:0]=R3P(q)}}}
+  if(e.type==='arc'){const sw=normA(e.a1-e.a0),atEnd=dist(p,APT(e.c,e.r,e.a1))<dist(p,APT(e.c,e.r,e.a0));let best=null;
+    circCuts(e.c,e.r,e.id).forEach(a=>{const d=atEnd?normA(a-e.a1):normA(e.a0-a);if(d>1e-4&&d<360-sw-1e-4&&(best==null||d<best))best=d});if(best==null)return null;
+    const na=atEnd?normA(e.a1+best):normA(e.a0-best);return{show:{arc:atEnd?{c:e.c,r:e.r,a0:e.a1,a1:na}:{c:e.c,r:e.r,a0:na,a1:e.a0}},go:()=>{if(atEnd)e.a1=r3(na);else e.a0=r3(na)}}}
+  return null}
+function fenceHits(e,f0,f1){const out=[];const sg=(a,b)=>{const q=segInt(a,b,f0,f1);if(q)out.push(q)};
+  if(SEGT.includes(e.type))sg(e.a,e.b);else if(e.type==='circle'||e.type==='arc')lineCircleT(f0,f1,e.c,e.r).forEach(t=>{if(t<0||t>1)return;const q=lerp(f0,f1,t);if(e.type==='circle'||angIn(P2A(e.c,q),e.a0,e.a1))out.push(q)});
+  else if(e.pts){const n=e.pts.length,m=e.closed?n:n-1;for(let i=0;i<m;i++)sg(e.pts[i],e.pts[(i+1)%n])}return out}
+function fenceRun(f0,f1,ext){const hits=[];S.els.forEach(e=>{if(!onLevel(e)||discLocked(e)||!TRIMF(e))return;fenceHits(e,f0,f1).forEach(q=>hits.push(q))});
+  if(!hits.length){toast('เส้น Fence ไม่ผ่านวัตถุใด');return}let n=0;
+  group(()=>{hits.forEach(q=>{const e=hitTest(q,1.5,TRIMF);if(!e)return;const pl=ext?extendPlan(e,q):trimPlan(e,q);if(pl){pl.go();n++}})});
+  if(!n)hist.pop();toast(n?(ext?'ต่อเส้นแล้ว ':'ตัดเส้นแล้ว ')+n+' จุด':(ext?'ไม่พบขอบที่จะต่อไปชน':'ไม่มีเส้นตัดผ่านตรงจุดที่ลาก'))}
+// ---- FILLET with radius, CHAMFER
+function cornerOf(e,p,X){const u=nrm(sub(e.b,e.a)),tc=segDist(p,e.a,e.b).tu,tx=segDist(X,e.a,e.b).tu,keepA=tc<tx;return{u,keepA,v:keepA?mul(u,-1):u,far:keepA?e.a:e.b}}
+function setCorner(e,c,q){c.keepA?setSegEnds(e,cp(e.a),R3P(q)):setSegEnds(e,R3P(q),cp(e.b))}
+function filletR(e1,p1,e2,p2,r){const X=lineLine(e1.a,e1.b,e2.a,e2.b);if(!X){toast('สองเส้นขนานกัน ต่อมุมไม่ได้');return false}
+  const c1=cornerOf(e1,p1,X),c2=cornerOf(e2,p2,X),th=Math.acos(Math.max(-1,Math.min(1,dot(c1.v,c2.v))));if(th<1e-3||Math.PI-th<1e-3){toast('มุมระหว่างเส้นเล็ก/ใหญ่เกินไป');return false}
+  const t=r/Math.tan(th/2);if(dist(X,c1.far)<t-1e-9||dist(X,c2.far)<t-1e-9){toast('รัศมีใหญ่เกินความยาวเส้น');return false}
+  const T1=add(X,mul(c1.v,t)),T2=add(X,mul(c2.v,t)),C=add(X,mul(nrm(add(c1.v,c2.v)),r/Math.sin(th/2)));let a0=P2A(C,T1),a1=P2A(C,T2);if(normA(a1-a0)>180){const s=a0;a0=a1;a1=s}
+  group(()=>{setCorner(e1,c1,T1);setCorner(e2,c2,T2);const arc={id:nid(),type:'arc',level:e1.level,c:R3P(C),r:r3(r),a0:r3(a0),a1:r3(a1)};['disc','layer','lc','lw','lt'].forEach(k=>{if(e1[k]!=null)arc[k]=e1[k]});S.els.push(arc)});toast('ต่อมุมรัศมี '+r+' ม. แล้ว');return true}
+function chamferPair(e1,p1,e2,p2,d1,d2){const X=lineLine(e1.a,e1.b,e2.a,e2.b);if(!X){toast('สองเส้นขนานกัน ลบมุมไม่ได้');return false}
+  const c1=cornerOf(e1,p1,X),c2=cornerOf(e2,p2,X);if(dist(X,c1.far)<d1-1e-9||dist(X,c2.far)<d2-1e-9){toast('ระยะลบมุมยาวเกินเส้น');return false}
+  const q1=add(X,mul(c1.v,d1)),q2=add(X,mul(c2.v,d2));
+  group(()=>{setCorner(e1,c1,q1);setCorner(e2,c2,q2);if(dist(q1,q2)>1e-6){const n=clone(e1);n.id=nid();n.a=R3P(q1);n.b=R3P(q2);delete n.label;S.els.push(n)}});toast(d1||d2?'ลบมุม '+d1+' × '+d2+' ม. แล้ว':'ต่อมุมแล้ว');return true}
+// ---- two-point BREAK
+const BRKF=e=>TRIMF(e);
+function breakAt(e,p1,p2){const same=dist(p1,p2)<1e-6;
+  if(SEGT.includes(e.type)){let t0=segDist(p1,e.a,e.b).t,t1=segDist(p2,e.a,e.b).t;if(t0>t1){const s=t0;t0=t1;t1=s}
+    if(same||t1-t0<1e-6){if(t0<1e-3||t0>1-1e-3){toast('คลิกห่างจากปลายเส้น');return false}mutate(()=>{const e2=splitSeg(e,t0,t0);e.b=R3P(e.b);e2.a=R3P(e2.a)});toast('แยกเป็น 2 ชิ้นที่จุดเดียวแล้ว');return true}
+    if(t0<1e-6&&t1>1-1e-6){toast('ช่วงที่เลือกครอบทั้งเส้น — ใช้ลบ (E) แทน');return false}
+    mutate(()=>{const A=cp(e.a),B=cp(e.b);if(t0<1e-6)setSegEnds(e,R3P(lerp(A,B,t1)),B);else if(t1>1-1e-6)setSegEnds(e,A,R3P(lerp(A,B,t0)));else{const e2=splitSeg(e,t0,t1);e.b=R3P(e.b);e2.a=R3P(e2.a)}});toast('แยกเส้นแล้ว');return true}
+  if(e.type==='circle'){if(same){toast('วงกลมต้องคลิกสองจุด (ส่วนที่หายไปคือทวนเข็มจากจุดแรกไปจุดที่สอง)');return false}const a1=P2A(e.c,p1),a2=P2A(e.c,p2);mutate(()=>{e.type='arc';e.a0=r3(a2);e.a1=r3(a1)});toast('แยกวงกลมเป็นเส้นโค้งแล้ว');return true}
+  if(e.type==='arc'){const sw=normA(e.a1-e.a0)||360,sa=q=>{const s=normA(P2A(e.c,q)-e.a0);return s<=sw?s:(s-sw<360-s?sw:0)};let s0=sa(p1),s1=sa(p2);if(s0>s1){const s=s0;s0=s1;s1=s}const A0=e.a0,A1=e.a1;
+    if(same||s1-s0<1e-4){if(s0<0.05||s0>sw-0.05){toast('คลิกห่างจากปลายเส้นโค้ง');return false}s1=s0}
+    if(s0<1e-4&&s1>sw-1e-4){toast('ช่วงที่เลือกครอบทั้งเส้นโค้ง');return false}
+    mutate(()=>{if(s0<1e-4)e.a0=r3(normA(A0+s1));else if(s1>sw-1e-4)e.a1=r3(normA(A0+s0));else{const e2=clone(e);e2.id=nid();e2.a0=r3(normA(A0+s1));e2.a1=A1;e.a1=r3(normA(A0+s0));S.els.splice(S.els.indexOf(e)+1,0,e2)}});toast('แยกเส้นโค้งแล้ว');return true}
+  if(e.type==='pline'){const G=plSegs(e);let s0=plPos(G,p1),s1=plPos(G,p2);
+    if(G.closed){if(same||Math.abs(s1-s0)<1e-6){mutate(()=>{e.pts=[...plSub(G,s0,G.L),...plSub(G,0,s0).slice(1)];e.closed=false});toast('เปิดรูปปิดที่จุดนี้แล้ว');return true}
+      mutate(()=>{e.pts=plSubW(G,s1,s0);e.closed=false});toast('แยกเส้นต่อแล้ว');return true}
+    if(s0>s1){const s=s0;s0=s1;s1=s}if(same||s1-s0<1e-6){if(s0<1e-3||s0>G.L-1e-3){toast('คลิกห่างจากปลายเส้น');return false}s1=s0}
+    if(s0<1e-6&&s1>G.L-1e-6){toast('ช่วงที่เลือกครอบทั้งเส้น');return false}
+    mutate(()=>{const keep=[];if(s0>1e-6)keep.push(plSub(G,0,s0));if(s1<G.L-1e-6)keep.push(plSub(G,s1,G.L));e.pts=keep[0];if(keep[1])S.els.splice(S.els.indexOf(e)+1,0,plClone(e,keep[1],false))});toast('แยกเส้นต่อแล้ว');return true}
+  return false}
+// ---- LENGTHEN (delta)
+function lenPlan(e,p,dl){
+  if(SEGT.includes(e.type)){const endB=dist(p,e.b)<dist(p,e.a),L=dist(e.a,e.b),nl=L+dl;if(nl<=1e-3)return null;const u=nrm(sub(e.b,e.a));
+    return{go:()=>{const A=cp(e.a),B=cp(e.b);endB?setSegEnds(e,A,R3P(add(A,mul(u,nl)))):setSegEnds(e,R3P(add(B,mul(u,-nl))),B)}}}
+  if(e.type==='pline'&&!e.closed){const P=e.pts,n=P.length,atEnd=dist(p,P[n-1])<dist(p,P[0]),a=atEnd?P[n-2]:P[1],b=atEnd?P[n-1]:P[0],nl=dist(a,b)+dl;if(nl<=1e-3)return null;
+    const q=add(a,mul(nrm(sub(b,a)),nl));return{go:()=>{e.pts[atEnd?n-1:0]=R3P(q)}}}
+  if(e.type==='arc'){const da=deg(dl/e.r),sw=normA(e.a1-e.a0)||360;if(sw+da<=0.01||sw+da>=359.99)return null;const atEnd=dist(p,APT(e.c,e.r,e.a1))<dist(p,APT(e.c,e.r,e.a0));
+    return{go:()=>{if(atEnd)e.a1=r3(normA(e.a1+da));else e.a0=r3(normA(e.a0-da))}}}
+  return null}
+// ---- STRETCH (crossing window → base → second point)
+function stretchIds(R){const out=[];S.els.forEach(e=>{if(!onLevel(e)||discLocked(e)||hiddenInDisc(e))return;
+  if(e.host){const F=openingFrame(e);if(F&&inR(R,F.c))out.push(e.id);return}
+  const pts=e.a&&e.b?[e.a,e.b]:e.pts?e.pts:e.p?[e.p]:e.c?[e.c]:[];if(pts.some(q=>inR(R,q)))out.push(e.id)});return out}
+function stretchEl(e,R,d,live){const ins=q=>inR(R,q),mv=q=>R3P(add(q,d));
+  if(e.a&&e.b){const ia=ins(e.a),ib=ins(e.b);if(!ia&&!ib)return;if(live&&SEGT.includes(e.type)&&ia!==ib)setSegEnds(e,ia?mv(e.a):cp(e.a),ib?mv(e.b):cp(e.b));else{if(ia)e.a=mv(e.a);if(ib)e.b=mv(e.b)}return}
+  if(e.pts){if(e.pts.some(ins))e.pts=e.pts.map(q=>ins(q)?mv(q):q);return}
+  if(e.p){if(ins(e.p))e.p=mv(e.p);return}
+  if(e.c&&ins(e.c))e.c=mv(e.c)}
+function doStretch(R,d,ids){if(len(d)<1e-9)return;
+  mutate(()=>{const ops=[];ids.forEach(id=>{const o=byId(id);if(!o||!o.host)return;const w=hostOf(o);if(!w||(inR(R,w.a)&&inR(R,w.b)))return;const u=nrm(sub(w.b,w.a));ops.push({o,c:add(add(w.a,mul(u,o.pos)),d)})});
+    ids.forEach(id=>{const e=byId(id);if(e&&!e.host)stretchEl(e,R,d,true)});
+    ops.forEach(({o,c})=>{if(!byId(o.id))return;const w=hostOf(o);if(!w)return;const u=nrm(sub(w.b,w.a)),L=dist(w.a,w.b);if(o.w>L)return;o.pos=r3(Math.max(o.w/2,Math.min(L-o.w/2,dot(sub(c,w.a),u))))})});
+  toast('ยืดวัตถุแล้ว '+ids.length+' ชิ้น')}
+function stretchWin(a,b){const R=mkR(a,b);if(R.x1-R.x0<1e-6||R.y1-R.y0<1e-6){toast('กรอบเล็กเกินไป');T.c1=null;return}const ids=stretchIds(R);
+  if(!ids.length){toast('ไม่มีจุดของวัตถุอยู่ในกรอบ — ลองใหม่');T.c1=null;return}T.sw=R;T.sIds=ids;T.c1=null;sel.clear();ids.forEach(i=>sel.add(i));log('เลือกแบบตัดผ่าน: '+ids.length+' ชิ้น (จุดที่อยู่ในกรอบจะถูกยืด)')}
+// ---- JOIN
+function doJoin(){const alive=new Set([...sel].filter(id=>byId(id)&&!byId(id).host));let merged=0;const tol=1e-4;
+  group(()=>{let again=true;
+    while(again){again=false;const segs=S.els.filter(e=>alive.has(e.id)&&['line','wall','beam'].includes(e.type));
+      outer:for(let i=0;i<segs.length;i++)for(let j=i+1;j<segs.length;j++){const e1=segs[i],e2=segs[j];if(e1.type!==e2.type)continue;const u=nrm(sub(e1.b,e1.a)),u2=nrm(sub(e2.b,e2.a));
+        if(Math.abs(crs(u,u2))>1e-4||Math.abs(crs(u,sub(e2.a,e1.a)))>tol)continue;
+        const s=q=>dot(sub(q,e1.a),u),ss=[0,s(e1.b),s(e2.a),s(e2.b)],lo=Math.min(...ss),hi=Math.max(...ss),O=cp(e1.a);
+        const hs=[...hosted(e1.id).map(o=>({o,w:e1})),...hosted(e2.id).map(o=>({o,w:e2}))].map(({o,w})=>({o,c:add(w.a,mul(nrm(sub(w.b,w.a)),o.pos))}));
+        e1.a=R3P(add(O,mul(u,lo)));e1.b=R3P(add(O,mul(u,hi)));const L=dist(e1.a,e1.b);
+        hs.forEach(({o,c})=>{o.host=e1.id;o.pos=r3(Math.max(o.w/2,Math.min(L-o.w/2,dot(sub(c,e1.a),u))))});
+        S.els=S.els.filter(x=>x!==e2);alive.delete(e2.id);merged++;again=true;break outer}}
+    // lines + open polylines touching end-to-end → one polyline
+    const near=(a,b)=>dist(a,b)<tol,ptsOf=e=>e.type==='line'?[cp(e.a),cp(e.b)]:e.pts.map(cp);
+    const pool=S.els.filter(e=>alive.has(e.id)&&(e.type==='line'||(e.type==='pline'&&!e.closed&&!plSpecial(e))));
+    while(pool.length){const first=pool.shift();const ch={pts:ptsOf(first),items:[first]};let ext=true;
+      while(ext){ext=false;for(let k=0;k<pool.length;k++){const P=ptsOf(pool[k]),L=ch.pts.length-1;
+          if(near(ch.pts[L],P[0]))ch.pts.push(...P.slice(1));else if(near(ch.pts[L],P[P.length-1]))ch.pts.push(...P.reverse().slice(1));
+          else if(near(ch.pts[0],P[P.length-1]))ch.pts.unshift(...P.slice(0,-1));else if(near(ch.pts[0],P[0]))ch.pts.unshift(...P.reverse().slice(0,-1));else continue;
+          ch.items.push(pool[k]);pool.splice(k,1);ext=true;break}}
+      if(ch.items.length>1){const closed=ch.pts.length>3&&near(ch.pts[0],ch.pts[ch.pts.length-1]);if(closed)ch.pts.pop();
+        const base=clone(ch.items.find(x=>x.type==='pline')||ch.items[0]);delete base.a;delete base.b;base.type='pline';base.id=nid();base.pts=ch.pts.map(R3P);base.closed=closed;
+        const dead=new Set(ch.items.map(x=>x.id));S.els=S.els.filter(x=>!dead.has(x.id));S.els.push(base);merged+=ch.items.length-1;dead.forEach(i=>alive.delete(i));alive.add(base.id)}}
+    // arcs on the same circle that touch → one arc (or a circle)
+    again=true;while(again){again=false;const arcs=S.els.filter(e=>alive.has(e.id)&&e.type==='arc');
+      outer2:for(const e1 of arcs)for(const e2 of arcs){if(e1===e2||dist(e1.c,e2.c)>tol||Math.abs(e1.r-e2.r)>tol)continue;const gap=normA(e2.a0-e1.a1);if(gap>0.01&&gap<359.99)continue;
+        e1.a1=e2.a1;S.els=S.els.filter(x=>x!==e2);alive.delete(e2.id);merged++;const sw=normA(e1.a1-e1.a0);if(sw<0.01||sw>359.99){e1.type='circle';delete e1.a0;delete e1.a1}again=true;break outer2}}
+    sel.clear();alive.forEach(i=>{if(byId(i))sel.add(i)})});
+  if(!merged)hist.pop();toast(merged?'รวมแล้ว '+merged+' ชิ้น':'ไม่มีวัตถุที่รวมกันได้ (ต้องต่อกันที่ปลาย หรืออยู่ในแนวเดียวกัน ชนิดเดียวกัน)')}
+// ---- EXPLODE
+function doExplode(){let n=0,skip=0;const out=[];
+  group(()=>{[...sel].map(byId).filter(Boolean).forEach(e=>{
+    if(e.type==='pline'&&e.leader!=='1'&&e.cloud!=='1'&&e.land!=='1'&&!e.hatch){const P=e.pts,m=e.closed?P.length:P.length-1;
+      for(let i=0;i<m;i++){const l=clone(e);delete l.pts;delete l.closed;l.type='line';l.id=nid();l.a=cp(P[i]);l.b=cp(P[(i+1)%P.length]);S.els.push(l);out.push(l.id)}S.els=S.els.filter(x=>x!==e);n++}
+    else skip++});sel.clear();out.forEach(i=>sel.add(i))});
+  if(!n)hist.pop();toast(n?'ระเบิดเป็นเส้นแล้ว '+n+' ชิ้น'+(skip?' (ข้าม '+skip+' ชิ้นที่ระเบิดไม่ได้)':''):'ระเบิดได้เฉพาะเส้นต่อ (PLINE) และสี่เหลี่ยม (RECTANG) — วัตถุอาคารคงไว้เพื่อให้ 3D และ BOQ ถูกต้อง')}
+function runSelAct(n){if(n==='join')doJoin();else doExplode();setTool('select');onSel()}
+// ---- OFFSET Through
+function objDist(e,p){if(SEGT.includes(e.type))return Math.abs(crs(nrm(sub(e.b,e.a)),sub(p,e.a)));if(e.type==='circle'||e.type==='arc')return Math.abs(dist(p,e.c)-e.r);
+  if(e.pts){const n=e.pts.length,m=(e.type==='pline'&&!e.closed)?n-1:n;let d=1e9;for(let i=0;i<m;i++)d=Math.min(d,segDist(p,e.pts[i],e.pts[(i+1)%n]).d);return d}return 0}
+{const _oo=offsetOf;offsetOf=function(e,p){if(!(T.name==='offset'&&T.thru))return _oo(e,p);const q=mouse||p,d=objDist(e,q);if(!(d>1e-6))return null;const sv=D.offset.d;D.offset.d=d;try{return _oo(e,q)}finally{D.offset.d=sv}}}
+// ---- ROTATE / SCALE: Copy (C) and Reference (R)
+{const _ax=applyX;applyX=function(X,copy){return _ax(X,copy||(!!T.cpy&&(T.name==='rotate'||T.name==='scale')))}}
+{const _cx=curX;curX=function(){if(T.name==='rotate'&&T.rfm){if(T.rfm<3||!mouse||!T.pts.length)return null;const c=T.pts[0];if(dist(c,mouse)<1e-6)return null;const ang=P2A(c,mouse)-T.refAng;return{kind:'rot',ang,fn:p=>rotP(p,c,rad(ang))}}return _cx()}}
+function rfApply(v){const c=T.pts[0];if(T.name==='rotate'){const ang=v-T.refAng;applyX({kind:'rot',ang,fn:p=>rotP(p,c,rad(ang))},false)}
+  else{if(!(T.refLen>0)||!(v>0)){toast('ความยาวต้องมากกว่า 0');return}const k=v/T.refLen;applyX({kind:'scl',k,fn:p=>add(c,mul(sub(p,c),k))},false);toast('ตัวคูณ = '+r3(k))}setTool('select')}
+function rfClick(p){if(T.rfm===1){T.rf=[cp(p)];T.rfm=2}else if(T.rfm===2){if(dist(T.rf[0],p)<1e-6)return;if(T.name==='rotate')T.refAng=P2A(T.rf[0],p);else T.refLen=dist(T.rf[0],p);T.rfm=3}
+  else{const c=T.pts[0];if(dist(c,p)<1e-6)return;rfApply(T.name==='rotate'?P2A(c,p):dist(c,p));return}updatePrompt();draw2()}
+function rfNum(v){if(T.rfm<3){if(T.name==='rotate')T.refAng=v;else{if(!(v>0)){toast('ความยาวอ้างอิงต้องมากกว่า 0');return}T.refLen=v}T.rfm=3;updatePrompt();draw2();return}rfApply(v)}
+// ---- tool options typed on the command line
+{const _to=toolOption;toolOption=function(o){const t=T.name;
+  if((t==='rotate'||t==='scale')&&T.phase==='base'&&T.pts.length&&!T.rfm){if(o==='c'){T.cpy=!T.cpy;toast(T.cpy?'โหมดคัดลอก: เก็บต้นฉบับไว้':'ยกเลิกโหมดคัดลอก');updatePrompt();return true}
+    if(o==='r'){T.rfm=1;T.rf=[];updatePrompt();draw2();return true}}
+  if(t==='offset'&&o==='t'){T.thru=!T.thru;toast(T.thru?'ผ่านจุด (Through): คลิกวัตถุ แล้วคลิก/จับจุดที่เส้นใหม่ต้องผ่าน':'กลับไปใช้ระยะ '+D.offset.d+' ม.');updatePrompt();draw2();return true}
+  if(t==='fillet'&&o==='r'){toast('พิมพ์รัศมี เช่น 0.5 แล้ว Enter (0 = มุมคม)');return true}
+  if(t==='chamfer'&&(o==='d'||o==='a')){toast('พิมพ์ระยะ เช่น 0.2 หรือ 0.2,0.3 แล้ว Enter');return true}
+  if((t==='trim'||t==='extend')&&(o==='f'||o==='c')){toast('ลากเมาส์ผ่านเส้นที่ต้องการ'+(t==='trim'?'ตัด':'ต่อ')+'ได้เลย (Fence)');return true}
+  return _to(o)}}
+{const _rc=runCmd;runCmd=function(t){const s=String(t||'').trim(),tn=T.name;let m;const num=/^-?(\d+\.?\d*|\.\d+)$/.test(s)?+s:null,hd=()=>{log('» '+s);acHide()};
+  if(tn==='fillet'&&num!=null){hd();if(num<0){toast('รัศมีต้องไม่ติดลบ');return}D.fillet.r=num;toast('รัศมีต่อมุม = '+num+' ม.');renderSide();updatePrompt();return}
+  if(tn==='chamfer'&&(m=s.match(/^(\d+\.?\d*|\.\d+)\s*(?:,\s*(\d+\.?\d*|\.\d+))?$/))){hd();D.chamfer.d1=+m[1];D.chamfer.d2=m[2]!=null?+m[2]:+m[1];toast('ระยะลบมุม = '+D.chamfer.d1+' , '+D.chamfer.d2+' ม.');renderSide();updatePrompt();return}
+  if(tn==='lengthen'&&num!=null){hd();if(!num){toast('ระยะต้องไม่เป็น 0');return}D.lengthen.d=num;toast('ระยะยืด/หด = '+num+' ม.');renderSide();updatePrompt();return}
+  if((tn==='rotate'||tn==='scale')&&T.rfm&&num!=null){hd();rfNum(num);return}
+  if(tn==='break'&&s==='@'&&T.ref){hd();okStep();return}
+  if(tn==='offset'&&num!=null&&T.thru)T.thru=false;
+  return _rc(t)}}
+// ---- clicks
+{const _c2=click2;click2=function(p){const t=T.name,q=raw||p,done=()=>{LASTPT=cp(p);updatePrompt();draw2()};
+  if((t==='rotate'||t==='scale')&&T.rfm){LASTPT=cp(p);rfClick(p);return}
+  if(t==='stretch'){if(!T.sw){if(!T.c1)T.c1=cp(q);else stretchWin(T.c1,q)}else if(!T.pts.length)T.pts=[cp(p)];else{doStretch(T.sw,sub(p,T.pts[0]),T.sIds);LASTPT=cp(p);setTool('select');return}done();return}
+  if(t==='trim'||t==='extend'){const ext=(t==='extend')!==SHIFT,e=hitTest(q,9,TRIMF);if(!e){toast('คลิกบนเส้น ผนัง คาน กริด วงกลม เส้นโค้ง หรือเส้นต่อ');return}
+    const pl=ext?extendPlan(e,q):trimPlan(e,q);if(!pl){toast(ext?'ไม่พบขอบที่จะต่อไปชน':'ไม่มีเส้นอื่นตัดผ่าน — ลบทั้งชิ้นด้วย E หรือ Delete');return}mutate(pl.go);done();return}
+  if(t==='fillet'||t==='chamfer'){const F=t==='fillet'?(e=>SEGT.includes(e.type)):(e=>['line','wall','beam'].includes(e.type)),e=hitTest(q,9,F);if(!e){toast('คลิกบนเส้น ผนัง หรือคาน');return}
+    if(!T.ref){T.ref=e.id;T.refP=q;done();return}if(e.id===T.ref){toast('เลือกเส้นอื่น');return}const e1=byId(T.ref);T.ref=null;if(!e1){done();return}
+    if(t==='chamfer'){const sh=SHIFT;chamferPair(e1,T.refP,e,q,sh?0:+D.chamfer.d1||0,sh?0:+D.chamfer.d2||0)}
+    else{const r=SHIFT?0:+D.fillet.r||0;if(r>0&&e1.type==='line'&&e.type==='line')filletR(e1,T.refP,e,q,r);else{filletPair(e1,T.refP,e,q);if(r>0)toast('รัศมีใช้กับเส้น (LINE) เท่านั้น — ผนัง/คาน/กริดต่อเป็นมุมคม')}}done();return}
+  if(t==='break'){if(!T.ref){const e=hitTest(q,9,BRKF);if(!e){toast('คลิกบนเส้น ผนัง คาน กริด วงกลม เส้นโค้ง หรือเส้นต่อ');return}T.ref=e.id;T.bp1=cp(p)}else{const e=byId(T.ref);const p1=T.bp1;T.ref=null;T.bp1=null;if(e)breakAt(e,p1,p)}done();return}
+  if(t==='lengthen'){const e=hitTest(q,9,e=>SEGT.includes(e.type)||e.type==='arc'||(e.type==='pline'&&!e.closed&&!plSpecial(e)));if(!e){toast('คลิกใกล้ปลายเส้น ผนัง คาน เส้นโค้ง หรือเส้นต่อ');return}
+    const pl=lenPlan(e,q,+D.lengthen.d||0);if(!pl){toast('หดแล้วความยาวไม่เหลือ — ลดระยะลง');return}mutate(pl.go);done();return}
+  if(t==='join'||t==='explode')return;
+  return _c2(p)}}
+{const _ok=okStep;okStep=function(){const t=T.name;
+  if((t==='join'||t==='explode')&&T.phase==='pick'){if(!sel.size){toast('ยังไม่ได้เลือกวัตถุ');return}runSelAct(t);return}
+  if(t==='break'&&T.ref){const e=byId(T.ref),p1=T.bp1;T.ref=null;T.bp1=null;if(e)breakAt(e,p1,p1);updatePrompt();draw2();return}
+  if(t==='stretch'&&(T.sw||T.c1)){T.sw=null;T.c1=null;T.sIds=null;T.pts=[];sel.clear();updatePrompt();draw2();return}
+  if(T.rfm){T.rfm=0;updatePrompt();draw2();return}
+  return _ok()}}
+{const _es=escTool;escTool=function(){if(T.sw||T.c1||T.rfm||T.bp1){T.sw=null;T.c1=null;T.sIds=null;T.rfm=0;T.bp1=null;T.ref=null;T.pts=[];if(T.name==='stretch')sel.clear();updatePrompt();draw2();return}return _es()}}
+{const _st=setTool;setTool=function(n){RUB=null;_st(n);if(n!=='select'&&!FIELDS[n]&&T.name===n)try{renderSide()}catch(_){}if((n==='join'||n==='explode')&&T.phase==='base')runSelAct(n)}}
+// ---- drag: fence for TRIM/EXTEND, crossing window for STRETCH
+cv2.addEventListener('pointerdown',e=>{RUB=null;if(e.button!==0||spaceDown||ptrs.size>1)return;const t=T.name;
+  if(t==='trim'||t==='extend'||(t==='stretch'&&!T.sw&&!T.c1)){const sp=evPos(e);RUB={mode:t==='stretch'?'win':'fence',sx:sp.x,sy:sp.y,a:sw(sp.x,sp.y),b:null,on:false}}},true);
+cv2.addEventListener('pointermove',e=>{if(!RUB||!ptrs.has(e.pointerId)||ptrs.size>1)return;const sp=evPos(e);if(!RUB.on&&Math.hypot(sp.x-RUB.sx,sp.y-RUB.sy)>6)RUB.on=true;
+  if(RUB.on){e.stopImmediatePropagation();RUB.b=sw(sp.x,sp.y);updateCursor(sp);draw2()}},true);
+cv2.addEventListener('pointerup',e=>{if(!RUB)return;const R0=RUB;RUB=null;if(!R0.on||!R0.b)return;e.stopImmediatePropagation();ptrs.delete(e.pointerId);press=null;
+  if(R0.mode==='fence')fenceRun(R0.a,R0.b,(T.name==='extend')!==e.shiftKey);else stretchWin(R0.a,R0.b);updatePrompt();draw2()},true);
+// ---- prompts
+{const _up=updatePrompt;updatePrompt=function(){const t=T.name;let s=null;const f=v=>r3(+v||0);
+  if(T.phase!=='pick'){
+    if(t==='stretch')s=!T.sw?(T.c1?'คลิกมุมตรงข้ามของกรอบตัดผ่าน':'เลือกวัตถุด้วยกรอบตัดผ่าน (Crossing): คลิกมุมแรก หรือลากกรอบ — เฉพาะจุดที่อยู่ในกรอบจะถูกยืด'):!T.pts.length?'จุดฐาน (Base point) — '+T.sIds.length+' ชิ้น':'จุดที่สอง หรือพิมพ์ @dx,dy / ระยะ • Enter ยกเลิก';
+    else if(t==='trim')s='คลิกส่วนที่จะตัดทิ้ง หรือลากเส้นผ่านหลายเส้น (Fence) • Shift+คลิก = ต่อเส้น (EXTEND)';
+    else if(t==='extend')s='คลิกใกล้ปลายที่จะต่อไปชนขอบ หรือลากเส้นผ่าน (Fence) • Shift+คลิก = ตัดเส้น (TRIM)';
+    else if(t==='fillet')s=(T.ref?'เลือกเส้นที่สอง (Shift+คลิก = มุมคม)':'เลือกเส้นแรก (ฝั่งที่ต้องการเก็บ)')+'  [รัศมี '+f(D.fillet.r)+' ม. — พิมพ์ตัวเลขเพื่อเปลี่ยน]';
+    else if(t==='chamfer')s=(T.ref?'เลือกเส้นที่สอง (Shift+คลิก = มุมคม)':'เลือกเส้นแรก (ฝั่งที่ต้องการเก็บ)')+'  [ระยะ '+f(D.chamfer.d1)+' , '+f(D.chamfer.d2)+' ม. — พิมพ์ 0.2 หรือ 0.2,0.3]';
+    else if(t==='break')s=T.ref?'คลิกจุดแยกที่สอง • Enter หรือ @ = แยกที่จุดเดียว':'คลิกวัตถุที่จุดแยกแรก (เส้น ผนัง คาน วงกลม เส้นโค้ง เส้นต่อ)';
+    else if(t==='lengthen')s='คลิกใกล้ปลายเส้นที่จะยืด/หด '+f(D.lengthen.d)+' ม.  [พิมพ์ตัวเลขเพื่อเปลี่ยน ติดลบ = หด]';
+    else if((t==='rotate'||t==='scale')&&T.rfm){const rot=t==='rotate';s=T.rfm===1?(rot?'มุมอ้างอิง: คลิกจุดแรกของแนวอ้างอิง หรือพิมพ์มุม (°)':'ความยาวอ้างอิง: คลิกจุดแรก หรือพิมพ์ความยาว'):T.rfm===2?'คลิกจุดที่สองของแนวอ้างอิง':(rot?'มุมใหม่: คลิกหรือพิมพ์มุม (°) — อ้างอิง '+f(T.refAng)+'°':'ความยาวใหม่: คลิกหรือพิมพ์ — อ้างอิง '+f(T.refLen)+' ม.')}}
+  if(s==null){_up();const P=$('#prompt');if(!P)return;let x=P.textContent;
+    if((t==='rotate'||t==='scale')&&T.phase==='base'&&T.pts.length)x+='  [คัดลอก C'+(T.cpy?' ✓':'')+' / อ้างอิง R]';
+    else if(t==='offset')x+=T.thru?'  [ผ่านจุด T ✓ — คลิกจุดที่เส้นใหม่ต้องผ่าน]':'  [ผ่านจุด T]';
+    if(x!==P.textContent){P.textContent=x;LASTPROMPT=x}return}
+  const P=$('#prompt');if(!P)return;P.textContent=(CMDN[t]||t.toUpperCase())+' — '+s;if(P.textContent!==LASTPROMPT){LASTPROMPT=P.textContent;log(P.textContent)}}}
+// ---- overlay: fence / stretch window & ghost / trim-extend preview / picked references
+{const _d=draw2;draw2=function(){_d();if(PRINT||g!==G0)return;try{overlay11()}catch(err){console.warn(err)}}}
+function ovGeom(sh,col,w,dash){g.save();g.strokeStyle=col;g.lineWidth=w;g.setLineDash(dash||[]);g.beginPath();
+  if(sh.seg){const a=ws(sh.seg[0]),b=ws(sh.seg[1]);g.moveTo(a.x,a.y);g.lineTo(b.x,b.y)}
+  if(sh.arc){const c=ws(sh.arc.c);g.moveTo(c.x+sh.arc.r*view.s*Math.cos(-rad(sh.arc.a0)),c.y+sh.arc.r*view.s*Math.sin(-rad(sh.arc.a0)));g.arc(c.x,c.y,sh.arc.r*view.s,-rad(sh.arc.a0),-rad(sh.arc.a1),true)}
+  if(sh.pts)sh.pts.forEach((q,i)=>{const s=ws(q);i?g.lineTo(s.x,s.y):g.moveTo(s.x,s.y)});g.stroke();g.restore()}
+function ovRect(R,col,fill){const a=ws({x:R.x0,y:R.y1}),b=ws({x:R.x1,y:R.y0});g.save();g.fillStyle=fill;g.fillRect(a.x,a.y,b.x-a.x,b.y-a.y);g.strokeStyle=col;g.setLineDash([6,4]);g.lineWidth=1.2;g.strokeRect(a.x,a.y,b.x-a.x,b.y-a.y);g.restore()}
+function overlay11(){const t=T.name;g.setTransform(DPR,0,0,DPR,0,0);
+  if(RUB&&RUB.on&&RUB.b){if(RUB.mode==='fence'){const ext=(t==='extend')!==SHIFT;ovGeom({seg:[RUB.a,RUB.b]},ext?'#2f9e5b':'#e5484d',1.6,[6,4]);
+      S.els.forEach(e=>{if(!onLevel(e)||discLocked(e)||!TRIMF(e))return;fenceHits(e,RUB.a,RUB.b).forEach(q=>{const s=ws(q);g.save();g.strokeStyle=ext?'#2f9e5b':'#e5484d';g.lineWidth=2;g.beginPath();g.moveTo(s.x-5,s.y-5);g.lineTo(s.x+5,s.y+5);g.moveTo(s.x+5,s.y-5);g.lineTo(s.x-5,s.y+5);g.stroke();g.restore()})})}
+    else ovRect(mkR(RUB.a,RUB.b),'#2f9e5b','rgba(47,158,91,.10)')}
+  if(t==='stretch'){if(T.c1&&raw)ovRect(mkR(T.c1,raw),'#2f9e5b','rgba(47,158,91,.10)');
+    if(T.sw){ovRect(T.sw,'#2f9e5b','rgba(47,158,91,.06)');if(T.pts.length&&mouse){const d=sub(mouse,T.pts[0]);g.globalAlpha=.65;T.sIds.forEach(id=>{const e=byId(id);if(!e||e.host)return;const c=clone(e);stretchEl(c,T.sw,d,false);try{drawAny(c,'s')}catch(_){}});g.globalAlpha=1;g.setTransform(DPR,0,0,DPR,0,0)}}}
+  if((t==='trim'||t==='extend')&&raw&&!press&&!(RUB&&RUB.on)){const e=hitTest(raw,9,TRIMF);if(e){const ext=(t==='extend')!==SHIFT,pl=ext?extendPlan(e,raw):trimPlan(e,raw);if(pl)ovGeom(pl.show,ext?'#2f9e5b':'#e5484d',3,ext?[5,4]:[])}}
+  if((t==='break'||t==='chamfer')&&T.ref){const e=byId(T.ref);if(e){try{drawAny(e,'s')}catch(_){}g.setTransform(DPR,0,0,DPR,0,0)}
+    if(t==='break'&&T.bp1){const s=ws(T.bp1);g.save();g.strokeStyle='#e5484d';g.lineWidth=2;g.beginPath();g.moveTo(s.x-5,s.y-5);g.lineTo(s.x+5,s.y+5);g.moveTo(s.x+5,s.y-5);g.lineTo(s.x-5,s.y+5);g.stroke();g.restore()}}
+  if((t==='rotate'||t==='scale')&&T.rfm===2&&T.rf&&mouse){ovGeom({seg:[T.rf[0],mouse]},'#d08a1a',1.4,[4,3])}}
+// ---- help & version
+{const _hh=helpHTML;helpHTML=function(){const T2=(t,b)=>`<details><summary>${t}</summary>${b}</details>`;return _hh()+T2('ใหม่ใน v10.4: คำสั่งแก้ไขครบชุดแบบ AutoCAD',
+  `<ul><li><b>S — STRETCH ยืดวัตถุ</b>: ลากกรอบตัดผ่านครอบปลายที่จะยืด → จุดฐาน → จุดที่สอง (พิมพ์ @1,0 ได้) ใช้กับผนัง คาน เส้น เส้นต่อ พื้น ห้อง หลังคา ได้ ประตูหน้าต่างที่อยู่ในกรอบจะเลื่อนตามแนวผนัง</li>
+  <li><b>TR / EX — TRIM / EXTEND</b>: คลิกทีละเส้น หรือ<b>ลากเส้น Fence</b>ผ่านหลายเส้นพร้อมกัน • กด <b>Shift</b> ค้างเพื่อสลับตัด↔ต่อ • ใช้กับวงกลม เส้นโค้ง และเส้นต่อได้แล้ว • ส่วนที่จะถูกตัดแสดงเป็นสีแดงก่อนคลิก</li>
+  <li><b>F — FILLET</b>: พิมพ์ตัวเลข = รัศมี (เส้น LINE ได้เส้นโค้งจริง ผนัง/คานต่อมุมคม) • Shift+คลิกเส้นที่สอง = มุมคม</li>
+  <li><b>CHA — CHAMFER ลบมุม</b>: พิมพ์ 0.2 หรือ 0.2,0.3 เพื่อกำหนดระยะ ใช้กับเส้น ผนัง และคาน (ผนัง/คานจะได้ชิ้นเฉียงเชื่อมให้)</li>
+  <li><b>BR — BREAK</b>: คลิกวัตถุที่จุดแรก แล้วคลิกจุดที่สอง (Enter หรือ @ = แยกที่จุดเดียว) ใช้กับวงกลม เส้นโค้ง เส้นต่อได้</li>
+  <li><b>J — JOIN</b>: รวมเส้น/ผนัง/คานที่อยู่แนวเดียวกัน (ประตูหน้าต่างย้ายตาม) • เส้นที่ต่อกันที่ปลายรวมเป็นเส้นต่อ • เส้นโค้งวงเดียวกันรวมกัน</li>
+  <li><b>X — EXPLODE</b>: แตกเส้นต่อ/สี่เหลี่ยมเป็นเส้นเดี่ยว (วัตถุอาคารไม่ถูกแตกเพื่อรักษา 3D และ BOQ)</li>
+  <li><b>LEN — LENGTHEN</b>: พิมพ์ระยะ (+ยืด / −หด) แล้วคลิกใกล้ปลายเส้น</li>
+  <li><b>RO / SC</b>: หลังคลิกจุดฐาน พิมพ์ <b>C</b> = คัดลอก, <b>R</b> = อ้างอิง (Reference) • <b>O</b>: พิมพ์ <b>T</b> = ผ่านจุด (Through)</li></ul>`)}}
+try{$('#verL').textContent='v10.4'}catch(_){}
+
+// ================= v10.5: phase 3 — AutoCAD-style layers & properties: current layer, layer lock, layer dropdown, LAY* commands, per-object Color / Linetype / Lineweight (ByLayer), General properties for any selection, LTSCALE, upgraded MATCHPROP
+{const _ls=laySet;laySet=function(){const L=_ls();if(!L.lock||typeof L.lock!=='object')L.lock={};if(typeof L.cur!=='string')L.cur='';if(!(+L.lts>0))L.lts=1;return L}}
+let NOLOCK=false,OVR=null,PICK=null,SELWAIT=null,PEND=null,LISO=null;
+const layLocked=e=>!!laySet().lock[layerOf(e)];
+{const _dl=discLocked;discLocked=function(e){return _dl(e)||(!PRINT&&!NOLOCK&&layLocked(e))}}
+const LAYDRAFT=['line','pline','circle','arc','text','dim'];
+function curLay(){const c=laySet().cur;return c&&layNames().includes(c)?c:''}
+function layLabel(n){return n?n:'ตามประเภทวัตถุ'}
+{const _ae=addEl;addEl=function(e){const c=curLay();if(c&&e&&!e.layer&&LAYDRAFT.includes(e.type))e.layer=c;return _ae(e)}}
+// ---- per-object overrides (ocol / olt / olw) drawn through the layer pen
+{const _wl=withLayer;withLayer=function(n,fn){return _wl(n,()=>{if(LCUR){const L=laySet();LCUR.dk=(LCUR.dk||1)*(+L.lts||1);
+      if(OVR){const o=OVR;if(o.col&&!(C!==PC&&lum(o.col)<0.05))LCUR.col=o.col;if(o.lt&&LTP[o.lt])LCUR.lt=o.lt;if(+o.lw>0){const y=lay(n);LCUR.f=(+o.lw/y.std)*(PRINT?+L.scP:+L.sc)}}}return fn()})}}
+layDraw=function(ls,fn){const m=new Map(),SEP='\u0001';ls.forEach(e=>{const k=layerOf(e)+SEP+(e.ocol||'')+SEP+(e.olt||'')+SEP+(e.olw||'');if(!m.has(k))m.set(k,[]);m.get(k).push(e)});
+  m.forEach((q,k)=>{const [n,col,lt,lw]=k.split(SEP);OVR=(col||lt||lw)?{col,lt,lw}:null;try{withLayer(n,()=>fn(q))}finally{OVR=null}})};
+// ---- General properties block (any selection)
+const LWSEL=[['','ตามเลเยอร์ (ByLayer)'],...PENS.map(p=>[String(p),p.toFixed(2)+' มม.'])],LTSEL=[['','ตามเลเยอร์ (ByLayer)'],...LTN.slice(1)];
+const ACIC=[['#ff0000','1 แดง'],['#ffff00','2 เหลือง'],['#00ff00','3 เขียว'],['#00ffff','4 ฟ้า'],['#0000ff','5 น้ำเงิน'],['#ff00ff','6 ม่วงแดง'],['#ffffff','7 ขาว/ดำ'],['#808080','8 เทา']];
+const LWMAP={thin:'0.13',med:'0.35',thick:'0.7'};
+function genVal(e,k){if(k==='layer')return e.layer&&layNames().includes(e.layer)?e.layer:'';if(k==='ocol')return e.ocol||(e.cloud==='1'?'':e.lc)||'';if(k==='olt')return e.olt||e.ltype||'';if(k==='olw')return e.olw?String(e.olw):(LWMAP[e.lw]||'');return''}
+function genHTML(ids){const els=ids.map(byId).filter(Boolean);if(!els.length)return'';const v=k=>{const s=new Set(els.map(e=>genVal(e,k)));return s.size===1?[...s][0]:null};
+  const opt=(arr,cur)=>(cur==null?'<option value="__" selected>*หลายค่า*</option>':'')+arr.map(([k,t])=>`<option value="${esc(k)}"${cur===k?' selected':''}>${esc(t)}</option>`).join('');
+  const lv=v('layer'),effs=[...new Set(els.map(layerOf))],laySel=[['','ตามประเภทวัตถุ'+(lv===''&&effs.length===1?' ('+effs[0]+')':'')],...layNames().map(n=>[n,n+' — '+layStd(n).desc])];
+  const cv=v('ocol'),lc=effs.length===1?lay(effs[0]).col:'',lk=effs.some(n=>laySet().lock[n]);
+  return `<div class="genp"><div class="genh">ทั่วไป (General)${els.length>1?' — '+els.length+' ชิ้น':''}${lk?' <span class="glk">เลเยอร์ถูกล็อก</span>':''}</div>
+  <div class="f"><label>เลเยอร์</label><select data-g="layer">${opt(laySel,lv)}</select></div>
+  <div class="f"><label>สี</label><div class="gcol"><select data-g="ocm">${cv==null?'<option value="__" selected>*หลายค่า*</option>':''}<option value=""${cv===''?' selected':''}>ตามเลเยอร์ (ByLayer)</option><option value="c"${cv?' selected':''}>กำหนดเอง</option></select><input type="color" data-g="ocol" value="${cv||lc||'#808080'}" title="เลือกสี"></div></div>
+  <div class="gsw">${ACIC.map(([c,t])=>`<button class="sw" data-sw="${c}" title="${t}" style="background:${c}"></button>`).join('')}</div>
+  <div class="f"><label>ชนิดเส้น</label><select data-g="olt">${opt(LTSEL,v('olt'))}</select></div>
+  <div class="f"><label>น้ำหนักเส้น</label><select data-g="olw">${opt(LWSEL,v('olw'))}</select></div></div>`}
+function genApply(ids,k,val){const els=ids.map(byId).filter(Boolean);if(!els.length||val==='__')return;
+  mutate(()=>els.forEach(e=>{if(k==='layer'){if(val)e.layer=val;else delete e.layer}
+    else if(k==='ocol'){if(val){e.ocol=val}else delete e.ocol;if(e.cloud!=='1')delete e.lc}
+    else if(k==='olt'){if(val)e.olt=val;else delete e.olt;delete e.ltype}
+    else if(k==='olw'){if(+val>0)e.olw=+val;else delete e.olw;if(LWMAP[e.lw])delete e.lw}}));
+  if(k==='layer'&&val&&laySet().off[val])toast('เลเยอร์ '+val+' ปิดอยู่ — วัตถุจะถูกซ่อน');if(k==='layer'&&val&&laySet().lock[val])toast('เลเยอร์ '+val+' ถูกล็อก — แก้ไขวัตถุไม่ได้จนกว่าจะปลดล็อก')}
+{const _ff=fieldsFor;fieldsFor=function(e){return _ff(e).filter(f=>f[1]!=='layer'&&!(['line','pline','circle','arc'].includes(e.type)&&['ltype','lw','lc'].includes(f[1])))}}
+{const _rs=renderSide;renderSide=function(){_rs();try{if(tab!=='props'||isSheet()||T.name!=='select')return;const ids=[...sel].filter(id=>byId(id));if(!ids.length)return;const P=$('#pane');if(!P)return;const h=P.querySelector('h3');
+    const html=genHTML(ids);if(h)h.insertAdjacentHTML('afterend',html);else P.insertAdjacentHTML('afterbegin',html);
+    P.querySelectorAll('[data-g]').forEach(i=>i.addEventListener('change',()=>{const k=i.dataset.g;if(k==='ocm'){if(i.value==='')genApply(ids,'ocol','');else if(i.value==='c'){const c=P.querySelector('[data-g="ocol"]');genApply(ids,'ocol',c?c.value:'#808080')}}else genApply(ids,k,i.value);renderSide()}));
+    P.querySelectorAll('[data-sw]').forEach(b=>b.addEventListener('click',()=>{genApply(ids,'ocol',b.dataset.sw);renderSide()}))}catch(err){console.warn(err)}}}
+// ---- layer dropdown on the plan (like the Layer combo on the Home tab)
+const SVGB='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.6 1 2.5h6c0-.9.2-1.7 1-2.5A6 6 0 0 0 12 3z"/></svg>';
+const SVGL=lk=>`<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="${lk?'M8 11V7a4 4 0 0 1 8 0v4':'M8 11V7a4 4 0 0 1 7.5-2'}"/></svg>`;
+{const b=document.createElement('div');b.id='layBar';b.innerHTML='<button class="lbb" id="layBtn" title="เลเยอร์ปัจจุบัน — ถ้าเลือกวัตถุอยู่ เลือกเลเยอร์เพื่อย้ายวัตถุไปเลเยอร์นั้น"><i class="lsw" id="layBtnC"></i><span id="layBtnT">ตามประเภทวัตถุ</span><b>▾</b></button><button class="lbb" id="layMgr" title="จัดการเลเยอร์ (LA)">'+'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg></button>';$('#v2wrap').appendChild(b);
+  const p=document.createElement('div');p.id='layPop';document.body.appendChild(p)}
+function updLayBtn(){const t=$('#layBtnT'),c=$('#layBtnC');if(!t)return;const ids=[...sel].filter(id=>byId(id));let n,lab;
+  if(ids.length&&T.name==='select'){const s=new Set(ids.map(id=>layerOf(byId(id))));n=s.size===1?[...s][0]:null;lab=n?n+' (ที่เลือก)':'*หลายเลเยอร์*'}else{n=curLay();lab=layLabel(n)}
+  if(t.textContent!==lab)t.textContent=lab;const col=n?lay(n).col:'';c.style.background=col||'transparent';c.classList.toggle('none',!col)}
+function layPopRender(){const p=$('#layPop'),L=laySet(),cur=curLay(),cnt=layCount(),ids=[...sel].filter(id=>byId(id)&&T.name==='select');
+  const row=n=>{const y=n?lay(n):null;return`<div class="lr${n===cur?' cur':''}${n&&!y.on?' off':''}" data-n="${esc(n)}">${n?`<button data-a="on" class="${y.on?'':'dim'}" title="เปิด/ปิดเลเยอร์">${SVGB}</button><button data-a="lk" class="${L.lock[n]?'lk':'dim'}" title="ล็อก/ปลดล็อก">${SVGL(!!L.lock[n])}</button><i class="lsw${y.col?'':' none'}" style="${y.col?'background:'+y.col:''}"></i>`:'<span class="lsp"></span>'}<span class="ln">${esc(layLabel(n))}</span><small>${n?esc(y.desc)+(cnt[n]?' · '+cnt[n]:''):'เส้นเขียนแบบใช้เลเยอร์ตามชนิด'}</small></div>`};
+  p.innerHTML=`<div class="lph">${ids.length?'ย้าย '+ids.length+' ชิ้นที่เลือกไปเลเยอร์…':'ตั้งเลเยอร์ปัจจุบัน (ใช้กับเส้น ข้อความ บอกระยะที่วาดใหม่)'}</div><div class="lpl">${[''].concat(layNames()).map(row).join('')}</div><div class="lpf"><button class="btn sm" data-a="mgr">จัดการเลเยอร์… (LA)</button><button class="btn sm" data-a="allon">เปิดทุกเลเยอร์</button>${LISO?'<button class="btn sm" data-a="uniso">ยกเลิกแยกเลเยอร์</button>':''}</div>`;
+  p.querySelectorAll('.lr').forEach(r=>{const n=r.dataset.n;r.addEventListener('click',ev=>{const a=ev.target.closest('[data-a]');
+    if(a&&a.dataset.a==='on'){mutate(()=>{const L2=laySet();if(L2.off[n])delete L2.off[n];else L2.off[n]=true});layPopRender();return}
+    if(a&&a.dataset.a==='lk'){mutate(()=>{const L2=laySet();if(L2.lock[n])delete L2.lock[n];else L2.lock[n]=true});layPopRender();return}
+    if(ids.length){genApply(ids,'layer',n);log('ย้าย '+ids.length+' ชิ้นไปเลเยอร์ '+layLabel(n));renderSide()}else setCurLay(n);layPopHide()})});
+  p.querySelector('[data-a="mgr"]').onclick=()=>{layPopHide();openLayers()};p.querySelector('[data-a="allon"]').onclick=()=>{mutate(()=>{laySet().off={}});LISO=null;layPopRender()};
+  const u=p.querySelector('[data-a="uniso"]');if(u)u.onclick=()=>{layUniso();layPopRender()}}
+function layPopShow(){const p=$('#layPop'),b=$('#layBtn').getBoundingClientRect();layPopRender();p.style.display='block';p.style.top=(b.bottom+4)+'px';p.style.left=Math.max(6,Math.min(b.left,innerWidth-p.offsetWidth-6))+'px';p.style.maxHeight=(innerHeight-b.bottom-20)+'px'}
+function layPopHide(){const p=$('#layPop');if(p)p.style.display='none'}
+$('#layBtn').addEventListener('click',e=>{e.stopPropagation();$('#layPop').style.display==='block'?layPopHide():layPopShow()});$('#layMgr').addEventListener('click',e=>{e.stopPropagation();layPopHide();openLayers()});
+document.addEventListener('pointerdown',e=>{const p=$('#layPop');if(p&&p.style.display==='block'&&!p.contains(e.target)&&!e.target.closest('#layBtn'))layPopHide()},true);
+function setCurLay(n){const L=laySet();L.cur=n||'';changed();updLayBtn();log('เลเยอร์ปัจจุบัน: '+layLabel(n));if(n&&L.off[n])toast('เลเยอร์ '+n+' ปิดอยู่ — สิ่งที่วาดใหม่จะมองไม่เห็นจนกว่าจะเปิด');else toast('เลเยอร์ปัจจุบัน: '+layLabel(n))}
+{const _d=draw2;draw2=function(){_d();if(PRINT||g!==G0)return;try{updLayBtn()}catch(_){}}}
+// ---- Layer Properties Manager additions: current column, lock column, LTSCALE
+{const _rl=renderLayers;renderLayers=function(){_rl();const d=$('#layDlg');if(!d)return;const L=laySet(),cur=curLay();
+  const hr=d.querySelector('.layt thead tr');if(hr){hr.insertAdjacentHTML('afterbegin','<th title="เลเยอร์ปัจจุบัน">ปัจจุบัน</th>');const th=hr.children[1];if(th)th.insertAdjacentHTML('afterend','<th>ล็อก</th>')}
+  d.querySelectorAll('tr[data-n]').forEach(tr=>{const n=tr.dataset.n;tr.insertAdjacentHTML('afterbegin',`<td><input type="radio" name="layCur" data-k3="cur"${n===cur?' checked':''} title="ตั้งเป็นเลเยอร์ปัจจุบัน"></td>`);
+    const on=tr.children[1];if(on)on.insertAdjacentHTML('afterend',`<td><input type="checkbox" data-k3="lk"${L.lock[n]?' checked':''} title="ล็อก — เห็นแต่เลือก/แก้ไม่ได้"></td>`);if(n===cur)tr.classList.add('curl');if(L.lock[n])tr.classList.add('lkd');
+    tr.querySelectorAll('[data-k3]').forEach(el=>el.addEventListener('change',()=>{if(el.dataset.k3==='cur')setCurLay(n);else mutate(()=>{const L2=laySet();if(el.checked)L2.lock[n]=true;else delete L2.lock[n]});renderLayers()}))});
+  const gx=d.querySelector('.layg');if(gx){gx.insertAdjacentHTML('beforeend',`<label title="LTSCALE — สเกลรวมของเส้นประทุกชนิด">สเกลเส้นประ (LTSCALE)<input type="number" id="layLts" min="0.1" max="20" step="0.1" value="${(+L.lts).toFixed(1)}"></label><button class="btn" id="layCurX"${cur?'':' disabled'}>ปัจจุบัน = ตามประเภทวัตถุ</button>`);
+    $('#layLts').onchange=ev=>{mutate(()=>{laySet().lts=Math.max(.1,Math.min(20,+ev.target.value||1))});renderLayers()};$('#layCurX').onclick=()=>{setCurLay('');renderLayers()}}
+  const h2=d.querySelector('.bqh h2');if(h2&&!h2.dataset.v)h2.textContent='เลเยอร์ (Layer Properties Manager)'}}
+// ---- pick / select-then-Enter / number-prompt helpers for LAY* commands
+function pickObj(msg,fn,any){setTool('select');sel.clear();onSel();PICK={msg,fn,any:!!any};updatePrompt()}
+function selFirst(msg,fn){const ids=[...sel].filter(id=>byId(id));if(ids.length){fn(ids);return}setTool('select');SELWAIT={msg,fn};updatePrompt();toast(msg)}
+function askNum(msg,fn){PEND={msg,fn};updatePrompt();cmd.focus()}
+cv2.addEventListener('pointerdown',e=>{if(!PICK||e.button!==0||spaceDown)return;e.stopImmediatePropagation();e.preventDefault();const sp=evPos(e);raw=sw(sp.x,sp.y);
+  NOLOCK=PICK.any;let h;try{h=hitTest(raw,9)}finally{NOLOCK=false}if(!h){toast('ไม่พบวัตถุตรงนั้น — คลิกบนวัตถุ หรือ Esc ยกเลิก');return}const P=PICK;PICK=null;P.fn(h);updatePrompt();draw2()},true);
+window.addEventListener('keydown',e=>{if(e.key==='Escape'&&(PICK||SELWAIT||PEND)){PICK=null;SELWAIT=null;PEND=null;updatePrompt()}
+  if((e.ctrlKey||e.metaKey)&&e.key==='1'){e.preventDefault();setTab('props');renderSide();toast('หน้าคุณสมบัติ (Properties)')}},true);
+{const _ea=enterAction;enterAction=function(){if(SELWAIT&&!cmd.value.trim()){const ids=[...sel].filter(id=>byId(id));if(!ids.length){toast(SELWAIT.msg);return}const W=SELWAIT;SELWAIT=null;W.fn(ids);updatePrompt();return}return _ea()}}
+{const _rc=runCmd;runCmd=function(t){const s=String(t||'').trim();if(PEND&&s){const v=+s;if(/^-?(\d+\.?\d*|\.\d+)$/.test(s)){log('» '+s);const P=PEND;PEND=null;P.fn(v);updatePrompt();return}PEND=null}
+  if(SELWAIT&&!s)return enterAction();return _rc(t)}}
+{const _up=updatePrompt;updatePrompt=function(){_up();const P=$('#prompt');if(!P)return;const m=PICK?PICK.msg:SELWAIT?SELWAIT.msg+' แล้วกด Enter':PEND?PEND.msg:null;
+  if(T.name==='match'&&!m){P.textContent='MATCHPROP — '+(T.ref?'คลิกวัตถุปลายทาง (ได้หลายชิ้น) • Enter/Esc จบ':'คลิกวัตถุต้นแบบ')+'  [ตั้งค่าที่จะคัดลอกที่แผงข้าง]'}
+  if(m)P.textContent=m+' • Esc ยกเลิก';if(P.textContent!==LASTPROMPT){LASTPROMPT=P.textContent;if(m||T.name==='match')log(P.textContent)}}}
+function layOf(ids){return [...new Set(ids.map(id=>layerOf(byId(id))))]}
+function layUniso(){if(!LISO){toast('ยังไม่ได้แยกเลเยอร์ (LAYISO)');return}const sv=LISO;LISO=null;mutate(()=>{laySet().off=sv});toast('คืนสถานะเลเยอร์แล้ว')}
+const LAYCMDS=[
+  {id:'laymcur',en:'LAYMCUR',th:'ตั้งเลเยอร์ของวัตถุที่คลิกเป็นปัจจุบัน',names:['laymcur'],run:()=>pickObj('LAYMCUR — คลิกวัตถุเพื่อตั้งเลเยอร์ของวัตถุนั้นเป็นเลเยอร์ปัจจุบัน',e=>setCurLay(layerOf(e)))},
+  {id:'laycur',en:'LAYCUR',th:'ย้ายวัตถุไปเลเยอร์ปัจจุบัน',names:['laycur'],run:()=>selFirst('LAYCUR — เลือกวัตถุที่จะย้ายไปเลเยอร์ปัจจุบัน',ids=>{genApply(ids,'layer',curLay());toast('ย้าย '+ids.length+' ชิ้นไปเลเยอร์ '+layLabel(curLay()));renderSide()})},
+  {id:'laymch',en:'LAYMCH',th:'ย้ายวัตถุไปเลเยอร์เดียวกับวัตถุอื่น',names:['laymch'],run:()=>selFirst('LAYMCH — เลือกวัตถุที่จะเปลี่ยนเลเยอร์',ids=>pickObj('LAYMCH — คลิกวัตถุบนเลเยอร์ปลายทาง',t=>{const n=layerOf(t);genApply(ids,'layer',n);sel.clear();ids.forEach(i=>sel.add(i));onSel();toast('ย้าย '+ids.length+' ชิ้นไปเลเยอร์ '+n)},true))},
+  {id:'layiso',en:'LAYISO',th:'แยกเลเยอร์ (ซ่อนเลเยอร์อื่นทั้งหมด)',names:['layiso'],run:()=>selFirst('LAYISO — เลือกวัตถุบนเลเยอร์ที่ต้องการเก็บไว้',ids=>{const keep=new Set(layOf(ids));if(!LISO)LISO=clone(laySet().off);mutate(()=>{const L=laySet();layNames().forEach(n=>{if(!keep.has(n))L.off[n]=true;else delete L.off[n]})});sel.clear();onSel();toast('แยกเลเยอร์: '+[...keep].join(', ')+' — พิมพ์ LAYUNISO เพื่อคืนค่า')})},
+  {id:'layuniso',en:'LAYUNISO',th:'ยกเลิกแยกเลเยอร์',names:['layuniso'],run:()=>layUniso()},
+  {id:'layoff',en:'LAYOFF',th:'ปิดเลเยอร์ของวัตถุที่คลิก',names:['layoff','layfrz'],run:()=>pickObj('LAYOFF — คลิกวัตถุเพื่อปิดเลเยอร์ของวัตถุนั้น',e=>{const n=layerOf(e);mutate(()=>{laySet().off[n]=true});toast('ปิดเลเยอร์ '+n+(n===curLay()?' (เป็นเลเยอร์ปัจจุบัน)':''))})},
+  {id:'layon',en:'LAYON',th:'เปิดทุกเลเยอร์',names:['layon','laythw'],run:()=>{mutate(()=>{laySet().off={}});LISO=null;toast('เปิดทุกเลเยอร์แล้ว')}},
+  {id:'laylck',en:'LAYLCK',th:'ล็อกเลเยอร์ของวัตถุที่คลิก',names:['laylck'],run:()=>pickObj('LAYLCK — คลิกวัตถุเพื่อล็อกเลเยอร์',e=>{const n=layerOf(e);mutate(()=>{laySet().lock[n]=true});toast('ล็อกเลเยอร์ '+n+' — เห็นแต่เลือก/แก้ไม่ได้')})},
+  {id:'layulk',en:'LAYULK',th:'ปลดล็อกเลเยอร์ของวัตถุที่คลิก',names:['layulk'],run:()=>pickObj('LAYULK — คลิกวัตถุบนเลเยอร์ที่ล็อกเพื่อปลดล็อก',e=>{const n=layerOf(e);mutate(()=>{delete laySet().lock[n]});toast('ปลดล็อกเลเยอร์ '+n)},true)},
+  {id:'ltscale',en:'LTSCALE',th:'สเกลเส้นประ',names:['ltscale','lts'],run:()=>askNum('LTSCALE — สเกลเส้นประปัจจุบัน '+(+laySet().lts)+' • พิมพ์ค่าใหม่แล้ว Enter',v=>{if(!(v>0)){toast('ต้องมากกว่า 0');return}mutate(()=>{laySet().lts=v});toast('LTSCALE = '+v)})},
+  {id:'properties',en:'PROPERTIES',th:'หน้าคุณสมบัติ (Ctrl+1)',names:['pr','props','properties','ch','mo'],run:()=>{setTab('props');renderSide();toast(sel.size?'แก้เลเยอร์ สี ชนิดเส้น น้ำหนักเส้น ได้ที่ส่วน ทั่วไป ในแผงข้าง':'เลือกวัตถุเพื่อดูคุณสมบัติ')}},
+  {id:'selectsimilar',en:'SELECTSIMILAR',th:'เลือกวัตถุชนิดและเลเยอร์เดียวกัน',names:['selectsimilar','ss'],run:()=>selFirst('SELECTSIMILAR — เลือกวัตถุต้นแบบ',ids=>{const keys=new Set(ids.map(id=>{const e=byId(id);return e.type+'|'+layerOf(e)}));setTool('select');S.els.forEach(e=>{if(onLevel(e)&&!discLocked(e)&&!hiddenInDisc(e)&&layOn(e)&&keys.has(e.type+'|'+layerOf(e)))sel.add(e.id)});onSel();toast('เลือกแล้ว '+sel.size+' ชิ้น')})}];
+{const _b=buildCmds;buildCmds=function(){_b();LAYCMDS.forEach(c=>{if(!CMDLIST.some(x=>x.id===c.id))CMDLIST.push(c)});CMDMAP={};CMDLIST.forEach(c=>c.names.forEach(n=>{if(!CMDMAP[n])CMDMAP[n]=c}))}}
+buildCmds();
+// ---- MATCHPROP: source → many targets; copies layer / color / linetype / lineweight across types, plus type-specific values for the same type
+D.match={lay:'1',col:'1',lt:'1',lw:'1',typ:'1'};TEXTK.push('lay','col','typ');
+FIELDS.match=[['เลเยอร์','lay','sel',YN],['สี','col','sel',YN],['ชนิดเส้น','lt','sel',YN],['น้ำหนักเส้น','lw','sel',YN],['ค่าเฉพาะชนิด (ขนาด ความหนา ฯลฯ — ชนิดเดียวกัน)','typ','sel',YN]];
+function matchAll(s,e){const M=D.match,cpk=(ks)=>ks.forEach(k=>{if(s[k]!=null&&s[k]!=='')e[k]=clone(s[k]);else delete e[k]});
+  if(M.lay!=='0')cpk(['layer']);if(M.col!=='0'){cpk(['ocol']);if(e.cloud!=='1')cpk(['lc'])}if(M.lt!=='0')cpk(['olt','ltype']);if(M.lw!=='0'){cpk(['olw']);if(['line','pline','circle','arc'].includes(e.type))cpk(['lw'])}
+  if(M.typ!=='0'&&s.type===e.type&&(MATCH[s.type]||[]).length){(MATCH[s.type]||[]).forEach(k=>{e[k]=clone(s[k])});if(e.host){const w=hostOf(e);if(w){const L=dist(w.a,w.b);e.w=Math.min(e.w,L);e.pos=r3(Math.max(e.w/2,Math.min(L-e.w/2,e.pos)))}}}}
+{const _c2=click2;click2=function(p){if(T.name!=='match')return _c2(p);const e=hitTest(raw||p,9);if(!e)return;if(!T.ref){T.ref=e.id;updatePrompt();draw2();return}if(e.id===T.ref)return;const s=byId(T.ref);if(!s){T.ref=null;updatePrompt();return}
+  mutate(()=>matchAll(s,e));toast('คัดลอกคุณสมบัติไป '+typeNameOf(e)+' แล้ว'+(s.type!==e.type&&D.match.typ!=='0'?' (ต่างชนิด: คัดลอกเฉพาะเลเยอร์/สี/ชนิดเส้น/น้ำหนักเส้น)':''));updatePrompt();draw2()}}
+// ---- styles, help, version
+{const st=document.createElement('style');st.textContent=`#layBar{position:absolute;top:6px;right:8px;z-index:5;display:flex;gap:4px}
+.lbb{display:flex;align-items:center;gap:6px;height:28px;padding:0 8px;border:1px solid var(--line);border-radius:6px;background:color-mix(in srgb,var(--panel2) 92%,transparent);color:var(--ink);font:12.5px ui-monospace,Menlo,Consolas,"IBM Plex Sans Thai",monospace;cursor:pointer;max-width:250px}
+.lbb span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lbb b{font-weight:400;opacity:.6}.lbb:hover{border-color:var(--acc)}
+.lsw{display:inline-block;width:12px;height:12px;border-radius:3px;border:1px solid var(--line);flex:none}.lsw.none{background:linear-gradient(135deg,transparent 45%,var(--muted) 45%,var(--muted) 55%,transparent 55%)!important}
+#layPop{position:fixed;z-index:60;display:none;width:min(420px,94vw);overflow:auto;background:var(--panel2);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.3);font-size:13px}
+#layPop .lph{padding:8px 10px;color:var(--muted);border-bottom:1px solid var(--line);font-size:12px}#layPop .lpl{padding:4px}
+#layPop .lr{display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:6px;cursor:pointer}#layPop .lr:hover{background:var(--accfill)}#layPop .lr.cur{outline:1.5px solid var(--acc)}#layPop .lr.off .ln{opacity:.45}
+#layPop .lr button{border:0;background:none;color:#e0b400;padding:2px;cursor:pointer;border-radius:4px;display:flex}#layPop .lr button.dim{color:var(--muted);opacity:.55}#layPop .lr button.lk{color:#d0473a}
+#layPop .ln{font-family:ui-monospace,Menlo,Consolas,monospace;min-width:84px}#layPop small{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#layPop .lsp{width:58px;flex:none}
+#layPop .lpf{display:flex;gap:6px;flex-wrap:wrap;padding:8px 10px;border-top:1px solid var(--line)}
+.genp .f{grid-template-columns:78px minmax(0,1fr)!important}.genp .gcol select{min-width:0}.genp{border:1px solid var(--line);border-radius:8px;padding:6px 10px 8px;margin:6px 0 12px;background:color-mix(in srgb,var(--panel2) 60%,transparent)}.genh{font-size:12px;color:var(--muted);margin-bottom:4px}.glk{color:#d0473a}
+.gcol{display:flex;gap:6px;align-items:center}.gcol select{flex:1}.gcol input[type=color]{width:38px;height:28px;padding:0;border:1px solid var(--line);border-radius:5px;background:none}
+.gsw{display:flex;gap:4px;margin:2px 0 8px;justify-content:flex-end}.gsw .sw{width:18px;height:18px;border-radius:4px;border:1px solid var(--line);cursor:pointer;padding:0}
+.layt tr.curl td{background:var(--accfill)}.layt tr.lkd td:nth-child(4) b::after{content:" 🔒";font-size:11px}`;document.head.appendChild(st)}
+{const _hh=helpHTML;helpHTML=function(){const T2=(t,b)=>`<details><summary>${t}</summary>${b}</details>`;return _hh()+T2('ใหม่ใน v10.5: เลเยอร์และคุณสมบัติแบบ AutoCAD',
+  `<ul><li><b>ปุ่มเลเยอร์มุมขวาบนของแปลน</b>: เลือกเลเยอร์ปัจจุบัน เปิด/ปิด (หลอดไฟ) ล็อก (กุญแจ) ได้ทันที • ถ้าเลือกวัตถุอยู่ การคลิกเลเยอร์ = ย้ายวัตถุไปเลเยอร์นั้น</li>
+  <li><b>เลเยอร์ปัจจุบัน</b> ใช้กับเส้น เส้นต่อ วงกลม เส้นโค้ง ข้อความ และบอกระยะที่วาดใหม่ • วัตถุอาคาร (ผนัง เสา คาน ฯลฯ) ยังเข้าเลเยอร์ตามชนิดเพื่อให้แบบมาตรฐาน แต่ย้ายเลเยอร์เองได้</li>
+  <li><b>ล็อกเลเยอร์</b>: วัตถุจะจางลง มองเห็นและจับจุดได้ แต่เลือก/แก้ไม่ได้</li>
+  <li><b>คุณสมบัติ (Ctrl+1 / PR)</b>: ส่วน <b>ทั่วไป</b> แก้ เลเยอร์ สี ชนิดเส้น น้ำหนักเส้น ของวัตถุทุกชนิด แก้หลายชิ้นพร้อมกันได้ (ค่า ByLayer = ตามเลเยอร์)</li>
+  <li><b>MA — MATCHPROP</b>: คลิกต้นแบบ แล้วคลิกปลายทางได้หลายชิ้น คัดลอกเลเยอร์/สี/ชนิดเส้น/น้ำหนักเส้นข้ามชนิดได้ เลือกได้ว่าจะคัดลอกอะไรที่แผงข้าง</li>
+  <li>คำสั่งเลเยอร์: <b>LA</b> หน้าจัดการ • <b>LAYMCUR</b> • <b>LAYCUR</b> • <b>LAYMCH</b> • <b>LAYISO</b> / <b>LAYUNISO</b> • <b>LAYOFF</b> / <b>LAYON</b> • <b>LAYLCK</b> / <b>LAYULK</b> • <b>LTSCALE (LTS)</b> • <b>SELECTSIMILAR</b></li></ul>`)}}
+try{$('#verL').textContent='v10.5'}catch(_){}
+
+// ================= v10.6: phase 4 — annotation: in-place TEXT/MTEXT, dimension styles + linear/aligned/angular/radius/diameter/continue/baseline dims, HATCH pick point (auto boundary) + angle, BLOCK / INSERT / ATTDEF / EXPLODE blocks
+{const ic={mtext:'<path d="M4 5h16M4 10h16M4 15h10M4 20h7"/>',dimal:'<path d="M4 18L18 4"/><path d="M3 13l5 5M13 3l5 5"/>',dimang:'<path d="M4 20h16M4 20L16 6"/><path d="M12 20a8 8 0 0 0-2.5-6"/>',dimrad:'<circle cx="12" cy="12" r="8"/><path d="M12 12l6-5"/>',
+    dimdia:'<circle cx="12" cy="12" r="8"/><path d="M6 17L18 7"/>',dimcont:'<path d="M3 9h18M3 6v6M10 6v6M21 6v6"/><path d="M3 17h18" opacity=".5"/>',dimbase:'<path d="M3 8h9M3 14h18M3 5v12M12 5v6M21 11v6"/>',
+    block:'<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 9v11"/>',insert:'<rect x="9" y="9" width="11" height="11" rx="1"/><path d="M3 3l8 8M11 5v6H5"/>',attdef:'<path d="M4 7h16M4 12h10M4 17h7"/><path d="M17 14l3 3-3 3"/>'};
+  const after=(id,rows)=>{const i=TOOLS.findIndex(t=>t[0]===id);TOOLS.splice(i<0?TOOLS.length:i+1,0,...rows)};
+  const tx=TOOLS.find(t=>t[0]==='text');if(tx)tx[2]='dt';
+  after('text',[['mtext','ข้อความหลายบรรทัด','t',ic.mtext,'เขียนแบบ']]);
+  after('dim',[['dimal','บอกระยะแนวเฉียง','dal',ic.dimal,'เขียนแบบ'],['dimang','บอกมุม','dan',ic.dimang,'เขียนแบบ'],['dimrad','บอกรัศมี','dra',ic.dimrad,'เขียนแบบ'],['dimdia','บอกเส้นผ่านศูนย์กลาง','ddi',ic.dimdia,'เขียนแบบ'],['dimcont','บอกระยะต่อเนื่อง','dco',ic.dimcont,'เขียนแบบ'],['dimbase','บอกระยะจากฐาน','dba',ic.dimbase,'เขียนแบบ']]);
+  after('areaq',[['block','สร้างบล็อก','block',ic.block,'เขียนแบบ'],['insert','แทรกบล็อก','i',ic.insert,'เขียนแบบ'],['attdef','แอตทริบิวต์','att',ic.attdef,'เขียนแบบ']]);
+  Object.assign(TNAME,{mtext:'ข้อความหลายบรรทัด',dimal:'บอกระยะแนวเฉียง',dimang:'บอกมุม',dimrad:'บอกรัศมี',dimdia:'บอกเส้นผ่านศูนย์กลาง',dimcont:'บอกระยะต่อเนื่อง',dimbase:'บอกระยะจากฐาน',block:'สร้างบล็อก',insert:'แทรกบล็อก',attdef:'แอตทริบิวต์'});
+  Object.assign(CMDN,{text:'TEXT',mtext:'MTEXT',dim:'DIMLINEAR',dimal:'DIMALIGNED',dimang:'DIMANGULAR',dimrad:'DIMRADIUS',dimdia:'DIMDIAMETER',dimcont:'DIMCONTINUE',dimbase:'DIMBASELINE',block:'BLOCK',insert:'INSERT',attdef:'ATTDEF'});
+  Object.assign(XAL,{text:['dt','text','dtext'],mtext:['t','mt','mtext'],dimal:['dal','dimaligned'],dimang:['dan','dimangular'],dimrad:['dra','dimradius'],dimdia:['ddi','dimdiameter'],dimcont:['dco','dimcontinue'],dimbase:['dba','dimbaseline'],block:['block','bmake','bl'],insert:['i','insert','ddinsert'],attdef:['att','attdef']});
+  Object.assign(TYPE_NAME,{insert:'บล็อก',attdef:'แอตทริบิวต์ (ATTDEF)'});
+  ORDER.push('insert','attdef');NEEDSEL.push('block');
+  TEXTK.push('al','fb','fi','bg','ds','tov','tag','prm','def','name');}
+const ALOPT=[['l','ชิดซ้าย'],['c','กึ่งกลาง'],['r','ชิดขวา']],DSOPT=[],BLKOPT=[];
+D.text=Object.assign({al:'c'},D.text||{});D.mtext={size:0.18,al:'l'};D.attdef={tag:'TAG',prm:'',def:'',size:0.18,rot:0};D.insert={name:'',sc:1,rot:0};D.hatch=Object.assign(D.hatch||{},{mode:'pick',hang:0});
+FIELDS.text=[['ข้อความ','s','text'],['ความสูงตัวอักษร (ม.)','size'],['มุมหมุน (°)','rot'],['จัดแนวบรรทัด','al','sel',ALOPT],['ความกว้างกรอบ (ม.) — 0 = ไม่ตัดบรรทัด','mw'],['ระยะบรรทัด (เท่า ปกติ 1.4)','ls'],['ตัวหนา','fb','sel',[['','ไม่'],['1','ใช่']]],['ตัวเอียง','fi','sel',[['','ไม่'],['1','ใช่']]],['พื้นหลังทึบ (Mask)','bg','sel',[['','ไม่'],['1','ใช่']]]];
+FIELDS.mtext=[['ความสูงตัวอักษร (ม.)','size'],['จัดแนวบรรทัด','al','sel',ALOPT]];
+FIELDS.dim=[['รูปแบบบอกระยะ (Dim style)','ds','sel',DSOPT],['ข้อความแทน (<> = ค่าที่วัด)','tov','text'],['ระยะห่างเส้น / รัศมีส่วนโค้ง (ม.)','off']];
+FIELDS.attdef=[['Tag (ชื่อแอตทริบิวต์)','tag','text'],['ข้อความถามตอนแทรก','prm','text'],['ค่าเริ่มต้น','def','text'],['ความสูงตัวอักษร (ม.)','size'],['มุมหมุน (°)','rot']];
+FIELDS.insert=[['บล็อก','name','sel',BLKOPT],['มาตราส่วน','sc'],['มุมหมุน (°)','rot']];
+if(FIELDS.hatch){FIELDS.hatch=FIELDS.hatch.filter(f=>f[1]!=='mode'&&f[1]!=='hang');FIELDS.hatch.unshift(['วิธีกำหนดขอบเขต','mode','sel',[['pick','คลิกจุดภายในพื้นที่ปิด (Pick point)'],['poly','คลิกจุดรอบรูปเอง']]]);FIELDS.hatch.push(['มุมลาย (°)','hang'])}
+// ================= TEXT
+const TXM=document.createElement('canvas').getContext('2d');
+const tFont=(e,px)=>(e.fi==='1'?'italic ':'')+(e.fb==='1'?'700 ':'500 ')+px.toFixed(2)+'px '+DFF;
+const isRich=e=>e.type==='text'&&e.lv!=='1'&&(String(e.s??'').includes('\n')||+e.mw>0||(e.al&&e.al!=='c')||e.bg==='1'||e.fb==='1'||e.fi==='1'||+e.ls>0);
+function tWrap(e){const size=+e.size||0.18,raw=String(e.s??'').split('\n');if(!(+e.mw>0))return raw;TXM.font=tFont(e,100*FSZ);const k=size/100,out=[];
+  raw.forEach(line=>{if(!line){out.push('');return}let cur='';for(const ch of [...line]){const t=cur+ch;if(cur&&TXM.measureText(t).width*k>+e.mw){const sp=cur.lastIndexOf(' ');if(sp>0){out.push(cur.slice(0,sp));cur=cur.slice(sp+1)+ch}else{out.push(cur);cur=ch}}else cur=t}out.push(cur)});return out}
+{const _tb=textBox;textBox=function(e){if(!isRich(e))return _tb(e);const size=+e.size||0.18,L=tWrap(e);TXM.font=tFont(e,100*FSZ);let w=0;L.forEach(s=>{w=Math.max(w,TXM.measureText(s).width*size/100)});if(+e.mw>0)w=Math.max(w,+e.mw);return{w:Math.max(w,size*0.6),h:size*(1+(L.length-1)*(+e.ls||1.4))}}}
+function drawRichText(e,mode){const ov=mode==='s',ul=mode==='u',size=+e.size||0.18,px=size*view.s;if(px<2)return;const L=tWrap(e),b=textBox(e),ls=+e.ls||1.4,s=ws(e.p),W=b.w*view.s,H=b.h*view.s;
+  g.save();g.translate(s.x,s.y);g.rotate(-rad(e.rot||0));if(e.bg==='1'&&!ov){g.fillStyle=C['cv-bg'];g.fillRect(-W/2-px*0.25,-H/2-px*0.2,W+px*0.5,H+px*0.4)}
+  g.font=tFont(e,px*FSZ);g.textBaseline='middle';g.fillStyle=ov?C['sel']:ul?C['cv-under']:C['ink'];const al=e.al||'c';g.textAlign=al==='l'?'left':al==='r'?'right':'center';const x=al==='l'?-W/2:al==='r'?W/2:0;
+  L.forEach((t,i)=>g.fillText(t,x,-H/2+px/2+i*px*ls));if(ov){g.strokeStyle=C['sel'];g.lineWidth=1;g.setLineDash([3,3]);g.strokeRect(-W/2,-H/2,W,H);g.setLineDash([])}g.restore()}
+// in-place editor (DTEXT continues line by line, MTEXT box; Ctrl+Enter ends MTEXT)
+let TED=null;
+function tedOpen(o){tedClose(true);const e=o.id?byId(o.id):null,src=e||o,size=+src.size||0.18,px=Math.max(13,size*view.s*FSZ),ta=document.createElement('textarea');ta.id='tedit';ta.spellcheck=false;ta.value=e?String(e.s??''):'';
+  ta.style.font=tFont(src,px);ta.style.textAlign=({l:'left',r:'right'})[src.al]||(o.multi?'left':'center');let left,top,wpx;
+  if(e){const b=textBox(e),s=ws(e.p);wpx=Math.max(160,b.w*view.s+40);left=s.x-wpx/2;top=s.y-b.h*view.s/2-6}else if(o.box){const a=ws({x:o.box.x0,y:o.box.y1});left=a.x;top=a.y;wpx=Math.max(120,(o.box.x1-o.box.x0)*view.s)}else{const s=ws(o.p);wpx=220;left=s.x-wpx/2;top=s.y-px*0.8}
+  Object.assign(ta.style,{left:left+'px',top:top+'px',width:wpx+'px'});$('#v2wrap').appendChild(ta);const fit=()=>{ta.style.height='auto';ta.style.height=(ta.scrollHeight+2)+'px'};ta.addEventListener('input',fit);fit();
+  ta.addEventListener('keydown',ev=>{ev.stopPropagation();if(ev.key==='Escape'){ev.preventDefault();tedClose(false);return}
+    if(ev.key==='Enter'&&((!TED.multi&&!ev.shiftKey)||(TED.multi&&(ev.ctrlKey||ev.metaKey)))){ev.preventDefault();const t=TED,cont=t.dtext&&ta.value.trim()!=='';tedClose(true);
+      if(cont){const np=add(t.p,rotP({x:0,y:-(+t.size||0.18)*1.4},{x:0,y:0},rad(+t.rot||0)));tedOpen({...t,p:np,id:null})}}});
+  ta.addEventListener('blur',()=>setTimeout(()=>{if(TED&&TED.ta===ta)tedClose(true)},0));
+  TED={...o,ta};setTimeout(()=>{ta.focus();if(e)ta.select()},0);updatePrompt()}
+function tedClose(commit){if(!TED)return;const t=TED;TED=null;const v=t.ta.value.replace(/\s+$/,'');t.ta.remove();let out=null;
+  if(commit){if(t.id){const e=byId(t.id);if(e&&v!==String(e.s??'')){if(!v.trim())mutate(()=>{S.els=S.els.filter(x=>x!==e);sel.delete(e.id)});else mutate(()=>{e.s=v})}}
+    else if(v.trim()){const e={id:nid(),type:'text',level:cur,p:cp(t.p),s:v,size:+t.size||0.18,rot:+t.rot||0};if(t.al&&t.al!=='c')e.al=t.al;if(+t.mw>0)e.mw=r3(+t.mw);
+      if(t.box){const b=textBox(e);e.p={x:r3(t.box.x0+b.w/2),y:r3(t.box.y1-b.h/2)}}addEl(e);out=e}}
+  updatePrompt();draw2();return out}
+// ================= DIMENSIONS
+const DSDEF={txs:0,txp:11.5,arr:'tick',asz:0.1,unit:'m',prec:2,aprec:0,exo:0.12,exe:0.15,gap:0.06,dli:0.5,sfx:'',scl:1};
+function dimSt(){if(!S.dimst||typeof S.dimst!=='object')S.dimst={cur:'Standard',st:{}};const Q=S.dimst;if(!Q.st||typeof Q.st!=='object')Q.st={};if(!Q.st.Standard)Q.st.Standard={...DSDEF};if(!Q.st[Q.cur])Q.cur='Standard';return Q}
+function dsOf(e){const Q=dimSt();return Object.assign({},DSDEF,Q.st[e&&e.ds&&Q.st[e.ds]?e.ds:'Standard'])}
+function dsOptRefresh(){DSOPT.length=0;Object.keys(dimSt().st).forEach(n=>DSOPT.push([n,n]))}
+let LASTDIM=null;
+{const _dg=dimGeom;dimGeom=function(e){const k=e.kind;
+  if(k==='h'||k==='v'){const hz=k==='h',u=hz?{x:e.b.x>=e.a.x?1:-1,y:0}:{x:0,y:e.b.y>=e.a.y?1:-1},n=perp(u),o=+e.off||0,p1=hz?{x:e.a.x,y:e.a.y+n.y*o}:{x:e.a.x+n.x*o,y:e.a.y},p2=hz?{x:e.b.x,y:p1.y}:{x:p1.x,y:e.b.y};return{u,n,p1,p2}}
+  if(k==='rad'||k==='dia'){const u=nrm(sub(e.b,e.a));return{u,n:perp(u),p1:cp(e.a),p2:cp(e.b)}}
+  if(k==='ang'&&e.c){const r=Math.abs(+e.off||1),q1=add(e.c,mul(nrm(sub(e.a,e.c)),r)),q2=add(e.c,mul(nrm(sub(e.b,e.c)),r)),u=nrm(sub(q2,q1));return{u,n:perp(u),p1:q1,p2:q2}}
+  return _dg(e)}}
+function angSpan(e){let A1=deg(Math.atan2(e.a.y-e.c.y,e.a.x-e.c.x)),A2=deg(Math.atan2(e.b.y-e.c.y,e.b.x-e.c.x)),sw=normA(A2-A1);if(sw>180){const t=A1;A1=A2;A2=t;sw=360-sw}return{A1,A2,sw}}
+function dimText(e){const st=dsOf(e),k=e.kind||'al';let s;
+  if(k==='ang')s=angSpan(e).sw.toFixed(Math.max(0,Math.min(4,+st.aprec||0)))+'°';
+  else{const d=dimGeom(e),v=(k==='rad'||k==='dia'?dist(e.a,e.b):dist(d.p1,d.p2))*({m:1,cm:100,mm:1000}[st.unit]||1);s=v.toFixed(Math.max(0,Math.min(4,+st.prec)))+(st.sfx||'');if(k==='rad')s='R'+s;if(k==='dia')s='Ø'+s}
+  const t=e.tov;return t!=null&&String(t)!==''?(String(t).includes('<>')?String(t).replace('<>',s):String(t)):s}
+function dimArrow(P,dir,st,ov){const W=+st.txs>0,sc=+st.scl||1,t=st.arr||'tick',L=W?Math.max(2,(+st.asz||0.1)*sc*view.s):(t==='tick'?4:9);g.save();g.setLineDash([]);
+  if(t==='tick'){const c=0.7071,v={x:dir.x*c+dir.y*c,y:-dir.x*c+dir.y*c},h=W?L*0.7071:5.66;g.lineWidth=ov?2.5:1.6;g.beginPath();g.moveTo(P.x-v.x*h,P.y-v.y*h);g.lineTo(P.x+v.x*h,P.y+v.y*h);g.stroke()}
+  else if(t==='dot'){g.beginPath();g.arc(P.x,P.y,L*0.35,0,7);g.fill()}
+  else{const B={x:P.x-dir.x*L,y:P.y-dir.y*L},n={x:-dir.y,y:dir.x},w=L*0.28;g.beginPath();g.moveTo(B.x+n.x*w,B.y+n.y*w);g.lineTo(P.x,P.y);g.lineTo(B.x-n.x*w,B.y-n.y*w);if(t==='arrow'){g.closePath();g.fill()}else{g.lineWidth=ov?2:1;g.stroke()}}g.restore()}
+const sdir=(A,B)=>{const d={x:B.x-A.x,y:B.y-A.y},l=Math.hypot(d.x,d.y)||1;return{x:d.x/l,y:d.y/l}};
+const readable=a=>{if(a>Math.PI/2)a-=Math.PI;if(a<-Math.PI/2)a+=Math.PI;return a};
+function drawDimX(e,mode){const ov=mode==='s',ul=mode==='u',st=dsOf(e),k=e.kind||'al',sc=+st.scl||1,W=+st.txs>0,col=ov?C['sel']:ul?C['cv-under']:C['cv-dim'];
+  g.save();g.strokeStyle=col;g.fillStyle=col;g.lineWidth=ov?2:0.9;g.setLineDash([]);
+  const tsz=W?(+st.txs*sc*view.s/(TSC||1)):(+st.txp||11.5),showT=!W||tsz*TSC>=2,goff=W?((+st.gap||0)*sc+(+st.txs)*sc/2)*view.s:8,T0=dimText(e),ex=(+st.exo||0)*sc,ee=(+st.exe||0)*sc;
+  const tAt=(m,ang)=>{if(!showT)return;const o=perp({x:Math.cos(ang),y:Math.sin(ang)});txt(T0,{x:m.x-o.x*goff,y:m.y-o.y*goff},{c:col,size:tsz,rot:ang})};
+  if(k==='al'||k==='h'||k==='v'){const d=dimGeom(e);[[e.a,d.p1],[e.b,d.p2]].forEach(([o,p])=>{let dv=sub(p,o);const L=len(dv);dv=L>1e-9?mul(dv,1/L):mul(d.n,Math.sign(+e.off||1));seg(add(o,mul(dv,Math.min(ex,L))),add(p,mul(dv,ee)))});
+    seg(d.p1,d.p2);const P1=ws(d.p1),P2=ws(d.p2),du=sdir(P1,P2);dimArrow(P1,{x:-du.x,y:-du.y},st,ov);dimArrow(P2,du,st,ov);tAt(ws(lerp(d.p1,d.p2,.5)),readable(-Math.atan2(d.u.y,d.u.x)))}
+  else if(k==='rad'||k==='dia'){seg(e.a,e.b);const A=ws(e.a),B=ws(e.b),du=sdir(A,B);dimArrow(B,du,st,ov);if(k==='dia')dimArrow(A,{x:-du.x,y:-du.y},st,ov);
+    if(e.tl){const end=k==='dia'&&dist(e.tl,e.a)<dist(e.tl,e.b)?e.a:e.b;seg(end,e.tl);const Ts=ws(e.tl),left=Ts.x<ws(end).x;if(showT)txt(T0,{x:Ts.x+(left?-4:4),y:Ts.y},{c:col,size:tsz,al:left?'right':'left'})}
+    else tAt(ws(lerp(e.a,e.b,k==='dia'?.5:.55)),readable(-Math.atan2(e.b.y-e.a.y,e.b.x-e.a.x)))}
+  else if(k==='ang'&&e.c){const{A1,sw}=angSpan(e),r=Math.abs(+e.off||1),cs=ws(e.c);g.beginPath();g.arc(cs.x,cs.y,r*view.s,-rad(A1),-rad(A1+sw),true);g.stroke();
+    [[A1,1],[A1+sw,-1]].forEach(([A,s0])=>{const u={x:Math.cos(rad(A)),y:Math.sin(rad(A))},q=add(e.c,mul(u,r)),src=dist(e.a,add(e.c,mul(u,dist(e.a,e.c))))<1e-6?e.a:e.b,L=dist(src,e.c);if(L+ex<r)seg(add(e.c,mul(u,L+ex)),add(q,mul(u,ee)));
+      const P=ws(q),dir=s0>0?{x:Math.sin(rad(A)),y:Math.cos(rad(A))}:{x:-Math.sin(rad(A)),y:-Math.cos(rad(A))};dimArrow(P,dir,st,ov)});
+    const Am=A1+sw/2,um={x:Math.cos(rad(Am)),y:Math.sin(rad(Am))},m=ws(add(e.c,mul(um,r)));if(showT){const ang=readable(-rad(Am-90));txt(T0,{x:m.x+um.x*goff*1.3,y:m.y-um.y*goff*1.3},{c:col,size:tsz,rot:ang})}}
+  g.restore()}
+{const _go=gripsOf;gripsOf=function(e){if(e.type!=='dim'||!e.kind||e.kind==='al')return _go(e);const k=e.kind,G=[{p:e.a,set:(el,q)=>{el.a=cp(q)}},{p:e.b,set:(el,q)=>{el.b=cp(q)}}];
+  if(k==='h'||k==='v'){const dg=dimGeom(e);G.push({p:lerp(dg.p1,dg.p2,.5),set:(el,q)=>{const d=dimGeom(el);el.off=r3(k==='h'?(q.y-el.a.y)/d.n.y:(q.x-el.a.x)/d.n.x)}})}
+  if(k==='ang'&&e.c){G.push({p:e.c,set:(el,q)=>{el.c=cp(q)}});const sp=angSpan(e),Am=sp.A1+sp.sw/2;G.push({p:add(e.c,mul({x:Math.cos(rad(Am)),y:Math.sin(rad(Am))},Math.abs(+e.off||1))),set:(el,q)=>{el.off=r3(dist(q,el.c))}})}
+  if((k==='rad'||k==='dia')&&e.tl)G.push({p:e.tl,set:(el,q)=>{el.tl=cp(q)}});return G}}
+function mkDim(a,b,loc,mode){let kind='al',off;
+  if(mode==='lin'){const x0=Math.min(a.x,b.x),x1=Math.max(a.x,b.x),y0=Math.min(a.y,b.y),y1=Math.max(a.y,b.y),dxo=Math.max(0,x0-loc.x,loc.x-x1),dyo=Math.max(0,y0-loc.y,loc.y-y1);
+    kind=(dxo===0&&dyo===0)?(Math.abs(b.x-a.x)>=Math.abs(b.y-a.y)?'h':'v'):(dyo>=dxo?'h':'v');if(kind==='h'&&Math.abs(b.x-a.x)<1e-6)kind='v';if(kind==='v'&&Math.abs(b.y-a.y)<1e-6)kind='h';
+    const n=dimGeom({a,b,kind,off:1}).n;off=kind==='h'?(loc.y-a.y)/n.y:(loc.x-a.x)/n.x}
+  else off=dot(sub(loc,a),perp(nrm(sub(b,a))));return{id:nid(),type:'dim',level:cur,a:cp(a),b:cp(b),off:r3(off),kind,ds:dimSt().cur}}
+function contDim(prev,p,base){const k=prev.kind||'al',st=dsOf(prev),g0=dimGeom(prev),a=cp(base?base.a:prev.b);let lineP=g0.p1;
+  if(base){let dv=sub(g0.p1,prev.a);dv=len(dv)>1e-9?nrm(dv):mul(g0.n,Math.sign(+prev.off||1));lineP=add(g0.p1,mul(dv,(+st.dli||0.5)*(+st.scl||1)))}
+  const e={id:nid(),type:'dim',level:prev.level||cur,a,b:cp(p),kind:k,ds:prev.ds||dimSt().cur,off:0};if(dist(a,p)<1e-6)return null;
+  if(k==='h'||k==='v'){const n=dimGeom({...e,off:1}).n;e.off=r3(k==='h'?(lineP.y-a.y)/n.y:(lineP.x-a.x)/n.x)}else e.off=r3(dot(sub(lineP,a),perp(nrm(sub(e.b,e.a)))));return e}
+function mkAng(c,pa,pb,loc,flip){let r1=nrm(sub(pa,c)),r2=nrm(sub(pb,c));if(flip){const la=deg(Math.atan2(loc.y-c.y,loc.x-c.x));let best=null;
+    [[1,1],[-1,1],[1,-1],[-1,-1]].forEach(([s1,s2])=>{const u1=mul(r1,s1),u2=mul(r2,s2);const t={c,a:add(c,u1),b:add(c,u2)},sp=angSpan(t);if(angIn(la,normA(sp.A1),normA(sp.A1+sp.sw))&&!best)best=[u1,u2]});if(best){r1=best[0];r2=best[1]}}
+  return{id:nid(),type:'dim',level:cur,kind:'ang',c:cp(c),a:R3P(add(c,mul(r1,Math.max(0.5,dist(pa,c))))),b:R3P(add(c,mul(r2,Math.max(0.5,dist(pb,c))))),off:r3(Math.max(0.05,dist(loc,c))),ds:dimSt().cur}}
+// ================= HATCH: pick-point boundary detection + pattern angle
+function regionSegs(){const segs=[],A=(a,b)=>{if(dist(a,b)>1e-6)segs.push([a,b])},P4=(P,closed=true)=>{const n=P.length,m=closed?n:n-1;for(let i=0;i<m;i++)A(P[i],P[(i+1)%n])},CIR=(c,r,a0=0,sw=360)=>{const n=Math.max(8,Math.ceil(sw/7.5)),P=[];for(let i=0;i<=n;i++){const a=rad(a0+sw*i/n);P.push({x:c.x+r*Math.cos(a),y:c.y+r*Math.sin(a)})}P4(P,false)};
+  const one=e=>{if(e.type==='line')A(e.a,e.b);else if(e.type==='pline'&&!e.hatch&&e.leader!=='1'&&e.cloud!=='1'&&e.pts&&e.pts.length>1)P4(e.pts,!!e.closed);
+    else if(e.type==='circle')CIR(e.c,e.r);else if(e.type==='arc')CIR(e.c,e.r,e.a0,normA(e.a1-e.a0)||360);else if(e.type==='wall')wallPolys(e).forEach(P=>P4(P));
+    else if(e.type==='column'){if(e.shape==='circle')CIR(e.p,e.w/2);else P4(rectPts(e.p,e.w,e.d,e.rot))}else if(e.type==='insert')insKids(e).forEach(one)};
+  S.els.forEach(e=>{if(!onLevel(e)||hiddenInDisc(e)||!layOn(e))return;try{one(e)}catch(_){}});return segs}
+function findRegion(p){const segs=regionSegs();if(segs.length<3)return null;const n=segs.length,ts=segs.map(()=>[0,1]),K=q=>Math.round(q.x*1e4)+','+Math.round(q.y*1e4);
+  const bb=segs.map(([a,b])=>[Math.min(a.x,b.x)-1e-6,Math.max(a.x,b.x)+1e-6,Math.min(a.y,b.y)-1e-6,Math.max(a.y,b.y)+1e-6]);
+  for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){const A=bb[i],B=bb[j];if(A[1]<B[0]||B[1]<A[0]||A[3]<B[2]||B[3]<A[2])continue;const[a,b]=segs[i],[c,d]=segs[j],r=sub(b,a),s=sub(d,c),den=crs(r,s);
+    if(Math.abs(den)>1e-12){const t=crs(sub(c,a),s)/den,u=crs(sub(c,a),r)/den;if(t>-1e-9&&t<1+1e-9&&u>-1e-9&&u<1+1e-9){ts[i].push(t);ts[j].push(u)}}
+    else if(Math.abs(crs(r,sub(c,a)))<1e-7*Math.max(1,len(r))){const L2=dot(r,r)||1e-12,S2=dot(s,s)||1e-12;[c,d].forEach(q=>{const t=dot(sub(q,a),r)/L2;if(t>1e-9&&t<1-1e-9)ts[i].push(t)});[a,b].forEach(q=>{const u=dot(sub(q,c),s)/S2;if(u>1e-9&&u<1-1e-9)ts[j].push(u)})}}
+  const V=new Map(),E=new Map(),adj=new Map(),vid=q=>{const k=K(q);if(!V.has(k))V.set(k,{x:q.x,y:q.y});return k};
+  segs.forEach(([a,b],i)=>{const T2=[...new Set(ts[i].map(t=>Math.min(1,Math.max(0,t))))].sort((x,y)=>x-y);for(let m=0;m<T2.length-1;m++){const k1=vid(lerp(a,b,T2[m])),k2=vid(lerp(a,b,T2[m+1]));if(k1===k2)continue;const ek=k1<k2?k1+'|'+k2:k2+'|'+k1;if(E.has(ek))continue;E.set(ek,[k1,k2]);
+    if(!adj.has(k1))adj.set(k1,[]);if(!adj.has(k2))adj.set(k2,[]);adj.get(k1).push(k2);adj.get(k2).push(k1)}});
+  const ang=(k1,k2)=>{const a=V.get(k1),b=V.get(k2);return Math.atan2(b.y-a.y,b.x-a.x)};adj.forEach((ns,k)=>ns.sort((x,y)=>ang(k,x)-ang(k,y)));
+  const hits=[];E.forEach(([k1,k2])=>{const A=V.get(k1),B=V.get(k2);if((A.y>p.y)===(B.y>p.y))return;const x=A.x+(p.y-A.y)*(B.x-A.x)/(B.y-A.y);if(x>p.x)hits.push({x,k1,k2,A,B})});hits.sort((a,b)=>a.x-b.x);
+  for(const h of hits.slice(0,60)){let[u,v]=crs(sub(h.B,h.A),sub(p,h.A))>0?[h.k1,h.k2]:[h.k2,h.k1];const su=u,sv=v,ring=[];let guard=0;
+    do{ring.push(u);const ns=adj.get(v),i=ns.indexOf(u),w=ns[(i-1+ns.length)%ns.length];u=v;v=w}while(!(u===su&&v===sv)&&++guard<20000);
+    let pts=ring.map(k=>V.get(k));let ch=true;while(ch&&pts.length>3){ch=false;for(let i=0;i<pts.length;i++){const a=pts[(i-1+pts.length)%pts.length],c=pts[(i+1)%pts.length];if(dist(a,c)<1e-6){pts.splice(i,1);pts.splice(i%pts.length,1);ch=true;break}}}
+    if(pts.length<3)continue;if(polyAreaS(pts)>1e-9&&inPoly(p,pts))return pts.map(R3P)}return null}
+const polyAreaS=P=>{let s=0;P.forEach((q,i)=>{const r=P[(i+1)%P.length];s+=q.x*r.y-r.x*q.y});return s/2};
+{const _hd=hatchDraw;hatchDraw=function(e){const a=+e.hang||0;if(!a||!e.pts||e.pts.length<3)return _hd(e);const B=bbox(e.pts),c={x:(B.x0+B.x1)/2,y:(B.y0+B.y1)/2},s=ws(c);g.save();g.translate(s.x,s.y);g.rotate(-rad(a));g.translate(-s.x,-s.y);try{_hd({...e,pts:e.pts.map(q=>rotP(q,c,-rad(a)))})}finally{g.restore()}}}
+// ================= BLOCKS
+const BLKT=['line','pline','circle','arc','text','dim','attdef'];
+function blkOptRefresh(){BLKOPT.length=0;Object.keys(S.blocks||{}).sort().forEach(n=>BLKOPT.push([n,n]))}
+function insKids(ins){const b=(S.blocks||{})[ins.name];if(!b)return[];const sc=+ins.sc||1,ang=+ins.rot||0,mx=ins.mx==='1',base=b.base||{x:0,y:0},c=Math.cos(rad(ang)),s=Math.sin(rad(ang));
+  const f=q=>{let x=(q.x-base.x)*sc,y=(q.y-base.y)*sc;if(mx)x=-x;return{x:ins.p.x+x*c-y*s,y:ins.p.y+x*s+y*c}};
+  return b.els.map(src=>{const e=clone(src);e.level=ins.level;if(e.type==='attdef'){const v=ins.atts&&ins.atts[e.tag]!=null?ins.atts[e.tag]:e.def;e.type='text';e.s=String(v??'');delete e.tag;delete e.prm;delete e.def}
+    if(e.a)e.a=f(e.a);if(e.b)e.b=f(e.b);if(e.p)e.p=f(e.p);if(e.c)e.c=f(e.c);if(e.tl)e.tl=f(e.tl);if(e.pts)e.pts=e.pts.map(f);if(e.r)e.r=e.r*sc;if(e.size)e.size=e.size*sc;if(e.type==='text'&&+e.mw>0)e.mw=e.mw*sc;
+    if(e.type==='dim'&&e.kind!=='ang')e.off=(+e.off||0)*sc*(mx?-1:1);if(e.type==='dim'&&e.kind==='ang')e.off=(+e.off||0)*sc;
+    if(e.type==='arc'){let a0=e.a0,a1=e.a1;if(mx){const t=normA(180-a1);a1=normA(180-a0);a0=t}e.a0=normA(a0+ang);e.a1=normA(a1+ang)}
+    if(e.type==='text')e.rot=normA((+e.rot||0)+ang);if(e.type==='dim'&&(e.kind==='h'||e.kind==='v')&&Math.round(normA(ang))%180!==0)e.kind='al';return e})}
+function kidSegs(k){const out=[],P=(A)=>{for(let i=0;i<A.length-1;i++)out.push([A[i],A[i+1]])};
+  if(k.type==='line')out.push([k.a,k.b]);else if(k.type==='pline'){P(k.closed?[...k.pts,k.pts[0]]:k.pts)}else if(k.type==='circle'||k.type==='arc'){const sw=k.type==='circle'?360:(normA(k.a1-k.a0)||360),a0=k.type==='circle'?0:k.a0,n=Math.max(8,Math.ceil(sw/10)),A=[];for(let i=0;i<=n;i++)A.push(APT(k.c,k.r,a0+sw*i/n));P(A)}
+  else if(k.type==='text'){const b=textBox(k),R=rectPts(k.p,b.w,b.h,k.rot||0);P([...R,R[0]])}else if(k.type==='dim'){const d=dimGeom(k);out.push([d.p1,d.p2],[k.a,d.p1],[k.b,d.p2])}return out}
+function insDist(e,p){let d=dist(p,e.p);insKids(e).forEach(k=>{if(k.type==='pline'&&k.closed&&k.hatch&&inPoly(p,k.pts))d=0;kidSegs(k).forEach(([a,b])=>{d=Math.min(d,segDist(p,a,b).d)})});return d}
+function attDist(e,p){const b=textBox({type:'text',s:e.tag||'TAG',size:+e.size||0.18}),l=rotP(p,e.p,-rad(e.rot||0));return Math.max(Math.abs(l.x-e.p.x)-b.w/2,Math.abs(l.y-e.p.y)-b.h/2,0)}
+{const _ht=hitTest;hitTest=function(p,tolPx=7,filter){const tol=tolPx/view.s;let best=null,bd=tol;
+  for(const e of S.els){if((e.type!=='insert'&&e.type!=='attdef')||!onLevel(e)||discLocked(e)||!layOn(e)||(filter&&!filter(e)))continue;const d=e.type==='insert'?insDist(e,p):attDist(e,p);if(d<bd){bd=d;best=e}}
+  return best||_ht(p,tolPx,filter)}}
+{const _kp=keyPts;keyPts=function(e){if(e.type!=='insert')return _kp(e);const out=[e.p];insKids(e).forEach(k=>{try{_kp(k).forEach(q=>out.push(q))}catch(_){}});return out}}
+{const _xf=xformEl;xformEl=function(e,X){_xf(e,X);if(e.type==='insert'){if(X.kind==='rot')e.rot=r3(normA((+e.rot||0)+X.ang));if(X.kind==='mir'){e.mx=e.mx==='1'?'':'1';e.rot=r3(normA(2*X.th-(+e.rot||0)+180))}if(X.kind==='scl')e.sc=r3((+e.sc||1)*X.k)}
+  if(e.type==='attdef'){if(X.kind==='rot')e.rot=r3(normA((+e.rot||0)+X.ang));if(X.kind==='scl')e.size=r3((+e.size||0.18)*X.k)}}}
+{const _bs=buildSnaps;buildSnaps=function(){_bs();try{S.els.forEach(e=>{if(e.type!=='insert'||!onLevel(e))return;SNAPS.push({p:cp(e.p),k:'end'});insKids(e).forEach(k=>{if(k.a&&k.type==='line'){SNAPS.push({p:k.a,k:'end'},{p:k.b,k:'end'},{p:lerp(k.a,k.b,.5),k:'mid'})}if(k.pts)k.pts.forEach(q=>SNAPS.push({p:q,k:'end'}));if(k.c&&(k.type==='circle'||k.type==='arc'))SNAPS.push({p:k.c,k:'cen'})})})}catch(err){console.warn(err)}}}
+function nextBlockName(){const B=S.blocks||{};let i=1;while(B['BLOCK'+i])i++;return'BLOCK'+i}
+function makeBlock(ids,base){const els=ids.map(byId).filter(Boolean),ok=els.filter(e=>BLKT.includes(e.type)),skip=els.length-ok.length;
+  if(!ok.length){toast('บล็อกใช้ได้กับ เส้น เส้นต่อ วงกลม ส่วนโค้ง ข้อความ บอกระยะ แรเงา และแอตทริบิวต์ (วัตถุอาคารคงไว้เพื่อ 3D/BOQ)');return false}
+  const name=(prompt('ชื่อบล็อก (BLOCK)',nextBlockName())||'').trim().replace(/[<>\\/:"|?*]/g,'');if(!name)return false;
+  if(S.blocks&&S.blocks[name]&&!confirm('มีบล็อกชื่อ "'+name+'" แล้ว — แทนที่นิยามเดิม? (ทุกจุดที่แทรกไว้จะเปลี่ยนตาม)'))return false;
+  let ins=null;mutate(()=>{S.blocks=S.blocks||{};S.blocks[name]={base:R3P(base),els:ok.map(e=>{const c=clone(e);delete c.id;delete c.level;return c})};const atts={};ok.filter(e=>e.type==='attdef').forEach(a=>{atts[a.tag]=a.def||''});
+    const dead=new Set(ok.map(e=>e.id));S.els=S.els.filter(x=>!dead.has(x.id));ins={id:nid(),type:'insert',level:cur,name,p:R3P(base),sc:1,rot:0,atts};S.els.push(ins);sel.clear();sel.add(ins.id)});
+  blkOptRefresh();D.insert.name=name;toast('สร้างบล็อก "'+name+'" จาก '+ok.length+' ชิ้น'+(skip?' (ข้าม '+skip+' ชิ้นที่เป็นวัตถุอาคาร)':''));return true}
+{const _ex=doExplode;doExplode=function(){const ins=[...sel].map(byId).filter(e=>e&&e.type==='insert');if(!ins.length)return _ex();const kids=[];
+  group(()=>{ins.forEach(e=>{insKids(e).forEach(k=>{k.id=nid();if(e.layer&&!k.layer)k.layer=e.layer;['ocol','olt','olw'].forEach(q=>{if(e[q]&&!k[q])k[q]=e[q]});S.els.push(k);kids.push(k.id)});S.els=S.els.filter(x=>x!==e);sel.delete(e.id)})});
+  const rest=[...sel].filter(id=>byId(id));if(rest.length)_ex();sel.clear();kids.forEach(i=>{if(byId(i))sel.add(i)});toast('ระเบิดบล็อก '+ins.length+' ชุด เป็น '+kids.length+' ชิ้น')}}
+{const _ff=fieldsFor;fieldsFor=function(e){const F=_ff(e);if(e.type!=='insert')return F;const b=(S.blocks||{})[e.name];blkOptRefresh();return F.concat((b?b.els:[]).filter(x=>x.type==='attdef').map(a=>['ค่า '+(a.prm||a.tag),'att:'+a.tag,'text']))}}
+{const _gf=getF;getF=function(e,k){if(typeof k==='string'&&k.startsWith('att:'))return(e.atts||{})[k.slice(4)]??'';return _gf(e,k)}}
+{const _sf=setF;setF=function(e,k,v){if(typeof k==='string'&&k.startsWith('att:')){e.atts=e.atts||{};e.atts[k.slice(4)]=String(v);return}if(e.type==='insert'&&k==='sc'){const n=parseFloat(v);if(n>0)e.sc=n;return}return _sf.apply(this,arguments)}}
+// ================= draw hooks
+{const _de=drawEl;drawEl=function(e,mode){
+  if(e.type==='text'&&isRich(e)){drawRichText(e,mode);return}
+  if(e.type==='dim'){drawDimX(e,mode);return}
+  if(e.type==='insert'){const kids=insKids(e);if(!kids.length){const s=ws(e.p);g.save();g.strokeStyle=mode==='s'?C['sel']:C['muted'];g.strokeRect(s.x-5,s.y-5,10,10);g.restore();return}kids.forEach(k=>{try{drawEl(k,mode)}catch(_){}});return}
+  if(e.type==='attdef'){const t={type:'text',p:e.p,s:e.tag||'TAG',size:+e.size||0.18,rot:e.rot||0,lv:''};g.save();if(mode!=='s')g.globalAlpha*=0.85;_de(t,mode);g.restore();if(!PRINT){const b=textBox(t),s=ws(e.p);g.save();g.translate(s.x,s.y);g.rotate(-rad(e.rot||0));g.strokeStyle=mode==='s'?C['sel']:C['muted'];g.setLineDash([2,2]);g.lineWidth=0.8;g.strokeRect(-b.w/2*view.s-3,-b.h/2*view.s-2,b.w*view.s+6,b.h*view.s+4);g.restore()}return}
+  return _de(e,mode)}}
+{const _ae=addEl;addEl=function(e){if(e&&e.type==='dim'){if(!e.ds)e.ds=dimSt().cur;if(!e.kind||['al','h','v'].includes(e.kind))LASTDIM=e.id}return _ae(e)}}
+// ================= clicks
+const CIRF=e=>e.type==='circle'||e.type==='arc';
+{const _c2=click2;click2=function(p){const t=T.name,q=raw||p,P=T.pts,done=()=>{LASTPT=cp(p);updatePrompt();draw2()};
+  if(t==='text'){tedOpen({p:cp(p),size:+D.text.size||0.18,rot:+D.text.rot||0,al:D.text.al||'c',dtext:true});LASTPT=cp(p);return}
+  if(t==='mtext'){if(!P.length){P.push(cp(p));done();return}const a=P[0];if(Math.abs(a.x-p.x)<1e-3){toast('ลากกรอบให้มีความกว้าง');return}T.pts=[];tedOpen({p:cp(a),box:{x0:Math.min(a.x,p.x),x1:Math.max(a.x,p.x),y0:Math.min(a.y,p.y),y1:Math.max(a.y,p.y)},mw:Math.abs(p.x-a.x),size:+D.mtext.size||0.18,al:D.mtext.al||'l',multi:true});done();return}
+  if(t==='dim'||t==='dimal'){if(P.length<2){if(P.length&&dist(P[0],p)<1e-6)return;P.push(cp(p));done();return}const e=mkDim(P[0],P[1],p,t==='dim'?'lin':'al');T.pts=[];addEl(e);done();return}
+  if(t==='dimcont'||t==='dimbase'){if(!T.ref||!byId(T.ref)){const e=hitTest(q,9,x=>x.type==='dim'&&(!x.kind||['al','h','v'].includes(x.kind)));if(!e){toast('คลิกเส้นบอกระยะเส้นตรงที่จะต่อ');return}T.ref=e.id;T.base=e.id;done();return}
+    const prev=byId(T.ref),base=t==='dimbase'?byId(T.base):null,e=contDim(prev,p,base);if(!e)return;addEl(e);T.ref=e.id;done();return}
+  if(t==='dimrad'||t==='dimdia'){if(!T.ref){const e=hitTest(q,9,CIRF);if(!e){toast('คลิกวงกลมหรือส่วนโค้ง');return}T.ref=e.id;done();return}const c0=byId(T.ref);T.ref=null;if(!c0){done();return}
+    let u=sub(p,c0.c);u=len(u)>1e-9?nrm(u):{x:1,y:0};const out=dist(p,c0.c)>c0.r*1.05,e={id:nid(),type:'dim',level:cur,kind:t==='dimrad'?'rad':'dia',a:t==='dimrad'?cp(c0.c):R3P(add(c0.c,mul(u,-c0.r))),b:R3P(add(c0.c,mul(u,c0.r))),off:0,ds:dimSt().cur};if(out)e.tl=cp(p);addEl(e);done();return}
+  if(t==='dimang'){const A=T.dang||(T.dang={});
+    if(!A.c&&!A.l1&&!A.v){const e=hitTest(q,9,x=>SEGT.includes(x.type));if(e)A.l1={id:e.id,p:cp(q)};else A.v=cp(p);done();return}
+    if(A.l1&&!A.c){const e=hitTest(q,9,x=>SEGT.includes(x.type)&&x.id!==A.l1.id);if(!e){toast('คลิกเส้นที่สอง');return}const e1=byId(A.l1.id),X=lineLine(e1.a,e1.b,e.a,e.b);if(!X){toast('สองเส้นขนานกัน');return}A.c=X;A.pa=segDist(A.l1.p,e1.a,e1.b).q;A.pb=segDist(q,e.a,e.b).q;A.flip=true;if(dist(A.pa,X)<1e-6)A.pa=dist(e1.a,X)>dist(e1.b,X)?e1.a:e1.b;if(dist(A.pb,X)<1e-6)A.pb=dist(e.a,X)>dist(e.b,X)?e.a:e.b;done();return}
+    if(A.v&&!A.c){A.c=A.v;A.v=null;A.pa=null;done();return}
+    if(A.c&&!A.pa){A.pa=cp(p);done();return}if(A.c&&!A.pb){A.pb=cp(p);done();return}
+    const e=mkAng(A.c,A.pa,A.pb,p,!!A.flip);T.dang=null;addEl(e);done();return}
+  if(t==='hatch'&&D.hatch.mode!=='poly'){const pts=findRegion(q);if(!pts){toast('ไม่พบพื้นที่ปิดรอบจุดที่คลิก — ตรวจว่าเส้นขอบต่อกันสนิท หรือเปลี่ยนวิธีเป็น คลิกจุดรอบรูปเอง');return}
+    addEl({id:nid(),type:'pline',level:cur,closed:true,hatch:D.hatch.hatch||'ansi31',hsc:+D.hatch.hsc||1,...(+D.hatch.hang?{hang:+D.hatch.hang}:{}),pts});toast('แรเงาแล้ว ('+f2(Math.abs(polyAreaS(pts)))+' ตร.ม.) — คลิกพื้นที่อื่นต่อได้');done();return}
+  if(t==='block'&&T.phase==='base'){const ids=[...sel].filter(id=>byId(id));if(makeBlock(ids,p))setTool('select');done();return}
+  if(t==='insert'){blkOptRefresh();const n=D.insert.name&&(S.blocks||{})[D.insert.name]?D.insert.name:(BLKOPT[0]||[])[0];const b=n&&S.blocks[n];if(!b){toast('ยังไม่มีบล็อก — ใช้คำสั่ง BLOCK สร้างก่อน');return}D.insert.name=n;
+    const atts={};b.els.filter(x=>x.type==='attdef').forEach(a=>{const v=prompt((a.prm||a.tag)+' :',a.def||'');atts[a.tag]=v==null?(a.def||''):v});addEl({id:nid(),type:'insert',level:cur,name:n,p:R3P(p),sc:+D.insert.sc||1,rot:+D.insert.rot||0,atts});done();return}
+  if(t==='attdef'){const tag=String(D.attdef.tag||'TAG').trim().toUpperCase().replace(/\s+/g,'_')||'TAG';addEl({id:nid(),type:'attdef',level:cur,p:R3P(p),tag,prm:D.attdef.prm||'',def:D.attdef.def||'',size:+D.attdef.size||0.18,rot:+D.attdef.rot||0});done();return}
+  return _c2(p)}}
+{const _ok=okStep;okStep=function(){const t=T.name;
+  if(t==='dim'&&T.pts.length===2){addEl({id:nid(),type:'dim',level:cur,a:cp(T.pts[0]),b:cp(T.pts[1]),off:+D.dim.off||0.6,kind:'al',ds:dimSt().cur});T.pts=[];updatePrompt();draw2();return}
+  if(t==='dimang'&&T.dang){T.dang=null;updatePrompt();draw2();return}
+  if(t==='block'&&T.phase==='base'){toast('คลิกจุดฐาน (Base point) ของบล็อก');return}
+  return _ok()}}
+{const _es=escTool;escTool=function(){if(T.dang){T.dang=null;updatePrompt();draw2();return}return _es()}}
+{const _st=setTool;setTool=function(n){if(TED)tedClose(true);_st(n);if((n==='dimcont'||n==='dimbase')&&LASTDIM&&byId(LASTDIM)){T.ref=LASTDIM;T.base=LASTDIM;updatePrompt()}}}
+// double-click a text = edit in place; ED / DDEDIT command
+cv2.addEventListener('dblclick',ev=>{if(T.name!=='select'||!raw)return;const h=hitTest(raw,8);if(!h)return;if(h.type==='text'&&h.lv!=='1'){ev.stopImmediatePropagation();tedOpen({id:h.id})}else if(h.type==='insert'||h.type==='attdef'||h.type==='dim'){ev.stopImmediatePropagation();sel.clear();sel.add(h.id);setTab('props');onSel()}},true);
+// side panel: multi-line text box for the text field; block list for INSERT; dim style picker
+{const _rs=renderSide;renderSide=function(){dsOptRefresh();blkOptRefresh();_rs();try{const P=$('#pane');if(!P)return;
+  const ids=[...sel].filter(id=>byId(id));if(ids.length===1&&T.name==='select'){const e=byId(ids[0]);const inp=P.querySelector('[data-k="s"]');
+    if(e&&e.type==='text'&&inp&&inp.tagName==='INPUT'){const ta=document.createElement('textarea');ta.className=inp.className;ta.id=inp.id;ta.rows=Math.min(8,Math.max(2,String(e.s||'').split('\n').length+1));ta.value=String(e.s??'');ta.style.cssText='width:100%;resize:vertical;font:inherit';inp.replaceWith(ta);
+      ta.addEventListener('change',()=>{const el=byId(ids[0]);if(el)mutate(()=>{el.s=ta.value})});const f=ta.closest('.f');if(f)f.style.gridTemplateColumns='1fr'}}
+  if(T.name==='insert'){const B=S.blocks||{},cnt={};S.els.forEach(e=>{if(e.type==='insert')cnt[e.name]=(cnt[e.name]||0)+1});const names=Object.keys(B).sort();
+    P.insertAdjacentHTML('beforeend',`<h3 style="margin-top:14px">บล็อกในโครงการ (${names.length})</h3>`+(names.length?names.map(n=>`<div class="blkr${D.insert.name===n?' on':''}" data-bn="${esc(n)}"><b>${esc(n)}</b><small>${B[n].els.length} ชิ้น · แทรกแล้ว ${cnt[n]||0}${B[n].els.some(x=>x.type==='attdef')?' · มีแอตทริบิวต์':''}</small>${cnt[n]?'':`<button class="btn sm" data-bp="${esc(n)}" title="ลบนิยามบล็อกที่ไม่ได้ใช้ (PURGE)">ลบ</button>`}</div>`).join(''):'<p class="hint">ยังไม่มีบล็อก — เลือกเส้น/ข้อความ แล้วพิมพ์ BLOCK</p>'));
+    P.querySelectorAll('[data-bn]').forEach(r=>r.addEventListener('click',ev=>{if(ev.target.closest('[data-bp]'))return;D.insert.name=r.dataset.bn;renderSide();draw2()}));
+    P.querySelectorAll('[data-bp]').forEach(b=>b.addEventListener('click',()=>{const n=b.dataset.bp;mutate(()=>{delete S.blocks[n]});if(D.insert.name===n)D.insert.name='';renderSide()}))}
+  if(T.name==='dim'||T.name.startsWith('dim')){P.insertAdjacentHTML('beforeend',`<div class="f"><label>รูปแบบปัจจุบัน</label><select id="dsCurSel">${DSOPT.map(([k])=>`<option${k===dimSt().cur?' selected':''}>${esc(k)}</option>`).join('')}</select></div><div class="acts"><button class="btn" id="dsOpenB">จัดการรูปแบบบอกระยะ (DIMSTYLE)</button></div>`);
+    $('#dsCurSel').onchange=ev=>{dimSt().cur=ev.target.value;changed()};$('#dsOpenB').onclick=()=>openDimStyle()}}catch(err){console.warn(err)}}}
+// ================= DIMSTYLE manager
+let DSSEL=null;
+function openDimStyle(){let d=$('#dsDlg');if(!d){d=document.createElement('dialog');d.id='dsDlg';d.className='laydlg';document.body.appendChild(d)}DSSEL=dimSt().cur;renderDimStyle();if(!d.open)d.showModal?d.showModal():d.setAttribute('open','')}
+function renderDimStyle(){const d=$('#dsDlg');if(!d)return;const Q=dimSt();if(!Q.st[DSSEL])DSSEL=Q.cur;const st=Object.assign({},DSDEF,Q.st[DSSEL]),cnt={};st.tmode=+st.txs>0?1:0;S.els.forEach(e=>{if(e.type==='dim'){const n=e.ds&&Q.st[e.ds]?e.ds:'Standard';cnt[n]=(cnt[n]||0)+1}});
+  const F=(lab,k,type,opts)=>`<div class="f"><label>${lab}</label>${type==='sel'?`<select data-ds="${k}">${opts.map(([v,t])=>`<option value="${v}"${String(st[k])===String(v)?' selected':''}>${t}</option>`).join('')}</select>`:`<input data-ds="${k}" type="${type||'number'}" step="any" value="${esc(String(st[k]))}">`}</div>`;
+  d.innerHTML=`<div class="bqh"><h2>รูปแบบบอกระยะ (Dimension Style Manager)</h2><span style="flex:1"></span><button class="btn" id="dsX">ปิด</button></div>
+  <div class="dsw"><div class="dsl">${Object.keys(Q.st).map(n=>`<div class="dsi${n===DSSEL?' on':''}" data-n="${esc(n)}">${n===Q.cur?'▶ ':''}${esc(n)}<small>${cnt[n]||0}</small></div>`).join('')}
+    <div class="acts"><button class="btn sm pri" id="dsCur">ตั้งเป็นปัจจุบัน</button><button class="btn sm" id="dsNew">ใหม่ (คัดลอก)</button><button class="btn sm" id="dsRen"${DSSEL==='Standard'?' disabled':''}>เปลี่ยนชื่อ</button><button class="btn sm" id="dsDel"${DSSEL==='Standard'?' disabled':''}>ลบ</button></div></div>
+  <div class="dsf"><h3>${esc(DSSEL)}</h3>
+    ${F('ขนาดตัวเลข','tmode','sel',[['0','คงที่บนจอ (พิกเซล) — แบบเดิม'],['1','ตามแบบจริง (เมตร) — ย่อ/ขยายตามสเกล']])}
+    ${+st.txs>0?F('ความสูงตัวเลข (ม.)','txs'):F('ขนาดตัวเลขบนจอ (px)','txp')}
+    ${F('หัวลูกศร','arr','sel',[['tick','ขีดเฉียง (Architectural tick)'],['arrow','ลูกศรทึบ (Closed filled)'],['open','ลูกศรโปร่ง (Open)'],['dot','จุด (Dot)']])}${+st.txs>0?F('ขนาดหัวลูกศร (ม.)','asz'):''}
+    ${F('หน่วย','unit','sel',[['m','เมตร'],['cm','เซนติเมตร'],['mm','มิลลิเมตร']])}${F('ทศนิยม','prec','sel',[[0,'0'],[1,'0.0'],[2,'0.00'],[3,'0.000'],[4,'0.0000']])}${F('ทศนิยมมุม','aprec','sel',[[0,'0°'],[1,'0.0°'],[2,'0.00°']])}
+    ${F('ข้อความต่อท้าย (เช่น " ม.")','sfx','text')}${F('ระยะเว้นเส้นช่วยจากจุดวัด (ม.)','exo')}${F('เส้นช่วยยื่นเลยเส้นบอกระยะ (ม.)','exe')}${+st.txs>0?F('ระยะห่างตัวเลขจากเส้น (ม.)','gap'):''}
+    ${F('ระยะห่างแถวบอกระยะจากฐาน DIMBASELINE (ม.)','dli')}${F('มาตราส่วนรวม (DIMSCALE)','scl')}
+    <p class="hint">ใช้กับเส้นบอกระยะทุกเส้นที่ใช้รูปแบบนี้ทันที • เส้นที่วาดใหม่ใช้รูปแบบปัจจุบัน • เปลี่ยนรูปแบบรายเส้นได้ที่แผงคุณสมบัติ</p></div></div>`;
+  $('#dsX').onclick=()=>d.close();d.querySelectorAll('.dsi').forEach(r=>r.onclick=()=>{DSSEL=r.dataset.n;renderDimStyle()});
+  $('#dsCur').onclick=()=>{Q.cur=DSSEL;changed();renderDimStyle();toast('รูปแบบบอกระยะปัจจุบัน: '+DSSEL)};
+  $('#dsNew').onclick=()=>{let n=(prompt('ชื่อรูปแบบใหม่',DSSEL+' copy')||'').trim();if(!n||Q.st[n])return;mutate(()=>{Q.st[n]=clone(Q.st[DSSEL])});DSSEL=n;renderDimStyle()};
+  $('#dsRen').onclick=()=>{const n=(prompt('ชื่อใหม่',DSSEL)||'').trim();if(!n||Q.st[n]||DSSEL==='Standard')return;const o=DSSEL;mutate(()=>{Q.st[n]=Q.st[o];delete Q.st[o];if(Q.cur===o)Q.cur=n;S.els.forEach(e=>{if(e.ds===o)e.ds=n})});DSSEL=n;renderDimStyle()};
+  $('#dsDel').onclick=()=>{if(DSSEL==='Standard')return;const o=DSSEL;mutate(()=>{delete Q.st[o];if(Q.cur===o)Q.cur='Standard';S.els.forEach(e=>{if(e.ds===o)e.ds='Standard'})});DSSEL='Standard';renderDimStyle()};
+  d.querySelectorAll('[data-ds]').forEach(i=>i.onchange=()=>{const k=i.dataset.ds;mutate(()=>{const s=Q.st[DSSEL];if(k==='tmode'){s.txs=i.value==='1'?(+s.txs>0?s.txs:0.15):0;return}if(['arr','unit','sfx'].includes(k))s[k]=i.value;else{const v=parseFloat(i.value);if(isFinite(v)&&v>=0)s[k]=v}});renderDimStyle()})}
+DSDEF.tmode=0;
+// ================= prompts & overlay
+{const _up=updatePrompt;updatePrompt=function(){const t=T.name,n=T.pts.length;let s=null;
+  if(TED)s=TED.multi?'พิมพ์ข้อความ (Enter = ขึ้นบรรทัดใหม่) • Ctrl+Enter หรือคลิกนอกกรอบ = จบ • Esc ยกเลิก':'พิมพ์ข้อความแล้ว Enter = บรรทัดถัดไป • Enter บนบรรทัดว่าง = จบ • Esc ยกเลิก';
+  else if(T.phase!=='pick'){
+    if(t==='text')s='คลิกจุดวางข้อความ แล้วพิมพ์บนแบบได้เลย';else if(t==='mtext')s=n?'คลิกมุมตรงข้ามของกรอบข้อความ':'คลิกมุมแรกของกรอบข้อความ';
+    else if(t==='dim'||t==='dimal')s=n===0?'คลิกจุดแรกของระยะ':n===1?'คลิกจุดที่สอง':(t==='dim'?'คลิกตำแหน่งเส้นบอกระยะ (ขยับขึ้น/ลง = แนวนอน, ซ้าย/ขวา = แนวตั้ง) • Enter = ระยะห่างมาตรฐาน':'คลิกตำแหน่งเส้นบอกระยะ');
+    else if(t==='dimcont'||t==='dimbase')s=T.ref&&byId(T.ref)?'คลิกจุดถัดไป • Enter จบ':'คลิกเส้นบอกระยะที่จะ'+(t==='dimcont'?'ต่อ':'ใช้เป็นฐาน');
+    else if(t==='dimrad'||t==='dimdia')s=T.ref?'คลิกตำแหน่งเส้นบอกระยะ / ตัวเลข':'คลิกวงกลมหรือส่วนโค้ง';
+    else if(t==='dimang'){const A=T.dang||{};s=!A.c&&!A.l1&&!A.v?'คลิกเส้นแรก (หรือคลิกจุดยอดมุมบนที่ว่าง)':A.l1&&!A.c?'คลิกเส้นที่สอง':A.c&&!A.pa?'คลิกจุดบนแขนมุมที่หนึ่ง':A.c&&!A.pb?'คลิกจุดบนแขนมุมที่สอง':'คลิกตำแหน่งเส้นโค้งบอกมุม'}
+    else if(t==='hatch'&&D.hatch.mode!=='poly')s='คลิกจุดภายในพื้นที่ปิดที่จะแรเงา (Pick internal point) • เปลี่ยนลาย/สเกล/มุม ที่แผงข้าง';
+    else if(t==='block'&&T.phase==='base')s='คลิกจุดฐาน (Base point) ของบล็อก';
+    else if(t==='insert')s='คลิกจุดแทรกบล็อก "'+(D.insert.name||'—')+'" • เปลี่ยนบล็อก/สเกล/มุม ที่แผงข้าง';
+    else if(t==='attdef')s='คลิกตำแหน่งแอตทริบิวต์ "'+(D.attdef.tag||'TAG')+'" • ตั้ง Tag/คำถาม/ค่าเริ่มต้น ที่แผงข้าง'}
+  if(s==null)return _up();const P=$('#prompt');if(!P)return;P.textContent=(CMDN[t]||t.toUpperCase())+' — '+s;if(P.textContent!==LASTPROMPT){LASTPROMPT=P.textContent;log(P.textContent)}}}
+{const _d=draw2;draw2=function(){_d();if(PRINT||g!==G0)return;try{overlay13()}catch(err){console.warn(err)}}}
+function overlay13(){const t=T.name,m=mouse;if(!m)return;g.setTransform(DPR,0,0,DPR,0,0);const ghost=e=>{g.save();g.globalAlpha=0.6;try{drawEl(e,'s')}catch(_){}g.restore();g.setTransform(DPR,0,0,DPR,0,0)};
+  if((t==='dim'||t==='dimal')&&T.pts.length===2)ghost(mkDim(T.pts[0],T.pts[1],m,t==='dim'?'lin':'al'));
+  if((t==='dimcont'||t==='dimbase')&&T.ref&&byId(T.ref)){const e=contDim(byId(T.ref),m,t==='dimbase'?byId(T.base):null);if(e)ghost(e)}
+  if(t==='mtext'&&T.pts.length===1){const a=ws(T.pts[0]),b=ws(m);g.save();g.strokeStyle=C['sel'];g.setLineDash([5,4]);g.strokeRect(Math.min(a.x,b.x),Math.min(a.y,b.y),Math.abs(b.x-a.x),Math.abs(b.y-a.y));g.restore()}
+  if(t==='insert'){const n=D.insert.name&&(S.blocks||{})[D.insert.name]?D.insert.name:(BLKOPT[0]||[])[0];if(n)ghost({type:'insert',name:n,p:m,sc:+D.insert.sc||1,rot:+D.insert.rot||0,atts:{},level:cur})}
+  if(t==='dimang'&&T.dang){const A=T.dang;if(A.c){const s=ws(A.c);g.save();g.strokeStyle=C['sel'];g.lineWidth=1.5;g.beginPath();g.arc(s.x,s.y,5,0,7);g.stroke();g.restore()}if(A.c&&A.pa&&A.pb)ghost(mkAng(A.c,A.pa,A.pb,m,!!A.flip))}
+  if((t==='dimrad'||t==='dimdia')&&T.ref){const c0=byId(T.ref);if(c0){let u=sub(m,c0.c);u=len(u)>1e-9?nrm(u):{x:1,y:0};const e={type:'dim',kind:t==='dimrad'?'rad':'dia',a:t==='dimrad'?c0.c:add(c0.c,mul(u,-c0.r)),b:add(c0.c,mul(u,c0.r)),off:0,ds:dimSt().cur};if(dist(m,c0.c)>c0.r*1.05)e.tl=m;ghost(e)}}}
+// ================= commands, styles, help
+{const extra=[{id:'dimstyle',en:'DIMSTYLE',th:'จัดการรูปแบบบอกระยะ',names:['dimstyle','dst','ddim','dimsty'],run:()=>openDimStyle()},
+  {id:'textedit',en:'TEXTEDIT',th:'แก้ข้อความบนแบบ (ดับเบิลคลิกก็ได้)',names:['ed','ddedit','textedit'],run:()=>pickObj('TEXTEDIT — คลิกข้อความที่จะแก้',e=>{if(e.type==='text')tedOpen({id:e.id});else{sel.clear();sel.add(e.id);setTab('props');onSel();toast('แก้ค่าได้ที่แผงคุณสมบัติ')}})},
+  {id:'purge',en:'PURGE',th:'ลบบล็อกและรูปแบบบอกระยะที่ไม่ได้ใช้',names:['pu','purge'],run:()=>{const used=new Set(S.els.filter(e=>e.type==='insert').map(e=>e.name)),usedD=new Set(S.els.filter(e=>e.type==='dim').map(e=>e.ds||'Standard'));let nb=0,nd=0;
+    mutate(()=>{Object.keys(S.blocks||{}).forEach(n=>{if(!used.has(n)){delete S.blocks[n];nb++}});const Q=dimSt();Object.keys(Q.st).forEach(n=>{if(n!=='Standard'&&n!==Q.cur&&!usedD.has(n)){delete Q.st[n];nd++}})});if(!nb&&!nd)hist.pop();toast('PURGE: ลบบล็อก '+nb+' • รูปแบบบอกระยะ '+nd)}}];
+  const _b=buildCmds;buildCmds=function(){_b();extra.forEach(c=>{if(!CMDLIST.some(x=>x.id===c.id))CMDLIST.push(c)});CMDMAP={};CMDLIST.forEach(c=>c.names.forEach(n=>{if(!CMDMAP[n])CMDMAP[n]=c}))};buildCmds()}
+{const st=document.createElement('style');st.textContent=`#app{grid-template-columns:minmax(0,1fr)}#tools{min-width:0;max-width:100%}#tools .rbody{min-width:0}
+#tedit{position:absolute;z-index:8;min-height:28px;padding:3px 6px;border:1.5px dashed var(--acc);border-radius:4px;background:color-mix(in srgb,var(--cv-bg) 88%,transparent);color:var(--ink);resize:none;overflow:hidden;line-height:1.4;outline:none;box-shadow:0 4px 16px rgba(0,0,0,.25)}
+.blkr{display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--line);border-radius:7px;margin-bottom:5px;cursor:pointer}.blkr.on{border-color:var(--acc);background:var(--accfill)}.blkr b{font-family:ui-monospace,Menlo,Consolas,monospace}.blkr small{flex:1;color:var(--muted)}
+.dsw{display:grid;grid-template-columns:200px 1fr;gap:16px;min-width:min(760px,90vw)}@media(max-width:700px){.dsw{grid-template-columns:1fr}}.dsl{border-right:1px solid var(--line);padding-right:12px}
+.dsi{display:flex;justify-content:space-between;padding:6px 8px;border-radius:6px;cursor:pointer;font-family:ui-monospace,Menlo,Consolas,monospace}.dsi.on{background:var(--accfill);outline:1px solid var(--acc)}.dsi small{color:var(--muted)}.dsf .f{grid-template-columns:1fr 220px}.dsl .acts{flex-wrap:wrap;margin-top:10px}`;document.head.appendChild(st)}
+{const _hh=helpHTML;helpHTML=function(){const T2=(t,b)=>`<details><summary>${t}</summary>${b}</details>`;return _hh()+T2('ใหม่ใน v10.6: ข้อความ บอกระยะ แรเงา และบล็อกแบบ AutoCAD',
+  `<ul><li><b>DT — TEXT</b>: คลิกแล้วพิมพ์บนแบบได้ทันที Enter = บรรทัดถัดไป • <b>T / MT — MTEXT</b>: ลากกรอบ พิมพ์หลายบรรทัด ตัดบรรทัดตามความกว้างกรอบ Ctrl+Enter จบ • ดับเบิลคลิกข้อความเพื่อแก้ (หรือ ED) • ตั้งชิดซ้าย/ขวา ตัวหนา ตัวเอียง พื้นหลังทึบ (Mask) ได้ที่แผงข้าง</li>
+  <li><b>DLI</b> บอกระยะแนวนอน/ตั้ง (คลิกจุดที่ 3 กำหนดตำแหน่ง) • <b>DAL</b> แนวเฉียง • <b>DAN</b> บอกมุม (คลิก 2 เส้น หรือคลิกจุดยอด+2 จุด) • <b>DRA / DDI</b> รัศมี/เส้นผ่านศูนย์กลาง • <b>DCO</b> ต่อเนื่อง • <b>DBA</b> จากฐาน</li>
+  <li><b>DIMSTYLE (DST)</b>: หัวลูกศร หน่วย (ม./ซม./มม.) ทศนิยม ขนาดตัวเลข (คงที่บนจอ หรือตามสเกลแบบ) ข้อความต่อท้าย DIMSCALE • แก้ข้อความแทนค่าวัดได้รายเส้น (&lt;&gt; = ค่าวัด)</li>
+  <li><b>H — HATCH</b>: คลิกจุดภายในพื้นที่ปิด ระบบหาขอบเขตให้เองจากเส้น ผนัง เสา วงกลม • ตั้งมุมลายได้</li>
+  <li><b>BLOCK</b>: เลือกวัตถุ → Enter → คลิกจุดฐาน → ตั้งชื่อ • <b>I — INSERT</b>: เลือกบล็อก สเกล มุม ที่แผงข้าง แล้วคลิกวาง • <b>ATT — ATTDEF</b>: ข้อมูลกำกับในบล็อก ถามค่าตอนแทรก แก้ค่าได้ที่แผงคุณสมบัติ • <b>X</b> ระเบิดบล็อก • <b>PURGE</b> ลบที่ไม่ได้ใช้</li></ul>`)}}
+try{$('#verL').textContent='v10.6'}catch(_){}
 
 // ================= Boot
 {let th=null;try{th=localStorage.getItem('yothacad-theme')}catch(_){}document.documentElement.dataset.theme=th||'cad'}
